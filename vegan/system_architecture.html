@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비건 라이프 큐레이터 - 시스템 아키텍처 (Mermaid)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .diagram-container {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .info-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: #edf2f7;
+            border-radius: 15px;
+        }
+
+        .info-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .card-content {
+            color: #718096;
+            line-height: 1.8;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid #333;
+        }
+
+        .legend-text {
+            font-size: 0.9em;
+            color: #4a5568;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 비건 라이프 큐레이터</h1>
+        <p class="subtitle">Vegan Life Curator - System Architecture</p>
+
+        <div class="diagram-container">
+            <div class="mermaid">
+graph LR
+    subgraph Client["<b>Client Layer</b>"]
+        User[👤 User]
+        MainPage[MainPage]
+        ScanPage[VeganScanPage]
+        ChatPage[ChatbotPage]
+        RecipePage[RecipePage]
+    end
+
+    subgraph Backend["<b>Backend / Orchestration Layer</b>"]
+        Gateway[API Gateway<br/>FastAPI]
+        
+        subgraph Orchestrator["AgentOrchestrator<br/>(Brain of System)"]
+            Master[Master Agent]
+            VeganAgent[VeganScan<br/>Agent]
+            ChatAgent[Chatbot<br/>Agent]
+            RecipeAgent[Recipe<br/>Agent]
+            ProfileAgent[Profile<br/>Agent]
+            NutriAgent[Nutrition<br/>Agent]
+        end
+        
+        LLM[LLM Generator<br/>GPT-4/Claude]
+        Vision[Vision API<br/>GPT-4V/Google]
+    end
+
+    subgraph External["<b>External Services & Data</b>"]
+        Weather[Weather API]
+        Shopping[Shopping Sites]
+        WebSearch[WebSearch Agent]
+        
+        subgraph DataLayer["<b>Data Layer</b>"]
+            SQL[(SQL DB<br/>Users/Products<br/>Recipes/History)]
+            Vector[(Vector DB<br/>Embeddings<br/>RAG System)]
+        end
+    end
+
+    User -->|navigate| MainPage
+    MainPage --> ScanPage
+    MainPage --> ChatPage
+    MainPage --> RecipePage
+    
+    ScanPage -->|POST /scan| Gateway
+    ChatPage -->|POST /chat| Gateway
+    RecipePage -->|GET /recipes| Gateway
+    
+    Gateway -->|route request| Master
+    
+    Master -->|delegate| VeganAgent
+    Master -->|delegate| ChatAgent
+    Master -->|delegate| RecipeAgent
+    Master -->|delegate| ProfileAgent
+    Master -->|delegate| NutriAgent
+    
+    VeganAgent <-->|analyze image| Vision
+    ChatAgent <-->|generate response| LLM
+    RecipeAgent <-->|get recipes| LLM
+    RecipeAgent <-->|weather data| Weather
+    NutriAgent <-->|nutrition calc| LLM
+    
+    VeganAgent -->|search products| WebSearch
+    WebSearch <-->|query| Shopping
+    
+    Master -->|save/load| SQL
+    Master -->|vector search| Vector
+    
+    VeganAgent -->|save scan| SQL
+    ChatAgent -->|save chat| SQL
+    RecipeAgent -->|query recipes| Vector
+    ProfileAgent <-->|user data| SQL
+
+    style Client fill:#e8e8e8
+    style Backend fill:#f5f5f5
+    style External fill:#e8e8e8
+    style Orchestrator fill:#fff,stroke:#333,stroke-width:3px
+    style DataLayer fill:#f0f0f0
+    style Master fill:#667eea,color:#fff
+            </div>
+        </div>
+
+        <!-- 다이어그램 설명 -->
+        <div class="info-section">
+            <div class="info-title">📋 시스템 구성 요소</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">🖥️ Client Layer</div>
+                    <div class="card-content">
+                        • Django Templates 기반 UI<br>
+                        • 메인페이지, 스캔, 챗봇, 레시피 페이지<br>
+                        • RESTful API 호출<br>
+                        • 반응형 디자인
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">🤖 Backend Layer</div>
+                    <div class="card-content">
+                        • FastAPI Gateway<br>
+                        • Multi-Agent Orchestrator<br>
+                        • 6개 전문 에이전트<br>
+                        • LLM/Vision API 통합
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">🌐 External Services</div>
+                    <div class="card-content">
+                        • Weather API (날씨 기반 추천)<br>
+                        • Shopping Sites (가격 비교)<br>
+                        • GPT-4, Claude API<br>
+                        • Google Vision API
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">🗄️ Data Layer</div>
+                    <div class="card-content">
+                        • PostgreSQL (관계형 데이터)<br>
+                        • Vector DB (임베딩)<br>
+                        • RAG System (검색 증강)<br>
+                        • Redis Cache
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent 역할 설명 -->
+        <div class="info-section">
+            <div class="info-title">🎯 Agent 역할</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">🧠 Master Agent</div>
+                    <div class="card-content">
+                        전체 시스템 조율 및 의사결정<br>
+                        요청 분석 → 에이전트 선택 → 결과 통합
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">🔍 VeganScan Agent</div>
+                    <div class="card-content">
+                        제품 이미지 분석 → 성분 추출 (OCR)<br>
+                        비건 여부 판정 → 대안 제품 추천
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">💬 Chatbot Agent</div>
+                    <div class="card-content">
+                        자연어 대화 처리<br>
+                        맞춤 상담 및 추천 제공
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">🍳 Recipe Agent</div>
+                    <div class="card-content">
+                        날씨/TPO 기반 레시피 검색<br>
+                        영양 균형 고려 추천
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">👤 Profile Agent</div>
+                    <div class="card-content">
+                        사용자 프로필 관리<br>
+                        건강정보, 선호도 저장
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">📊 Nutrition Agent</div>
+                    <div class="card-content">
+                        영양 성분 분석<br>
+                        건강 상태 기반 평가
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 데이터 흐름 -->
+        <div class="info-section">
+            <div class="info-title">🔄 주요 데이터 흐름</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">1️⃣ 제품 스캔 플로우</div>
+                    <div class="card-content">
+                        사용자 → 이미지 업로드 → API Gateway<br>
+                        → VeganScan Agent → Vision API (OCR)<br>
+                        → 성분 분석 → DB 조회 → 결과 반환
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">2️⃣ 챗봇 상담 플로우</div>
+                    <div class="card-content">
+                        사용자 질문 → API Gateway<br>
+                        → Chatbot Agent → LLM (GPT-4/Claude)<br>
+                        → RAG Vector Search → 응답 생성
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">3️⃣ 레시피 추천 플로우</div>
+                    <div class="card-content">
+                        사용자 조건 → Recipe Agent<br>
+                        → Weather API + Profile 조회<br>
+                        → Vector DB 검색 → 맞춤 레시피 추천
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 기술 스택 -->
+        <div class="info-section">
+            <div class="info-title">🛠️ Technology Stack</div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">Frontend</div>
+                    <div class="card-content">
+                        Django Templates<br>
+                        HTML5, CSS3, JavaScript<br>
+                        Bootstrap 5
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">Backend</div>
+                    <div class="card-content">
+                        FastAPI (API Gateway)<br>
+                        Django (Web Framework)<br>
+                        Uvicorn (ASGI Server)<br>
+                        SQLAlchemy (ORM)
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">AI/ML</div>
+                    <div class="card-content">
+                        GPT-4, Claude API<br>
+                        LangChain, LangGraph<br>
+                        GPT-4 Vision API<br>
+                        Google Vision API
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">Database</div>
+                    <div class="card-content">
+                        PostgreSQL (Main DB)<br>
+                        FAISS / ChromaDB (Vector)<br>
+                        Redis (Cache)<br>
+                        S3 (File Storage)
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">DevOps</div>
+                    <div class="card-content">
+                        Docker, Docker Compose<br>
+                        GitHub Actions (CI/CD)<br>
+                        AWS / GCP<br>
+                        Nginx (Reverse Proxy)
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="card-title">Monitoring</div>
+                    <div class="card-content">
+                        Prometheus<br>
+                        Grafana<br>
+                        Sentry (Error Tracking)<br>
+                        CloudWatch
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e8e8e8;"></div>
+                <div class="legend-text">Layer Group</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #667eea;"></div>
+                <div class="legend-text">Master Agent</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #fff;"></div>
+                <div class="legend-text">Components</div>
+            </div>
+            <div class="legend-item">
+                <div style="width: 30px; height: 2px; background: #333; border-radius: 0;"></div>
+                <div class="legend-text">Data Flow</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            }
+        });
+    </script>
+</body>
+</html>
