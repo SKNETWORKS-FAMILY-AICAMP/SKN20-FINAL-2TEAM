@@ -92,5 +92,4 @@ result = app.invoke({
     "question": "오늘 비 올까? 우산 가져가야 할까?"
 })
 
-print("\n최종 답변:")
-print(result["answer"])
+print(f"\n최종 {result['answer']}")
