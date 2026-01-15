@@ -1,6 +1,5 @@
-# SK네트웍스 Family AI 과정 12기
+# SK네트웍스 Family AI 과정 20기
 ## 파이널 프로젝트 기획서
-https://docs.google.com/document/d/1CP7ZKgLf8ugUSzO86-rkl-rPmAeJlJf9/edit?usp=sharing&ouid=111860082275416711375&rtpof=true&sd=true
 
 | 항목 | 내용 |
 |------|------|
@@ -16,7 +15,7 @@ https://docs.google.com/document/d/1CP7ZKgLf8ugUSzO86-rkl-rPmAeJlJf9/edit?usp=sh
 
 ### 1.1 프로젝트명
 
-**STYLEMIND** - 멀티 에이전트 기반 개인화 패션 추천 시스템
+**STYLEMIND/코디라이프** - 멀티 에이전트 기반 개인화 패션 추천 시스템
 
 ### 1.2 프로젝트 정의
 
@@ -26,7 +25,6 @@ https://docs.google.com/document/d/1CP7ZKgLf8ugUSzO86-rkl-rPmAeJlJf9/edit?usp=sh
 
 - **멀티 에이전트 아키텍처**: 역할 분리된 전문 에이전트 협업
 - **LangGraph 기반 Orchestration**: 사고 흐름 그래프 구현
-- **MCP(Model Context Protocol)**: 표준화된 외부 시스템 연동
 - **상태 기반 추론**: 공용 State를 통한 맥락 누적 및 재검증
 - **개인화 추천**: TPO, 날씨, 옷장, 체형, 취향 종합 분석
 
@@ -68,7 +66,9 @@ VTO로 정장을 입혀봤는데 핏이 완벽했습니다. 하지만 그날이 
 | **TPOAgent** | 사용 목적 및 상황 추론 (업무, 데이트, 캐주얼 등) |
 | **WardrobeAgent** | 개인 옷장 및 과거 착용 이력 분석 |
 | **StyleEvalAgent** | 코디 조합의 적합성 평가 및 점수화 |
-| **ProductAgent** | 외부 쇼핑 데이터 탐색 및 상품 메타데이터 수집 |
+| **ProductAgent** | 상품 메타데이터 수집 및 정리 |
+| **WebSearchAgent** | 쇼핑 사이트 검색, 외부 상품 정보 수집(최신정보) |
+| **LLMGenerator** | 수집된 맥락과 추천 결과를 바탕으로 자연어 응답 생성 |
 
 ### 3.2 LangGraph 기반 Orchestrator
 
@@ -80,11 +80,11 @@ VTO로 정장을 입혀봤는데 핏이 완벽했습니다. 하지만 그날이 
 
 **전체 시스템 구조**
 
-![시스템 아키텍처](media/architecture.png)
+![시스템 아키텍처](media/image2.png)
 
 **상세 에이전트 흐름도**
 
-![시퀀스 다이어그램](media/sequence.png)
+![시퀀스 다이어그램](media/image1.png)
 
 ### 3.4 데이터 플로우 설계
 
@@ -96,9 +96,7 @@ VTO로 정장을 입혀봤는데 핏이 완벽했습니다. 하지만 그날이 
 
 ### 4.1 설명 가능한 추천 (Explainable Recommendation)
 
-단순히 상품 링크를 나열하는 것이 아니라, **추천의 논리적 근거(Why)**를 함께 제시합니다.
-
-WeatherAgent와 TPOAgent의 분석 결과를 바탕으로 **"오후에 습도가 높으니 린넨 소재를 추천합니다"**와 같이 사용자를 설득할 수 있는 맥락을 제공합니다. 단순 쇼핑몰 검색과 퍼스널 스타일리스트의 차이입니다.
+단순히 상품 링크를 나열하는 것이 아니라, **추천의 논리적 근거(Why)**를 함께 제시합니다. 개인 프로필을 바탕으로 WeatherAgent와 TPOAgent의 분석 결과를 바탕으로 **"오후에 습도가 높으니 린넨 소재를 추천합니다"**와 같이 사용자를 설득할 수 있는 맥락을 제공합니다. 단순 쇼핑몰 검색과 퍼스널 스타일리스트의 차이입니다.
 
 ### 4.2 에이전트 협업 지능 (Agentic Orchestration)
 
