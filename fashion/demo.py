@@ -27,7 +27,7 @@ def router(state: State):
     need_search = "Yes" in result
     return {"need_search": need_search}
 
-# 날ㄱ씨 정보(지금은 데모라 가짜)
+# 날씨 정보(지금은 데모라 가짜)
 def search(state: State):
     fake_context = "오늘 서울에는 비가 올 가능성이 있습니다."
     return {"context": fake_context}
@@ -42,7 +42,7 @@ def answer(state: State):
     result = llm.invoke(prompt).content
     return {"answer": result}
 
-# 거ㅁ증
+# 검증
 def verify(state: State):
     prompt = f"""
     다음 답변이 질문에 적절한가? Yes 또는 No로만 답해라.
