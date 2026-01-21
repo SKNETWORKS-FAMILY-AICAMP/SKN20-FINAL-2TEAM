@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="imagetoolbar" content="no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="stylesheet" href="./resources/css/setting.css" />
+  <link rel="stylesheet" href="./resources/css/plugin.css" />
+  <link rel="stylesheet" href="./resources/css/templatehouse.css" />
+  <link rel="stylesheet" href="./resources/css/style.css" />
+  <style>
+    /* Wardrobe Specific Styles */
+    .wardrobe-container {
+      background-color: #f5f5f5;
+      padding: 40px 20px;
+      min-height: calc(100vh - 80px);
+    }
+
+    .wardrobe-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Category Navigation */
+    .category-nav {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+    }
+
+    .category-nav-item {
+      text-decoration: none;
+      color: #999;
+      font-size: 16px;
+      font-weight: 500;
+      padding-bottom: 8px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .category-nav-item:hover {
+      color: #333;
+    }
+
+    .category-nav-item.active {
+      color: #333;
+      border-bottom-color: #333;
+    }
+
+    /* Category Section */
+    .category-section {
+      margin-bottom: 80px;
+    }
+
+    .category-title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 40px;
+      color: #333;
+    }
+
+    /* Items Grid */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .item-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .item-menu-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: #999;
+      padding: 5px;
+      line-height: 1;
+      transition: color 0.2s;
+      z-index: 5;
+    }
+
+    .item-menu-btn:hover {
+      color: #333;
+    }
+
+    .item-image-wrapper {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    .item-image-wrapper img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+    }
+
+    .item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .item-tag {
+      background-color: #f0f0f0;
+      color: #666;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    /* Dropdown Menu */
+    .item-dropdown {
+      position: absolute;
+      top: 45px;
+      right: 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 10;
+      min-width: 120px;
+    }
+
+    .item-dropdown.active {
+      max-height: 200px;
+      opacity: 1;
+    }
+
+    .dropdown-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f5f5f5;
+    }
+
+    .dropdown-item.delete {
+      color: #e74c3c;
+    }
+
+    /* Bottom Category Tabs */
+    .bottom-category-tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: white;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      z-index: 100;
+    }
+
+    .category-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #999;
+      transition: color 0.3s;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background-color: #f5f5f5;
+    }
+
+    .category-tab:hover,
+    .category-tab.active {
+      color: #333;
+      background-color: #e0e0e0;
+    }
+
+    .category-tab-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 20px;
+      }
+
+      .category-nav {
+        gap: 20px;
+        font-size: 14px;
+      }
+
+      .category-title {
+        font-size: 24px;
+      }
+
+      .wardrobe-container {
+        padding-bottom: 80px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .item-card {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="th-layout-header">
+    <div class="museum-N1" id="FcMkm7I8W5">
+      <div class="header-container container-full">
+        <div class="header-left">
+          <h1 class="header-title">
+            <a href="javascript:void(0)">
+              <img src="./resources/images/logo.png" alt="top_bottom" />
+            </a>
+          </h1>
+        </div>
+        <div class="header-center">
+          <div class="header-gnb">
+            <ul class="header-gnblist">
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Smart Wardrobe</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Celeb's Pick</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Chatbot</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>FAQ</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Lookbook</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-utils">
+            <ul>
+              <li class="allmenu">
+                <button class="btn-allmenu">
+                  <i class="ico-hamburger"></i>
+                  <i class="ico-hamburger"></i>
+                  <i class="ico-hamburger"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <button class="btn-momenu">
+            <i class="ico-hamburger"></i>
+            <i class="ico-hamburger"></i>
+            <i class="ico-hamburger"></i>
+          </button>
+        </div>
+        <div class="header-fullmenu fullmenu-top">
+          <div class="fullmenu-wrapper">
+            <div class="fullmenu-head">
+              <h2 class="fullmenu-title">
+                <a href="javascript:void(0)">
+                </a>
+              </h2>
+            </div>
+            <ul class="fullmenu-gnblist" style="display: flex;">
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Smart Wardrobe</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Celeb's Pick</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Chatbot</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>FAQ</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Lookbook</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <button class="fullmenu-close">
+            <img src="./resources/icons/ico_s20_close_white.svg" alt="닫기" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="th-layout-main">
+    <div class="wardrobe-container">
+      <div class="wardrobe-content">
+        
+        <!-- TOP Section -->
+        <section class="category-section" id="top-section">
+          <h2 class="category-title">TOP</h2>
+          <div class="items-grid">
+            <!-- Item 1 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_1">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">베이직</span>
+                <span class="item-tag">여름</span>
+                <span class="item-tag">캐주얼</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_2">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">데일리</span>
+                <span class="item-tag">심플</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_3">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">봄</span>
+                <span class="item-tag">뉴트럴</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_4">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">미니멀</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_5">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">스포티</span>
+                <span class="item-tag">가을</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 6 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_6">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">겨울</span>
+                <span class="item-tag">베이직</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 7 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_7">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">캐주얼</span>
+                <span class="item-tag">데일리</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 8 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/top-removebg-preview.png" alt="top_8">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">편안</span>
+                <span class="item-tag">캠퍼스</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- BOTTOM Section -->
+        <section class="category-section" id="bottom-section">
+          <h2 class="category-title">BOTTOM</h2>
+          <div class="items-grid">
+            <!-- Item 1 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="bottom_1">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">데님</span>
+                <span class="item-tag">캐주얼</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="bottom_2">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">베이직</span>
+                <span class="item-tag">슬림</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="bottom_3">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">세미정장</span>
+                <span class="item-tag">봄</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="item-card">
+              <button class="item-menu-btn" onclick="toggleDropdown(this, event)">⋮</button>
+              <div class="item-image-wrapper">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="bottom_4">
+              </div>
+              <div class="item-tags">
+                <span class="item-tag">정장</span>
+                <span class="item-tag">비즈니스</span>
+              </div>
+              <div class="item-dropdown">
+                <div class="dropdown-item" onclick="editItem(event)">편집</div>
+                <div class="dropdown-item delete" onclick="deleteItem(event)">삭제</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Bottom Category Tabs -->
+    <div class="bottom-category-tabs">
+      <a href="#top-section" class="category-tab active">
+        <img src="./resources/images/top-removebg-preview.png" alt="top" class="category-tab-icon">
+        <span>TOP</span>
+      </a>
+      <a href="#bottom-section" class="category-tab">
+        <img src="./resources/images/bottom-removebg-preview.png" alt="bottom" class="category-tab-icon">
+        <span>BOTTOM</span>
+      </a>
+      <a href="#outer-section" class="category-tab">
+        <img src="./resources/images/outer-removebg-preview.png" alt="outer" class="category-tab-icon">
+        <span>OUTER</span>
+      </a>
+      <a href="#accessories-section" class="category-tab">
+        <img src="./resources/images/acc-removebg-preview.png" alt="accessories" class="category-tab-icon">
+        <span>ACCESSORIES</span>
+      </a>
+      <a href="#shoes-section" class="category-tab">
+        <img src="./resources/images/shoes-removebg-preview.png" alt="shoes" class="category-tab-icon">
+        <span>SHOES</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="./resources/js/setting.js"></script>
+  <script src="./resources/js/plugin.js"></script>
+  <script src="./resources/js/templatehouse.js"></script>
+  <script src="./resources/js/style.js"></script>
+  <script>
+    // Toggle dropdown menu
+    function toggleDropdown(button, event) {
+      event.stopPropagation();
+      
+      const card = button.closest('.item-card');
+      const dropdown = card.querySelector('.item-dropdown');
+      
+      // Close all other dropdowns
+      const allDropdowns = document.querySelectorAll('.item-dropdown');
+      allDropdowns.forEach(dd => {
+        if (dd !== dropdown) {
+          dd.classList.remove('active');
+        }
+      });
+
+      // Toggle current dropdown
+      dropdown.classList.toggle('active');
+    }
+
+    // Edit item - navigate to edit page
+    function editItem(event) {
+      event.stopPropagation();
+      console.log('편집 페이지로 이동');
+      // TODO: Navigate to edit page
+      // window.location.href = 'edit_item.html?id=...';
+      alert('편집 페이지로 이동합니다');
+    }
+
+    // Delete item
+    function deleteItem(event) {
+      event.stopPropagation();
+      if (confirm('이 아이템을 삭제하시겠습니까?')) {
+        const card = event.target.closest('.item-card');
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+          card.remove();
+        }, 300);
+      }
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.item-card')) {
+        const allDropdowns = document.querySelectorAll('.item-dropdown');
+        allDropdowns.forEach(dropdown => {
+          dropdown.classList.remove('active');
+        });
+      }
+    });
+
+    // Update active tab on scroll
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const sections = document.querySelectorAll('.category-section');
+
+    function updateActiveTab() {
+      const scrollPosition = window.scrollY + 200;
+
+      sections.forEach((section, index) => {
+        const sectionTop = section.offsetTop;
+        const sectionBottom = sectionTop + section.offsetHeight;
+
+        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+          categoryTabs.forEach(tab => tab.classList.remove('active'));
+          categoryTabs[index].classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveTab);
+
+    // Smooth scroll for category tabs
+    categoryTabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+        
+        if (targetSection) {
+          window.scrollTo({
+            top: targetSection.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
