@@ -101,11 +101,12 @@
 
     .history-arrow {
       transition: transform 0.3s;
-      font-size: 12px;
+      font-size: 16px;
+      color: #999;
     }
 
     .history-arrow.open {
-      transform: rotate(180deg);
+      transform: rotate(90deg);
     }
 
     .history-content {
@@ -187,7 +188,7 @@
     }
 
     .message.user .message-content {
-      background-color: #4a90e2;
+      background-color: #666;
       color: white;
     }
 
@@ -318,7 +319,7 @@
       cursor: pointer;
       font-size: 20px;
       padding: 5px;
-      color: #4a90e2;
+      color: #666;
     }
 
     .send-button:hover {
@@ -465,45 +466,21 @@
 
         <!-- Chat History -->
         <div class="chat-history">
-          <div class="sidebar-section" style="border-bottom: none; padding-bottom: 10px;">
-            <div class="sidebar-title">대화 기록</div>
-          </div>
-          
           <div class="history-item">
             <div class="history-header" onclick="toggleHistory(this)">
-              <span class="history-title">오늘의 스타일 추천</span>
-              <span class="history-arrow">▼</span>
+              <span class="history-title">대화 기록</span>
+              <span class="history-arrow">›</span>
             </div>
             <div class="history-content">
               <div class="history-messages">
-                <div class="history-message">어떤 스타일의 옷을 찾고 계신가요?</div>
-                <div class="history-message">캐주얼한 데일리 룩 추천해줘</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="history-item">
-            <div class="history-header" onclick="toggleHistory(this)">
-              <span class="history-title">겨울 코디 추천</span>
-              <span class="history-arrow">▼</span>
-            </div>
-            <div class="history-content">
-              <div class="history-messages">
+                <div class="history-message">오늘의 스타일 추천</div>
+                <div class="history-message">겨울 코디 추천</div>
+                <div class="history-message">데이트 룩</div>
+                <div class="history-message">캐주얼한 데일리 룩</div>
                 <div class="history-message">따뜻하면서 스타일리시한 코디</div>
-                <div class="history-message">롱 코트 추천해줘</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="history-item">
-            <div class="history-header" onclick="toggleHistory(this)">
-              <span class="history-title">데이트 룩</span>
-              <span class="history-arrow">▼</span>
-            </div>
-            <div class="history-content">
-              <div class="history-messages">
-                <div class="history-message">주말 데이트 룩 추천해줘</div>
-                <div class="history-message">세미 포멀한 느낌으로</div>
+                <div class="history-message">주말 데이트 룩 추천</div>
+                <div class="history-message">세미 포멀한 느낌 코디</div>
+                <div class="history-message">봄에 입기 좋은 스타일</div>
               </div>
             </div>
           </div>
