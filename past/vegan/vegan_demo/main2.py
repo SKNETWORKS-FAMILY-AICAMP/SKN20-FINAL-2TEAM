@@ -1,4 +1,5 @@
-# vegan_demo/main.py
+# vegan_demo/main2.py
+# LangGraph + 공식 OpenAI SDK 버전
 
 import sys
 import io
@@ -6,10 +7,9 @@ import os
 import base64
 import json
 from typing import TypedDict, Any
-from langchain_openai import ChatOpenAI
+from openai import OpenAI
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
-from langchain_openai import OpenAI
 
 
 # --- 상태 정의 ---
@@ -23,6 +23,7 @@ class AgentState(TypedDict):
     final_result: str # 최종 답변
     client: OpenAI
 
+
 # --- 도우미 함수 ---
 def encode_image(image_path: str):
     """이미지 파일을 Base64로 인코딩합니다."""
@@ -35,32 +36,27 @@ def encode_image(image_path: str):
 
 # --- 노드 ---
 
-#들어온 이미지가 음식 사진인지 성분표인지 판단 
+# 들어온 이미지가 음식 사진인지 성분표인지 판단
 def detect_image_type(state: AgentState) -> AgentState:
-
     base64_image = encode_image(state['image_path'])
 
     response = state['client'].chat.completions.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "이미지를 음식 사진인지, 원재료명 리스트가 적힌 글자 사진인지 분류해라. "
-                                           "음식 사진이면 'food',  원재료명 리스트이면 'ingredients'로 대답해라."},
+                                           "음식 사진이면 'food', 원재료명 리스트이면 'ingredients'로 대답해라."},
             {"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}]},
         ],
         max_tokens=5,
     )
-    state['image_type'] = response.choices[0].message.content.lower()
+    state['image_type'] = response.choices[0].message.content.lower().strip()
     print(f"[detect_image_type] 판별 결과: {state['image_type']}")
-    
+
     return state
 
-#조건부 분기
-#이미지 분류 결과, food면 음식 인식 노드로
-#ingredients면 성분 추출 노드로
 
-#성분표 이미지 -> 원재료명 추출
+# 성분표 이미지 -> 원재료명 추출
 def extract_ingredients(state: AgentState) -> AgentState:
-    
     base64_image = encode_image(state['image_path'])
 
     response = state['client'].chat.completions.create(
@@ -78,16 +74,16 @@ def extract_ingredients(state: AgentState) -> AgentState:
 
     return state
 
+
 # 음식 이미지 -> 이름&예상 재료 분석
 def recognize_food(state: AgentState) -> AgentState:
-    
     base64_image = encode_image(state['image_path'])
 
     response = state['client'].chat.completions.create(
         model="gpt-4o",
         response_format={"type": "json_object"},
-        messages=[ 
-            {"role": "system", "content": "음식 이름과 추정 재료를 JSON으로 반환해라."},
+        messages=[
+            {"role": "system", "content": "음식 이름과 추정 재료를 JSON으로 반환해라. 형식: {\"food_name\": \"...\", \"estimated_ingredients\": \"...\"}"},
             {"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}]}
         ]
     )
@@ -98,23 +94,22 @@ def recognize_food(state: AgentState) -> AgentState:
     return state
 
 
-
 # 추출한 원재료명을 보고 비건 7단계중 어디에 해당하는지 분석
 def analyze_ingredients(state: AgentState) -> AgentState:
     """추출된 성분 텍스트를 비건 7단계에 따라 분석하고 분류합니다."""
     print(f"[analyze_ingredients] 성분 분석 시작")
-    
+
     # 분석할 성분 텍스트 결정
     ingredients_to_analyze = None
     if state['image_type'] == 'ingredients' and state.get('extracted_ingredients'):
         ingredients_to_analyze = state['extracted_ingredients']
     elif state['image_type'] == 'food' and state.get('estimated_ingredients'):
         ingredients_to_analyze = state['estimated_ingredients']
-    
+
     if not ingredients_to_analyze:
         state['analysis_result'] = None
         return state
-    
+
     system_prompt = """
     당신은 음식 성분을 분석하여 비건 및 베지테리언 7단계에 따라 분류하는 전문가입니다.
     주어진 원재료명 리스트를 분석하여, 어떤 단계까지 허용되는 제품인지 판단합니다.
@@ -139,7 +134,7 @@ def analyze_ingredients(state: AgentState) -> AgentState:
     2. \"reason\": 왜 그렇게 분류되었는지, 판단의 근거가 된 주요 성분을 명시하여 상세히 설명하는 문자열.
     3. \"contains_ingredients\": 판단의 근거가 된 성분 리스트 (e.g., [\"탈지분유\", \"유당\"])
     """
-    
+
     try:
         response = state['client'].chat.completions.create(
             model="gpt-4o",
@@ -154,16 +149,15 @@ def analyze_ingredients(state: AgentState) -> AgentState:
     except Exception as e:
         print(f"[analyze_ingredients] Error: {e}")
         state['analysis_result'] = None
-    
+
     return state
 
 
-
-#답변 포맷팅
+# 답변 포맷팅
 def format_result(state: AgentState) -> AgentState:
     """분석 결과를 최종 형식으로 포맷합니다."""
     print(f"[format_result] 결과 포맷팅 시작")
-    
+
     if state['image_type'] == 'ingredients':
         result_string = f"""
 [이미지 종류: 원재료명]
@@ -185,7 +179,7 @@ def format_result(state: AgentState) -> AgentState:
                 result_string += f"  - 주요 성분: {', '.join(contains)}\n"
         else:
             result_string += "성분 분석에 실패했습니다."
-    
+
     elif state['image_type'] == 'food':
         result_string = f"""
 [이미지 종류: 음식 사진]
@@ -207,62 +201,84 @@ def format_result(state: AgentState) -> AgentState:
 """
         else:
             result_string += "예상 재료에 대한 비건 단계 분석에 실패했습니다."
-    
+
     else:
         result_string = f"이미지 종류를 판별할 수 없습니다: {state['image_path']}"
-    
+
     state['final_result'] = result_string
     print(f"[format_result] 결과 포맷팅 완료")
     return state
 
 
+# --- 조건부 분기 함수 ---
+def route_by_image_type(state: AgentState) -> str:
+    """이미지 타입에 따라 다음 노드를 결정합니다."""
+    if state['image_type'] == 'ingredients':
+        return "extract_ingredients"
+    else:
+        return "recognize_food"
+
+
 # --- 랭그래프 만들기 ---
 def create_vegan_analyzer_graph():
-
-    #생성
+    # 생성
     graph = StateGraph(AgentState)
-    
+
     # 노드 추가
     graph.add_node("detect_image_type", detect_image_type)
     graph.add_node("extract_ingredients", extract_ingredients)
     graph.add_node("recognize_food", recognize_food)
     graph.add_node("analyze_ingredients", analyze_ingredients)
     graph.add_node("format_result", format_result)
-    
+
     # 엣지 연결
     graph.set_entry_point("detect_image_type")
-    graph.add_edge("detect_image_type", "extract_ingredients")
-    graph.add_edge("detect_image_type", "recognize_food")
+
+    # 조건부 분기: image_type에 따라 다른 노드로
+    graph.add_conditional_edges(
+        "detect_image_type",
+        route_by_image_type,
+        {
+            "extract_ingredients": "extract_ingredients",
+            "recognize_food": "recognize_food"
+        }
+    )
+
     graph.add_edge("extract_ingredients", "analyze_ingredients")
     graph.add_edge("recognize_food", "analyze_ingredients")
     graph.add_edge("analyze_ingredients", "format_result")
     graph.add_edge("format_result", END)
-    
+
     return graph.compile()
 
 
 # --- 메인 실행기 ---
 class VeganAnalyzerWithLangGraph:
-    """LangGraph를 사용한 비건 분석기"""
+    """LangGraph + 공식 OpenAI SDK를 사용한 비건 분석기"""
     def __init__(self):
-        if not load_dotenv(dotenv_path='vegan_demo/.env'):
-            print("경고: .env 파일을 찾을 수 없습니다.")
-        
+        # main2.py 기준으로 프로젝트 루트의 .env 파일 경로 계산
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))  # vegan_demo -> vegan -> SKN20-FINAL-2TEAM
+        env_path = os.path.join(project_root, '.env')
+
+        if not load_dotenv(dotenv_path=env_path):
+            print(f"경고: .env 파일을 찾을 수 없습니다. (경로: {env_path})")
+
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key or api_key == "YOUR_OPENAI_API_KEY":
             self.client = None
         else:
             self.client = OpenAI(api_key=api_key)
-        
+
         self.graph = create_vegan_analyzer_graph()
-    
+
     def run_scan(self, image_path: str) -> str:
         """이미지를 스캔하고 분석합니다."""
         if not self.client:
             return "에러: API 키가 유효하지 않습니다."
-        
+
         print(f"\n[VeganAnalyzerWithLangGraph] 이미지 스캔 시작: {image_path}")
-        
+
         initial_state = AgentState(
             image_path=image_path,
             image_type="",
@@ -273,7 +289,7 @@ class VeganAnalyzerWithLangGraph:
             final_result="",
             client=self.client,
         )
-        
+
         # 그래프 실행
         final_state = self.graph.invoke(initial_state)
         return final_state['final_result']
@@ -284,21 +300,26 @@ if __name__ == "__main__":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+    # main2.py 기준으로 test_image 폴더 경로 계산
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    test_image_dir = os.path.join(current_dir, "test_image")
+
     analyzer = VeganAnalyzerWithLangGraph()
-    
+
     # 테스트할 이미지 리스트
     images_to_test = [
-        "vegan_demo/test_image/IMG_8393.jpg",  # 원재료명 이미지
-        "vegan_demo/test_image/test1.png"      # 음식 사진 이미지
+        os.path.join(test_image_dir, "IMG_8393.jpg"),  # 원재료명 이미지
+        os.path.join(test_image_dir, "test1.png")      # 음식 사진 이미지
     ]
-    
+
     final_output = ""
     for image in images_to_test:
         result = analyzer.run_scan(image)
         final_output += f"===== {image} 분석 결과 =====\n{result}\n\n"
 
     # 최종 결과를 파일에 저장
-    with open("vegan_demo/result.txt", "w", encoding="utf-8") as f:
+    result_path = os.path.join(current_dir, "result.txt")
+    with open(result_path, "w", encoding="utf-8") as f:
         f.write(final_output)
 
-    print("\n\n분석이 완료되었습니다. 'vegan_demo/result.txt' 파일을 확인하세요.")
+    print(f"\n\n분석이 완료되었습니다. '{result_path}' 파일을 확인하세요.")
