@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성하의 - Fashion Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hamburger {
+            cursor: pointer;
+            font-size: 24px;
+            padding: 5px;
+            background: none;
+            border: none;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 50;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .category-item {
+            padding: 12px 15px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+
+        .category-item:hover {
+            background-color: #e8e8e8;
+        }
+
+        /* Chat History Dropdown */
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .history-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            transition: background-color 0.2s;
+        }
+
+        .history-header:hover {
+            background-color: #f8f8f8;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .history-arrow {
+            transition: transform 0.3s;
+        }
+
+        .history-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .history-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: #fafafa;
+        }
+
+        .history-content.open {
+            max-height: 500px;
+        }
+
+        .history-messages {
+            padding: 10px 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .history-message {
+            padding: 8px 0;
+            cursor: pointer;
+        }
+
+        .history-message:hover {
+            color: #333;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f9f9f9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .message.user .message-content {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        /* Outfit Recommendation */
+        .outfit-recommendation {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .outfit-item {
+            text-align: center;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 100px;
+        }
+
+        .outfit-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .outfit-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Reaction Buttons */
+        .reaction-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .reaction-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reaction-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .reaction-btn.liked {
+            background-color: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        .reaction-btn.disliked {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        .reaction-btn.saved {
+            background-color: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        /* Suggestion Buttons */
+        .suggestion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .suggestion-btn {
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .suggestion-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 12px 20px;
+            border-radius: 25px;
+        }
+
+        .input-container input {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .send-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            color: #4a90e2;
+        }
+
+        .send-button:hover {
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <button class="hamburger" onclick="toggleSidebar()">☰</button>
+            <div class="logo">성하의</div>
+        </div>
+        <div class="nav">
+            <a href="#smart-wardrobe">Smart Wardrobe</a>
+            <a href="#celeb-pick">Celeb's Pick</a>
+            <a href="#faq">FAQ</a>
+            <a href="#lookbook">Lookbook</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- Categories -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">나의 옷장</div>
+                <div class="category-list">
+                    <a href="#top" class="category-item">TOP</a>
+                    <a href="#bottom" class="category-item">BOTTOM</a>
+                    <a href="#outer" class="category-item">OUTER</a>
+                    <a href="#acc" class="category-item">ACC</a>
+                    <a href="#shoes" class="category-item">SHOES</a>
+                </div>
+            </div>
+
+            <!-- Chat History -->
+            <div class="chat-history">
+                <div class="sidebar-section" style="border-bottom: none; padding-bottom: 10px;">
+                    <div class="sidebar-title">대화 기록</div>
+                </div>
+                
+                <div class="history-item">
+                    <div class="history-header" onclick="toggleHistory(this)">
+                        <span class="history-title">오늘의 스타일 추천</span>
+                        <span class="history-arrow">▼</span>
+                    </div>
+                    <div class="history-content">
+                        <div class="history-messages">
+                            <div class="history-message">어떤 스타일의 옷을 찾고 계신가요?</div>
+                            <div class="history-message">캐주얼한 데일리 룩 추천해줘</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header" onclick="toggleHistory(this)">
+                        <span class="history-title">겨울 코디 추천</span>
+                        <span class="history-arrow">▼</span>
+                    </div>
+                    <div class="history-content">
+                        <div class="history-messages">
+                            <div class="history-message">따뜻하면서 스타일리시한 코디</div>
+                            <div class="history-message">롱 코트 추천해줘</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-header" onclick="toggleHistory(this)">
+                        <span class="history-title">데이트 룩</span>
+                        <span class="history-arrow">▼</span>
+                    </div>
+                    <div class="history-content">
+                        <div class="history-messages">
+                            <div class="history-message">주말 데이트 룩 추천해줘</div>
+                            <div class="history-message">세미 포멀한 느낌으로</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-messages" id="chatMessages">
+                <!-- AI Message -->
+                <div class="message ai">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">
+                        <div>안녕하세요! 어떤 스타일의 옷을 찾고 계신가요?</div>
+                        
+                        <!-- Outfit Recommendation -->
+                        <div class="outfit-recommendation">
+                            <div class="outfit-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666' font-size='12'%3ETOP%3C/text%3E%3C/svg%3E" alt="Top">
+                                <div class="outfit-label">TOP</div>
+                            </div>
+                            <div class="outfit-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666' font-size='12'%3EBOTTOM%3C/text%3E%3C/svg%3E" alt="Bottom">
+                                <div class="outfit-label">BOTTOM</div>
+                            </div>
+                            <div class="outfit-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666' font-size='12'%3EOUTER%3C/text%3E%3C/svg%3E" alt="Outer">
+                                <div class="outfit-label">OUTER</div>
+                            </div>
+                            <div class="outfit-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ccc'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666' font-size='12'%3ESHOES%3C/text%3E%3C/svg%3E" alt="Shoes">
+                                <div class="outfit-label">SHOES</div>
+                            </div>
+                        </div>
+
+                        <!-- Reaction Buttons -->
+                        <div class="reaction-buttons">
+                            <button class="reaction-btn" onclick="handleReaction(this, 'like')">
+                                👍 좋아요
+                            </button>
+                            <button class="reaction-btn" onclick="handleReaction(this, 'dislike')">
+                                👎 싫어요
+                            </button>
+                            <button class="reaction-btn" onclick="handleReaction(this, 'save')">
+                                📌 Add Lookbook
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Message Example -->
+                <div class="message user">
+                    <div class="message-avatar">👤</div>
+                    <div class="message-content">
+                        오늘은 어떤 옷을 입을까요?
+                    </div>
+                </div>
+
+                <!-- AI Message with Suggestions -->
+                <div class="message ai">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">
+                        <div>오늘 날씨와 일정을 고려해서 추천해드릴게요. 어떤 스타일을 선호하시나요?</div>
+                        
+                        <div class="suggestion-buttons">
+                            <button class="suggestion-btn" onclick="sendSuggestion(this)">
+                                🔍 오늘은 어떤 옷을 입을까요?
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion(this)">
+                                🌟 일주일 긴 데일리 코디 추천해줘
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion(this)">
+                                ✨ 예산에 맞춰 코디 추천해줘
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion(this)">
+                                🎨 봄에 입기 좋은 스타일 찾아줘
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="메시지를 입력하세요..." 
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="send-button" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        // Toggle History Dropdown
+        function toggleHistory(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.history-arrow');
+            
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        // Handle Message Sending
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                
+                // Simulate AI response
+                setTimeout(() => {
+                    addAIResponse();
+                }, 1000);
+            }
+        }
+
+        // Handle Enter Key
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Add User Message
+        function addUserMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">👤</div>
+                <div class="message-content">${text}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add AI Response
+        function addAIResponse() {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    <div>네, 좋은 선택이에요! 다음 코디를 추천드립니다.</div>
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn" onclick="handleReaction(this, 'like')">
+                            👍 좋아요
+                        </button>
+                        <button class="reaction-btn" onclick="handleReaction(this, 'dislike')">
+                            👎 싫어요
+                        </button>
+                        <button class="reaction-btn" onclick="handleReaction(this, 'save')">
+                            📌 Add Lookbook
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle Reaction
+        function handleReaction(button, type) {
+            // Remove all active states
+            const siblings = button.parentElement.querySelectorAll('.reaction-btn');
+            siblings.forEach(btn => {
+                btn.classList.remove('liked', 'disliked', 'saved');
+            });
+            
+            // Add active state
+            if (type === 'like') {
+                button.classList.add('liked');
+                console.log('User liked this outfit');
+            } else if (type === 'dislike') {
+                button.classList.add('disliked');
+                console.log('User disliked this outfit');
+            } else if (type === 'save') {
+                button.classList.add('saved');
+                console.log('Outfit saved to lookbook');
+            }
+        }
+
+        // Send Suggestion
+        function sendSuggestion(button) {
+            const text = button.textContent.trim();
+            document.getElementById('messageInput').value = text;
+            sendMessage();
+        }
+
+        // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !hamburger.contains(event.target) &&
+                !sidebar.classList.contains('hidden')) {
+                sidebar.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
