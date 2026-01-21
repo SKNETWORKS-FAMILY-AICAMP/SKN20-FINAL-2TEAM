@@ -57,8 +57,8 @@
      │     │   │
      ▼     ▼   ▼
 ┌────────┐ ┌──────────────────┐ ┌────────────────────────┐
-│ Celeb  │ │ Wardrobe Analysis │ │ Decision Orchestrator  │
-│ Agent  │ │     Agent         │ │       Agent            │
+│ Celeb  │ │ Wardrobe Analysis│ │ Decision Orchestrator  │
+│ Agent  │ │     Agent        │ │       Agent            │
 └────┬───┘ └─────────┬────────┘ └───────────┬────────────┘
      │               │                      │
      └───────────────┴──────────────────────┘
@@ -104,7 +104,7 @@ FastAPI
 ```
 - LLM: OpenAI GPT-4
 - Agent Framework: LangGraph
-- Fine-tuning: 최강록 데이터셋
+- Fine-tuning
 ```
 
 ### RAG (Retrieval-Augmented Generation)
