@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="imagetoolbar" content="no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="stylesheet" href="./resources/css/setting.css" />
+  <link rel="stylesheet" href="./resources/css/plugin.css" />
+  <link rel="stylesheet" href="./resources/css/templatehouse.css" />
+  <link rel="stylesheet" href="./resources/css/style.css" />
+  <style>
+    /* Lookbook Specific Styles */
+    .lookbook-container {
+      background-color: #f5f5f5;
+      padding: 0;
+      min-height: calc(100vh - 80px);
+    }
+
+    /* Hero Banner */
+    .lookbook-hero {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+      border-radius: 0;
+      overflow: hidden;
+    }
+
+    .lookbook-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+    }
+
+    .lookbook-hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: white;
+    }
+
+    .lookbook-hero-title {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+    }
+
+    .lookbook-hero-subtitle {
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    .lookbook-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px 20px;
+    }
+
+    /* Header Section */
+    .lookbook-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .filter-toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-toggle-btn span {
+      display: block;
+      width: 24px;
+      height: 3px;
+      background-color: #666;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    .filter-toggle-btn:hover span {
+      background-color: #333;
+    }
+
+    .lookbook-title {
+      font-size: 36px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .lookbook-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .item-count {
+      background-color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .control-btn {
+      background-color: #f0f0f0;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+  
+
+    .control-btn:hover {
+      background-color: #0f0e0e;
+      color: #d7d4d4;
+    }
+
+    /* Filter Panel */
+    .filter-panel {
+      position: fixed;
+      left: -350px;
+      top: 0;
+      width: 350px;
+      height: 100vh;
+      background-color: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .filter-panel.active {
+      left: 0;
+    }
+
+    .filter-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .filter-panel-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .filter-close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      padding: 5px;
+      line-height: 1;
+    }
+
+    .filter-close-btn:hover {
+      color: #333;
+    }
+
+    .filter-section {
+      margin-bottom: 30px;
+    }
+
+    .filter-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-chip {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      color: #666;
+    }
+
+    .filter-chip:hover {
+      background: #f5f5f5;
+    }
+
+    .filter-chip.selected {
+      background: #666;
+      color: white;
+      border-color: #666;
+    }
+
+    .filter-reset-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #666;
+      margin-top: 20px;
+      transition: all 0.2s;
+    }
+
+    .filter-reset-btn:hover {
+      background-color: #e0e0e0;
+      color: #333;
+    }
+
+    .filter-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .filter-overlay.active {
+      display: block;
+    }
+
+    /* Lookbook Grid */
+    .lookbook-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+    }
+
+    /* Lookbook Card */
+    .lookbook-card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 30px;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .lookbook-card:hover {
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .celeb-tag {
+      background-color: #f0f0f0;
+      color: #666;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .card-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #666;
+    }
+
+    /* Outfit Display */
+    .outfit-display {
+      background-color: #fafafa;
+      border-radius: 12px;
+      padding: 20px 15px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      aspect-ratio: 1 / 1;
+      position: relative;
+    }
+
+    .outfit-item {
+      max-width: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .outfit-item img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      max-height: 110px;
+    }
+
+    /* Card Footer */
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      min-height: 50px;
+    }
+
+    .outfit-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .outfit-date {
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 0;
+      flex-wrap: wrap;
+    }
+
+    .date-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .weather-icon {
+      font-size: 14px;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      transition: transform 0.2s;
+    }
+
+    .like-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .like-btn.liked {
+      color: #e74c3c;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .lookbook-hero {
+        height: 300px;
+        border-radius: 0;
+      }
+
+      .lookbook-hero-title {
+        font-size: 36px;
+      }
+
+      .lookbook-hero-subtitle {
+        font-size: 16px;
+      }
+
+      .lookbook-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .lookbook-title {
+        font-size: 28px;
+      }
+
+      .lookbook-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .lookbook-card {
+        padding: 20px;
+      }
+
+      .outfit-display {
+        padding: 20px 15px;
+        min-height: 240px;
+      }
+
+      .outfit-item {
+        max-width: 120px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .outfit-display {
+        gap: 15px;
+      }
+
+      .outfit-item {
+        max-width: 100px;
+      }
+
+      .outfit-item img {
+        max-height: 120px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="th-layout-header">
+    <div class="museum-N1" id="FcMkm7I8W5">
+      <div class="header-container container-full">
+        <div class="header-left">
+          <h1 class="header-title">
+            <a href="javascript:void(0)">
+              <img src="./resources/images/logo.png" alt="top_bottom" />
+            </a>
+          </h1>
+        </div>
+        <div class="header-center">
+          <div class="header-gnb">
+            <ul class="header-gnblist">
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Smart Wardrobe</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Celeb's Pick</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Chatbot</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>FAQ</span>
+                </a>
+              </li>
+              <li class="header-gnbitem">
+                <a class="header-gnblink" href="javascript:void(0)">
+                  <span>Lookbook</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-utils">
+            <ul>
+              <li class="allmenu">
+                <button class="btn-allmenu">
+                  <i class="ico-hamburger"></i>
+                  <i class="ico-hamburger"></i>
+                  <i class="ico-hamburger"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <button class="btn-momenu">
+            <i class="ico-hamburger"></i>
+            <i class="ico-hamburger"></i>
+            <i class="ico-hamburger"></i>
+          </button>
+        </div>
+        <div class="header-fullmenu fullmenu-top">
+          <div class="fullmenu-wrapper">
+            <div class="fullmenu-head">
+              <h2 class="fullmenu-title">
+                <a href="javascript:void(0)">
+                </a>
+              </h2>
+            </div>
+            <ul class="fullmenu-gnblist" style="display: flex;">
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Smart Wardrobe</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Celeb's Pick</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Chatbot</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>FAQ</span>
+                </a>
+              </li>
+              <li class="fullmenu-gnbitem">
+                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
+                  <span>Lookbook</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <button class="fullmenu-close">
+            <img src="./resources/icons/ico_s20_close_white.svg" alt="닫기" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="th-layout-main">
+    <!-- Filter Overlay -->
+    <div class="filter-overlay" id="filterOverlay" onclick="toggleFilterPanel()"></div>
+
+    <!-- Filter Panel -->
+    <div class="filter-panel" id="filterPanel">
+      <div class="filter-panel-header">
+        <h2 class="filter-panel-title">필터</h2>
+        <button class="filter-close-btn" onclick="toggleFilterPanel()">×</button>
+      </div>
+
+      <!-- Celebrity Filter -->
+      <div class="filter-section">
+        <div class="filter-section-title">셀럽</div>
+        <div class="filter-chips">
+          <button class="filter-chip selected" data-filter-type="celeb" data-filter-value="전체" onclick="selectFilter(this)">전체</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="주우재" onclick="selectFilter(this)">주우재</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="강동원" onclick="selectFilter(this)">강동원</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="공유" onclick="selectFilter(this)">공유</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="유재석" onclick="selectFilter(this)">유재석</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="박서준" onclick="selectFilter(this)">박서준</button>
+          <button class="filter-chip" data-filter-type="celeb" data-filter-value="이정재" onclick="selectFilter(this)">이정재</button>
+        </div>
+      </div>
+
+      <!-- Location Filter -->
+      <div class="filter-section">
+        <div class="filter-section-title">지역</div>
+        <div class="filter-chips">
+          <button class="filter-chip selected" data-filter-type="location" data-filter-value="전체" onclick="selectFilter(this)">전체</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="서울" onclick="selectFilter(this)">서울</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="부산" onclick="selectFilter(this)">부산</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="제주" onclick="selectFilter(this)">제주</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="대구" onclick="selectFilter(this)">대구</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="도쿄" onclick="selectFilter(this)">도쿄</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="파리" onclick="selectFilter(this)">파리</button>
+          <button class="filter-chip" data-filter-type="location" data-filter-value="뉴욕" onclick="selectFilter(this)">뉴욕</button>
+        </div>
+      </div>
+
+      <!-- Reset Button -->
+      <button class="filter-reset-btn" onclick="resetFilters()">필터 초기화</button>
+    </div>
+
+    <div class="lookbook-container">
+      <!-- Hero Banner -->
+      <div class="lookbook-hero" style="background-image: url('./resources/images/lookbook_image.png');">
+        <div class="lookbook-hero-content">
+          <h1 class="lookbook-hero-title">LOOKBOOK</h1>
+          <p class="lookbook-hero-subtitle">Where your style takes the spotlight.</p>
+        </div>
+      </div>
+
+      <div class="lookbook-content">
+        
+        <!-- Lookbook Header -->
+        <div class="lookbook-header">
+          <div class="header-left">
+            <button class="filter-toggle-btn" onclick="toggleFilterPanel()">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="item-count">총 12개</div>
+          </div>
+          <!-- <h1 class="lookbook-title">Lookbook</h1> -->
+          <div class="lookbook-controls">
+            <button class="control-btn" onclick="deleteSelected()">
+              <span>삭제</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lookbook Grid -->
+        <div class="lookbook-grid">
+          
+          <!-- Card 1 -->
+          <div class="lookbook-card" data-title="캐주얼 데일리 룩" data-celeb="주우재" data-date="2026.01.22" data-weather="맑음" data-temp="-17" data-location="서울">
+            <div class="card-header">
+              <span class="celeb-tag">주우재</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="티셔츠">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/outer-removebg-preview.png" alt="아우터">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="바지">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="신발">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/acc-removebg-preview.png" alt="모자">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">캐주얼 데일리 룩</div>
+                <div class="outfit-date">
+                  <span>2026.01.22</span>
+                  <span class="weather-icon">☀️</span>
+                  <span>-17°</span>
+                  <span>서울</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="lookbook-card" data-title="실용한 캐주얼 스타일" data-celeb="강동원" data-date="2026.01.17" data-weather="흐림" data-temp="-5" data-location="서울">
+            <div class="card-header">
+              <span class="celeb-tag">강동원</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="맨투맨">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="맨투맨">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="바지">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="바지">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="운동화">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">실용한 캐주얼 스타일</div>
+                <div class="outfit-date">
+                  <span>2026.01.17</span>
+                  <span class="weather-icon">☁️</span>
+                  <span>-5°</span>
+                  <span>서울</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="lookbook-card" data-title="활발한 데일리 코디" data-celeb="공유" data-date="2026.01.21" data-weather="맑음" data-temp="-12" data-location="부산">
+            <div class="card-header">
+              <span class="celeb-tag">공유</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="맨투맨">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="숏팬츠">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/acc-removebg-preview.png" alt="백팩">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="운동화">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">활발한 데일리 코디</div>
+                <div class="outfit-date">
+                  <span>2026.01.21</span>
+                  <span class="weather-icon">☀️</span>
+                  <span>-12°</span>
+                  <span>부산</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="lookbook-card" data-title="모던한 기슬코디" data-celeb="유재석" data-date="2026.01.20" data-weather="눈" data-temp="-8" data-location="서울">
+            <div class="card-header">
+              <span class="celeb-tag">유재석</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/outer-removebg-preview.png" alt="코트">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="맨투맨">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="바지">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="구두">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/acc-removebg-preview.png" alt="시계">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">모던한 기슬코디</div>
+                <div class="outfit-date">
+                  <span>2026.01.20</span>
+                  <span class="weather-icon">❄️</span>
+                  <span>-8°</span>
+                  <span>서울</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="lookbook-card" data-title="봄 간절기 코디" data-celeb="박서준" data-date="2026.01.20" data-weather="맑음" data-temp="-3" data-location="대구">
+            <div class="card-header">
+              <span class="celeb-tag">박서준</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="티셔츠">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/outer-removebg-preview.png" alt="자켓">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="진">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="스니커즈">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">봄 간절기 코디</div>
+                <div class="outfit-date">
+                  <span>2026.01.20</span>
+                  <span class="weather-icon">☀️</span>
+                  <span>-3°</span>
+                  <span>대구</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="lookbook-card" data-title="미니멀한 단스러운 스타일" data-celeb="이정재" data-date="2026.01.16" data-weather="흐림" data-temp="2" data-location="제주">
+            <div class="card-header">
+              <span class="celeb-tag">이정재</span>
+              <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+            </div>
+            <div class="outfit-display">
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="셔츠">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/top-removebg-preview.png" alt="티셔츠">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="슬랙스">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/bottom-removebg-preview.png" alt="슬랙스">
+              </div>
+              <div class="outfit-item">
+                <img src="./resources/images/shoes-removebg-preview.png" alt="구두">
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <div class="outfit-title">미니멀한 단스러운 스타일</div>
+                <div class="outfit-date">
+                  <span>2026.01.16</span>
+                  <span class="weather-icon">☁️</span>
+                  <span>2°</span>
+                  <span>제주</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="./resources/js/setting.js"></script>
+  <script src="./resources/js/plugin.js"></script>
+  <script src="./resources/js/templatehouse.js"></script>
+  <script src="./resources/js/style.js"></script>
+  <script>
+    // Current filters
+    let currentFilters = {
+      celeb: '전체',
+      location: '전체'
+    };
+
+    // Toggle filter panel
+    function toggleFilterPanel() {
+      const panel = document.getElementById('filterPanel');
+      const overlay = document.getElementById('filterOverlay');
+      
+      panel.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    // Select filter chip
+    function selectFilter(chip) {
+      const filterType = chip.dataset.filterType;
+      const filterValue = chip.dataset.filterValue;
+      
+      // Deselect all chips in the same group
+      const group = chip.closest('.filter-section');
+      group.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('selected'));
+      
+      // Select clicked chip
+      chip.classList.add('selected');
+      
+      // Update current filters
+      currentFilters[filterType] = filterValue;
+      
+      // Apply filters
+      applyFilters();
+    }
+
+    // Apply filters to cards
+    function applyFilters() {
+      const cards = document.querySelectorAll('.lookbook-card');
+      let visibleCount = 0;
+      
+      cards.forEach(card => {
+        let show = true;
+        
+        // Check celeb filter
+        if (currentFilters.celeb !== '전체') {
+          show = show && card.dataset.celeb === currentFilters.celeb;
+        }
+        
+        // Check location filter
+        if (currentFilters.location !== '전체') {
+          show = show && card.dataset.location === currentFilters.location;
+        }
+        
+        if (show) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // Update count
+      updateItemCount(visibleCount);
+    }
+
+    // Reset all filters
+    function resetFilters() {
+      currentFilters = {
+        celeb: '전체',
+        location: '전체'
+      };
+      
+      // Reset all chips
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('selected');
+        if (chip.dataset.filterValue === '전체') {
+          chip.classList.add('selected');
+        }
+      });
+      
+      // Show all cards
+      applyFilters();
+    }
+
+    // Function to add new lookbook card from chatbot
+    function addLookbookCard(data) {
+      /*
+      data 구조 예시:
+      {
+        title: "캐주얼 데일리 룩",
+        celeb: "주우재",
+        date: "2026.01.22",
+        weather: "맑음",
+        temp: "-17",
+        location: "서울",
+        items: [
+          { image: "./resources/images/top-removebg-preview.png", alt: "티셔츠" },
+          { image: "./resources/images/outer-removebg-preview.png", alt: "아우터" },
+          // ...
+        ]
+      }
+      */
+      
+      const weatherIcons = {
+        '맑음': '☀️',
+        '흐림': '☁️',
+        '눈': '❄️',
+        '비': '🌧️'
+      };
+      
+      const grid = document.querySelector('.lookbook-grid');
+      const card = document.createElement('div');
+      card.className = 'lookbook-card';
+      card.setAttribute('data-title', data.title);
+      card.setAttribute('data-celeb', data.celeb);
+      card.setAttribute('data-date', data.date);
+      card.setAttribute('data-weather', data.weather);
+      card.setAttribute('data-temp', data.temp);
+      card.setAttribute('data-location', data.location);
+      
+      let itemsHTML = '';
+      data.items.forEach(item => {
+        itemsHTML += `
+          <div class="outfit-item">
+            <img src="${item.image}" alt="${item.alt}">
+          </div>
+        `;
+      });
+      
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="celeb-tag">${data.celeb}</span>
+          <input type="checkbox" class="card-checkbox" onchange="updateSelection()">
+        </div>
+        <div class="outfit-display">
+          ${itemsHTML}
+        </div>
+        <div class="card-footer">
+          <div>
+            <div class="outfit-title">${data.title}</div>
+            <div class="outfit-date">
+              <span>${data.date}</span>
+              <span class="weather-icon">${weatherIcons[data.weather] || '☀️'}</span>
+              <span>${data.temp}°</span>
+              <span>${data.location}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      grid.insertBefore(card, grid.firstChild);
+      updateItemCount();
+    }
+
+    // Update selection count
+    function updateSelection() {
+      const checkboxes = document.querySelectorAll('.card-checkbox:checked');
+      console.log(`Selected: ${checkboxes.length} items`);
+    }
+
+    // Delete selected items
+    function deleteSelected() {
+      const checkboxes = document.querySelectorAll('.card-checkbox:checked');
+      
+      if (checkboxes.length === 0) {
+        alert('삭제할 항목을 선택해주세요.');
+        return;
+      }
+      
+      if (confirm(`선택한 ${checkboxes.length}개의 룩북을 삭제하시겠습니까?`)) {
+        checkboxes.forEach(checkbox => {
+          const card = checkbox.closest('.lookbook-card');
+          card.style.opacity = '0';
+          card.style.transform = 'scale(0.8)';
+          
+          setTimeout(() => {
+            card.remove();
+            applyFilters(); // Recount after deletion
+          }, 300);
+        });
+      }
+    }
+
+    // Update total item count
+    function updateItemCount(count) {
+      if (count === undefined) {
+        const visibleCards = document.querySelectorAll('.lookbook-card[style*="display: block"], .lookbook-card:not([style*="display: none"])');
+        count = visibleCards.length;
+      }
+      const countElement = document.querySelector('.item-count');
+      countElement.textContent = `총 ${count}개`;
+    }
+  </script>
+</body>
+
+</html>

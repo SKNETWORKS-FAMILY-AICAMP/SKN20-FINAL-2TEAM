@@ -11,6 +11,95 @@
   <link rel="stylesheet" href="./resources/css/plugin.css" />
   <link rel="stylesheet" href="./resources/css/templatehouse.css" />
   <link rel="stylesheet" href="./resources/css/style.css" />
+  <style>
+    /* Custom styles for smart wardrobe main page */
+    .textset {
+      position: relative;
+      background-image: url('./resources/images/smartwardrobe_image_2.jpg');
+      background-size: cover;
+      background-position: center;
+      padding: 60px 40px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .textset::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+    }
+
+    .textset-tit {
+      position: relative;
+      z-index: 2;
+      color: white !important;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Enlarge card images and adjust layout */
+    .cardset-figure {
+      margin-top: 80px !important;
+    }
+
+    .cardset-img {
+      transform: scale(2);
+    }
+
+
+    /* Single line tags */
+    .cardset-badge {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .cardset-badge::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hover effect for cards */
+    .cardset {
+      position: relative;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .cardset::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0);
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .cardset:hover::before {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .cardset-body,
+    .cardset-figure {
+      position: relative;
+      z-index: 2;
+    }
+
+    .cardset:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
 
 <body>
@@ -129,7 +218,8 @@
               <div class="cardset-body">
                 <div class="cardset-badge">
                   <span class="p2 badge badge-line">티셔츠</span>
-                  <span class="p2 badge badge-line">셔츠</span><span class="p2 badge badge-line">맨투맨</span>
+                  <span class="p2 badge badge-line">셔츠</span>
+                  <span class="p2 badge badge-line">맨투맨</span>
                 </div>
                 <strong class="cardset-tit h3">TOP</strong>
               </div>
@@ -137,13 +227,14 @@
                 <img src="./resources/images/top-removebg-preview.png" alt="top" class="cardset-img" style="width: var(--width-mkm8bxql); height: var(--height-mkm8bxql);" data-width-var="--width-mkm8bxql" data-height-var="--height-mkm8bxql" />
               </figure>
             </div>
-            <div class="cardset">
+            <div class="cardset" onclick="location.href='smartwardrobe_detail.html#bottom-section'">
               <div class="cardset-body">
                 <div class="cardset-badge">
                   <span class="p2 badge badge-line">데님 팬츠</span>
-                  <span class="p2 badge badge-line">슬랙스</span><span class="p2 badge badge-line">스커트</span>
+                  <span class="p2 badge badge-line">슬랙스</span>
+                  <span class="p2 badge badge-line">스커트</span>
                 </div>
-                <a href="javascript:void(0)"><strong class="cardset-tit h3">BOTTOM</strong></a>
+                <a href="smartwardrobe_detail.html#bottom-section"><strong class="cardset-tit h3">BOTTOM</strong></a>
               </div>
               <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm8id3u);" data-padding-top-var="--padding-top-mkm8id3u">
                 <img src="./resources/images/bottom-removebg-preview.png" alt="NEOGRID FX" class="cardset-img" data-width-var="--width-mkm8i25h" style="width: var(--width-mkm8i25h); height: var(--height-mkm8i25h);" data-height-var="--height-mkm8i25h" />
@@ -153,7 +244,8 @@
               <div class="cardset-body">
                 <div class="cardset-badge">
                   <span class="p2 badge badge-line">패딩</span>
-                  <span class="p2 badge badge-line">코트</span><span class="p2 badge badge-line">가디건</span>
+                  <span class="p2 badge badge-line">코트</span>
+                  <span class="p2 badge badge-line">가디건</span>
                 </div>
                 <strong class="cardset-tit h3">OUTER</strong>
               </div>
@@ -165,7 +257,8 @@
               <div class="cardset-body">
                 <div class="cardset-badge">
                   <span class="p2 badge badge-line">모자</span>
-                  <span class="p2 badge badge-line">양말</span><span class="p2 badge badge-line">선글라스</span>
+                  <span class="p2 badge badge-line">양말</span>
+                  <span class="p2 badge badge-line">선글라스</span>
                 </div>
                 <strong class="cardset-tit h3">ACC</strong>
               </div>
@@ -177,7 +270,8 @@
               <div class="cardset-body">
                 <div class="cardset-badge">
                   <span class="p2 badge badge-line">구두</span>
-                  <span class="p2 badge badge-line">부츠</span><span class="p2 badge badge-line">운동화</span>
+                  <span class="p2 badge badge-line">부츠</span>
+                  <span class="p2 badge badge-line">운동화</span>
                 </div>
                 <strong class="cardset-tit h3">SHOES</strong>
               </div>
@@ -221,28 +315,6 @@
               </a>
             </li>
           </ul>
-          <!-- <ul class="footer-snslist">
-            <li class="footer-snsitem">
-              <a class="footer-snslink" href="javascript:void(0)">
-                <img src="./resources/icons/ico_instagram_lightgrey.svg" alt="인스타그램" />
-              </a>
-            </li>
-            <li class="footer-snsitem">
-              <a class="footer-snslink" href="javascript:void(0)">
-                <img src="./resources/icons/ico_youtube_lightgrey.svg" alt="유튜브" />
-              </a>
-            </li>
-            <li class="footer-snsitem">
-              <a class="footer-snslink" href="javascript:void(0)">
-                <img src="./resources/icons/ico_facebook_lightgrey.svg" alt="페이스북" />
-              </a>
-            </li>
-            <li class="footer-snsitem">
-              <a class="footer-snslink" href="javascript:void(0)">
-                <img src="./resources/icons/ico_kakao_lightgrey.svg" alt="카카오톡" />
-              </a>
-            </li>
-          </ul> -->
         </div>
         <div class="footer-bottom">
           <div class="footer-txtgroup">
@@ -439,18 +511,18 @@
                     <p>이용자 및 법정 대리인은 언제든지 등록되어 있는 자신 혹은 당해 만 14세 미만 아동의 개인정보를 조회하거나 수정할 수 있으며 가입해지를 요청할 수도 있습니다.
                     </p>
                     <p class="mtb">
-                      이용자 혹은 만 14세 미만 아동의 개인정보 조회 및 수정을 위해서는 ‘개인정보변경’(또는 ‘회원정보수정’ 등)을 가입해지(동의철회)를 위해서는 “회원탈퇴”를 클릭하여 본인 확인 절차를 거치신 후 직접 열람, 정정 또는 탈퇴가 가능합니다. 혹은 개인정보관리책임자에게 서면, 전화
+                      이용자 혹은 만 14세 미만 아동의 개인정보 조회 및 수정을 위해서는 '개인정보변경'(또는 '회원정보수정' 등)을 가입해지(동의철회)를 위해서는 "회원탈퇴"를 클릭하여 본인 확인 절차를 거치신 후 직접 열람, 정정 또는 탈퇴가 가능합니다. 혹은 개인정보관리책임자에게 서면, 전화
                       또는 이메일로 연락하시면 지체없이 조치하겠습니다.
                     </p>
                     <p>귀하가 개인정보의 오류에 대한 정정을 요청하신 경우에는 정정을 완료하기 전까지 당해 개인정보를 이용 또는 제공하지 않습니다. 또한 잘못된 개인정보를 제3자에게 이미 제공한 경우에는 정정 처리결과를 제3자에게 지체없이 통지하여 정정이 이루어지도록 하겠습니다.
-                      회사는 이용자 혹은 법정 대리인의 요청에 의해 해지 또는 삭제된 개인정보는 “회사가 수집하는 개인정보의 보유 및 이용기간”에 명시된 바에 따라 처리하고 그 외의 용도로 열람 또는 이용할 수 없도록 처리하고 있습니다.
+                      회사는 이용자 혹은 법정 대리인의 요청에 의해 해지 또는 삭제된 개인정보는 "회사가 수집하는 개인정보의 보유 및 이용기간"에 명시된 바에 따라 처리하고 그 외의 용도로 열람 또는 이용할 수 없도록 처리하고 있습니다.
                     </p>
                   </div>
                 </div>
                 <div class="info-group">
                   <strong>8. 개인정보 자동수집 장치의 설치, 운영 및 그 거부에 관한 사항</strong>
                   <div class="info-desc">
-                    <p>회사는 귀하의 정보를 수시로 저장하고 찾아내는 ‘쿠키(cookie)’ 등을 운용합니다. 쿠키란 회사의 웹사이트를 운영하는데 이용되는 서버가
+                    <p>회사는 귀하의 정보를 수시로 저장하고 찾아내는 '쿠키(cookie)' 등을 운용합니다. 쿠키란 회사의 웹사이트를 운영하는데 이용되는 서버가
                       귀하의 브라우저에 보내는 아주 작은 텍스트 파일로서 귀하의 컴퓨터 하드디스크에 저장됩니다. 회사는 다음과 같은 목적을 위해 쿠키를 사용합니다.</p>
                     <ul class="info-list">
                       <li>
