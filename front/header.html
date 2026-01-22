@@ -1,0 +1,76 @@
+<header class="th-layout-header">
+  <div class="campland-N1" id="OXmkNRNChQ">
+    <div class="header-container container-full">
+      <div class="header-left">
+        <h2 class="header-title">
+          <a href="javascript:void(0)">
+            <img src="./resources/images/hwamyeon_kaepcheo_2026-01-20_152751-removebg-preview.png" alt="logo" />
+          </a>
+        </h2>
+      </div>
+      <div class="header-center">
+        <div class="header-gnb">
+          <ul class="header-gnblist">
+            <li class="header-gnbitem">
+              <a class="header-gnblink" href="javascript:void(0)">
+                <span>Chatbot</span>
+              </a>
+            </li>
+            <li class="header-gnbitem">
+              <a class="header-gnblink" href="javascript:void(0)">
+                <span>Celeb's Pick</span>
+              </a>
+            </li>
+            <li class="header-gnbitem">
+              <a class="header-gnblink" href="javascript:void(0)">
+                <span>Smart Wardrobe</span>
+              </a>
+            </li>
+            <li class="header-gnbitem">
+              <a class="header-gnblink" href="javascript:void(0)">
+                <span>Lookbook</span>
+              </a>
+            </li>
+            <li class="header-gnbitem">
+              <a class="header-gnblink" href="javascript:void(0)">
+                <span>FAQ</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="header-right">
+        <!-- 로그인 전 -->
+        <div id="before-login" class="header-auth" style="display: none;">
+          <a href="./login.html" class="header-gnblink"><span>Login</span></a>
+        </div>
+        <!-- 로그인 후 -->
+        <div id="after-login" class="header-auth" style="display: none; align-items: center; gap: 12px;">
+          <a href="./mypage.html" class="header-gnblink" style="display: flex; align-items: center; gap: 8px;">
+            <span>My page</span>
+          </a>
+        </div>
+      </div>
+
+      <script>
+        // 로그인 상태 체크 (localStorage 기반 예시)
+        function checkLoginStatus() {
+          const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+          const beforeLogin = document.getElementById('before-login');
+          const afterLogin = document.getElementById('after-login');
+
+          if (isLoggedIn) {
+            beforeLogin.style.display = 'none';
+            afterLogin.style.display = 'flex';
+          } else {
+            beforeLogin.style.display = 'flex';
+            afterLogin.style.display = 'none';
+          }
+        }
+
+        // 페이지 로드 시 체크
+        checkLoginStatus();
+      </script>
+    </div>
+  </div>
+</header>

@@ -7,10 +7,40 @@
   <meta http-equiv="imagetoolbar" content="no" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="./resources/css/setting_wardrobe.css" />
+  <link rel="stylesheet" href="./resources/css/setting.css" />
   <link rel="stylesheet" href="./resources/css/plugin.css" />
-  <link rel="stylesheet" href="./resources/css/templatehouse_wardrobe.css" />
-  <link rel="stylesheet" href="./resources/css/style_wardrobe.css" />
+  <link rel="stylesheet" href="./resources/css/templatehouse.css" />
+  <link rel="stylesheet" href="./resources/css/style.css" />
+  
+  <script>
+    // 로그인 완료 페이지이므로 로그인 상태 설정
+    localStorage.setItem('isLoggedIn', 'true');
+
+    // Load header - body 맨 앞에 직접 삽입
+    fetch('./header.html')
+      .then(response => response.text())
+      .then(data => {
+        document.body.insertAdjacentHTML('afterbegin', data);
+
+        // header 로드 후 로그인 상태 적용
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const beforeLogin = document.getElementById('before-login');
+        const afterLogin = document.getElementById('after-login');
+
+        if (isLoggedIn) {
+          beforeLogin.style.display = 'none';
+          afterLogin.style.display = 'flex';
+        } else {
+          beforeLogin.style.display = 'flex';
+          afterLogin.style.display = 'none';
+        }
+
+        // header 로드 완료 후 스크롤 초기화
+        window.scrollTo(0, 0);
+        window.dispatchEvent(new Event('scroll'));
+      });
+  </script>
+
   <style>
     /* Lookbook Specific Styles */
     .lookbook-container {
@@ -451,7 +481,7 @@
       }
     }
   </style>
-</head>
+
 
 <body>
   <header class="th-layout-header">

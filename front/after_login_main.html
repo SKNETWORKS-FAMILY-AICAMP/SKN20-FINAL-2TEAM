@@ -7,277 +7,85 @@
   <meta http-equiv="imagetoolbar" content="no" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="./resources/css/setting_wardrobe.css" />
+  <link rel="stylesheet" href="./resources/css/setting.css" />
   <link rel="stylesheet" href="./resources/css/plugin.css" />
-  <link rel="stylesheet" href="./resources/css/templatehouse_wardrobe.css" />
-  <link rel="stylesheet" href="./resources/css/style_wardrobe.css" />
-  <style>
-    /* Custom styles for smart wardrobe main page */
-    .textset {
-      position: relative;
-      background-image: url('./resources/images/smartwardrobe_image_2.jpg');
-      background-size: cover;
-      background-position: center;
-      padding: 60px 40px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .textset::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.3);
-      z-index: 1;
-    }
-
-    .textset-tit {
-      position: relative;
-      z-index: 2;
-      color: white !important;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    }
-
-    /* Enlarge card images and adjust layout */
-    .cardset-figure {
-      margin-top: 80px !important;
-    }
-
-    .cardset-img {
-      transform: scale(2);
-    }
-
-
-    /* Single line tags */
-    .cardset-badge {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    .cardset-badge::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Hover effect for cards */
-    .cardset {
-      position: relative;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .cardset::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0);
-      transition: all 0.3s ease;
-      border-radius: 8px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .cardset:hover::before {
-      background: rgba(0, 0, 0, 0.4);
-    }
-
-    .cardset-body,
-    .cardset-figure {
-      position: relative;
-      z-index: 2;
-    }
-
-    .cardset:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-  </style>
+  <link rel="stylesheet" href="./resources/css/templatehouse.css" />
+  <link rel="stylesheet" href="./resources/css/style.css" />
 </head>
 
 <body>
-  <header class="th-layout-header">
-    <div class="museum-N1" id="FcMkm7I8W5">
-      <div class="header-container container-full">
-        <div class="header-left">
-          <h1 class="header-title">
-            <a href="javascript:void(0)">
-              <img src="./resources/images/logo.png" alt="top_bottom" />
-            </a>
-          </h1>
-        </div>
-        <div class="header-center">
-          <div class="header-gnb">
-            <ul class="header-gnblist">
-              <li class="header-gnbitem">
-                <a class="header-gnblink" href="javascript:void(0)">
-                  <span>Smart Wardrobe</span>
-                </a>
-              </li>
-              <li class="header-gnbitem">
-                <a class="header-gnblink" href="javascript:void(0)">
-                  <span>Celeb's Pick</span>
-                </a>
-              </li>
-              <li class="header-gnbitem">
-                <a class="header-gnblink" href="javascript:void(0)">
-                  <span>Chatbot</span>
-                </a>
-              </li>
-              <li class="header-gnbitem">
-                <a class="header-gnblink" href="javascript:void(0)">
-                  <span>FAQ</span>
-                </a>
-              </li>
-              <li class="header-gnbitem">
-                <a class="header-gnblink" href="javascript:void(0)">
-                  <span>Lookbook</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="header-right">
-          <div class="header-utils">
-            <ul>
-              <li class="allmenu">
-                <button class="btn-allmenu">
-                  <i class="ico-hamburger"></i>
-                  <i class="ico-hamburger"></i>
-                  <i class="ico-hamburger"></i>
-                </button>
-              </li>
-            </ul>
-          </div>
-          <button class="btn-momenu">
-            <i class="ico-hamburger"></i>
-            <i class="ico-hamburger"></i>
-            <i class="ico-hamburger"></i>
-          </button>
-        </div>
-        <div class="header-fullmenu fullmenu-top">
-          <div class="fullmenu-wrapper">
-            <div class="fullmenu-head">
-              <h2 class="fullmenu-title">
-                <a href="javascript:void(0)">
-                  <!-- <img src="./resources/icons/logo_w.svg" alt="PLAYSEUM" /> -->
-                </a>
-              </h2>
-            </div>
-            <ul class="fullmenu-gnblist" style="display: flex;">
-              <li class="fullmenu-gnbitem">
-                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
-                  <span>Smart Wardrobe</span>
-                </a>
-              </li>
-              <li class="fullmenu-gnbitem">
-                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
-                  <span>Celeb's Pick</span>
-                </a>
-              </li>
-              <li class="fullmenu-gnbitem">
-                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
-                  <span>Chatbot</span>
-                </a>
-              </li>
-              <li class="fullmenu-gnbitem">
-                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
-                  <span>FAQ</span>
-                </a>
-              </li>
-              <li class="fullmenu-gnbitem">
-                <a class="h5 fullmenu-gnblink" href="javascript:void(0)">
-                  <span>Lookbook</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <button class="fullmenu-close">
-            <img src="./resources/icons/ico_s20_close_white.svg" alt="닫기" />
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
+  <script>
+    // 로그인 완료 페이지이므로 로그인 상태 설정
+    localStorage.setItem('isLoggedIn', 'true');
+
+    // Load header - body 맨 앞에 직접 삽입
+    fetch('./header.html')
+      .then(response => response.text())
+      .then(data => {
+        document.body.insertAdjacentHTML('afterbegin', data);
+
+        // header 로드 후 로그인 상태 적용
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const beforeLogin = document.getElementById('before-login');
+        const afterLogin = document.getElementById('after-login');
+
+        if (isLoggedIn) {
+          beforeLogin.style.display = 'none';
+          afterLogin.style.display = 'flex';
+        } else {
+          beforeLogin.style.display = 'flex';
+          afterLogin.style.display = 'none';
+        }
+
+        // header 로드 완료 후 스크롤 초기화
+        window.scrollTo(0, 0);
+        window.dispatchEvent(new Event('scroll'));
+      });
+  </script>
   <main class="th-layout-main">
     <div class="th-layout-content">
-      <section class="museum-N9" id="NJMkM7I8W5">
+      <section class="wellness-N10" id="TaMkm6ch5u">
+        <h2 class="blind">바로가기</h2>
         <div class="contents-container container-full">
-          <div class="contents-inner" data-height-var="--height-mkmcgi2u" style="height: var(--height-mkmcgi2u);">
-            <div class="textset">
-              <h2 class="textset-tit">+<br />Smart Wardrobe</h2>
-            </div>
-            <div class="cardset">
-              <div class="cardset-body">
-                <div class="cardset-badge">
-                  <span class="p2 badge badge-line">티셔츠</span>
-                  <span class="p2 badge badge-line">셔츠</span>
-                  <span class="p2 badge badge-line">맨투맨</span>
-                </div>
-                <strong class="cardset-tit h3">TOP</strong>
+          <div class="list-area">
+            <div class="item">
+              <div class="thumb">
+                <img src="https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixid=M3w0OTE2MDd8MHwxfHNlYXJjaHw0fHx3YXJkcm9iZXxrb3wwfDF8fHwxNzY4ODg5OTY0fDA&amp;ixlib=rb-4.1.0" alt="" />
               </div>
-              <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm8eg1k);" data-padding-top-var="--padding-top-mkm8eg1k">
-                <img src="./resources/images/top-removebg-preview.png" alt="top" class="cardset-img" style="width: var(--width-mkm8bxql); height: var(--height-mkm8bxql);" data-width-var="--width-mkm8bxql" data-height-var="--height-mkm8bxql" />
-              </figure>
-            </div>
-            <div class="cardset" onclick="location.href='smartwardrobe_detail.html#bottom-section'">
-              <div class="cardset-body">
-                <div class="cardset-badge">
-                  <span class="p2 badge badge-line">데님 팬츠</span>
-                  <span class="p2 badge badge-line">슬랙스</span>
-                  <span class="p2 badge badge-line">스커트</span>
-                </div>
-                <a href="smartwardrobe_detail.html#bottom-section"><strong class="cardset-tit h3">BOTTOM</strong></a>
+              <div class="desc">
+                <strong class="h4">스마트 옷장</strong>
+                <p class="p1">Smart wardrobe</p>
+                <a href="javascript:void(0)" class="link">
+                  <img src="./resources/icons/ico_arrow_w.svg" alt="" />
+                  <span class="blind">바로가기</span>
+                </a>
               </div>
-              <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm8id3u);" data-padding-top-var="--padding-top-mkm8id3u">
-                <img src="./resources/images/bottom-removebg-preview.png" alt="NEOGRID FX" class="cardset-img" data-width-var="--width-mkm8i25h" style="width: var(--width-mkm8i25h); height: var(--height-mkm8i25h);" data-height-var="--height-mkm8i25h" />
-              </figure>
             </div>
-            <div class="cardset">
-              <div class="cardset-body">
-                <div class="cardset-badge">
-                  <span class="p2 badge badge-line">패딩</span>
-                  <span class="p2 badge badge-line">코트</span>
-                  <span class="p2 badge badge-line">가디건</span>
-                </div>
-                <strong class="cardset-tit h3">OUTER</strong>
+            <div class="item">
+              <div class="thumb">
+                <img src="https://images.unsplash.com/photo-1643756635111-ee5b18e055dc?ixid=M3w0OTE2MDd8MHwxfHNlYXJjaHw0fHxjZWxlYnxrb3wwfHx8fDE3Njg4ODk5NDJ8MA&amp;ixlib=rb-4.1.0" alt="" />
               </div>
-              <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm8x0ja);" data-padding-top-var="--padding-top-mkm8x0ja">
-                <img src="./resources/images/outer-removebg-preview.png" alt="TITANEDGE GX" class="cardset-img" data-width-var="--width-mkm8wp9e" style="width: var(--width-mkm8wp9e); height: var(--height-mkm8wp9e);" data-height-var="--height-mkm8wp9e" />
-              </figure>
+              <div class="desc">
+                <strong class="h4">셀럽의 픽!</strong>
+                <p class="p1">Celeb's Pick!</p>
+                <a href="javascript:void(0)" class="link">
+                  <img src="./resources/icons/ico_arrow_w.svg" alt="" />
+                  <span class="blind">바로가기</span>
+                </a>
+              </div>
             </div>
-            <div class="cardset">
-              <div class="cardset-body">
-                <div class="cardset-badge">
-                  <span class="p2 badge badge-line">모자</span>
-                  <span class="p2 badge badge-line">양말</span>
-                  <span class="p2 badge badge-line">선글라스</span>
-                </div>
-                <strong class="cardset-tit h3">ACC</strong>
+            <div class="item">
+              <div class="thumb">
+                <img src="https://images.unsplash.com/photo-1757310998309-87a97e562ee5?ixid=M3w0OTE2MDd8MHwxfHNlYXJjaHw3fHxjaGF0Ym90fGtvfDB8MXx8fDE3Njg4ODk5MjZ8MA&amp;ixlib=rb-4.1.0" alt="" />
               </div>
-              <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm94nao);" data-padding-top-var="--padding-top-mkm94nao">
-                <img src="./resources/images/acc-removebg-preview.png" alt="BLASTCADE 87" class="cardset-img" data-width-var="--width-mkm93mxz" style="width: var(--width-mkm93mxz); height: var(--height-mkm93mxz);" data-height-var="--height-mkm93mxz" />
-              </figure>
-            </div>
-            <div class="cardset">
-              <div class="cardset-body">
-                <div class="cardset-badge">
-                  <span class="p2 badge badge-line">구두</span>
-                  <span class="p2 badge badge-line">부츠</span>
-                  <span class="p2 badge badge-line">운동화</span>
-                </div>
-                <strong class="cardset-tit h3">SHOES</strong>
+              <div class="desc">
+                <strong class="h4">챗봇 추천받기</strong>
+                <p class="p1">Chatbot's recommendation</p>
+                <a href="javascript:void(0)" class="link">
+                  <img src="./resources/icons/ico_arrow_w.svg" alt="" />
+                  <span class="blind">바로가기</span>
+                </a>
               </div>
-              <figure class="cardset-figure" style="text-align: center; padding-top: var(--padding-top-mkm9z0xw); padding-right: var(--padding-right-mkm9z0xw);" data-padding-top-var="--padding-top-mkm9z0xw" data-padding-right-var="--padding-right-mkm9z0xw">
-                <img src="./resources/images/shoes-removebg-preview.png" alt="BLASTCADE 12" class="cardset-img" data-width-var="--width-mkm9ye4z" style="width: var(--width-mkm9ye4z); height: var(--height-mkm9ye4z);" data-height-var="--height-mkm9ye4z" />
-              </figure>
             </div>
           </div>
         </div>
@@ -285,23 +93,23 @@
     </div>
   </main>
   <footer class="th-layout-footer">
-    <div class="museum-N2" id="lVmkM7i8W5">
-      <div class="footer-container container-md">
+    <div class="campland-N2" id="rFMKNROd1y">
+      <div class="footer-container container-full">
         <div class="footer-top">
           <h1 class="footer-logo">
             <a href="javascript:void(0)">
-              <img src="./resources/icons/logo_invert2.png" alt="logo" />
+              <img src="./resources/images/hwamyeon_kaepcheo_2026-01-20_152751-removebg-preview.png" alt="CAMPLAND" />
             </a>
           </h1>
           <ul class="footer-menulist">
             <li class="footer-menulink email modalset-open-btn" data-modal-target="footer-email-modal">
               <a href="javascript:void(0)">
-                <span>이메일 무단수집 거부</span>
+                <span style="color: var(--primary);">이메일 무단수집 거부</span>
               </a>
             </li>
             <li class="footer-menulink privacy modalset-open-btn" data-modal-target="footer-privacy-modal">
               <a href="javascript:void(0)">
-                <span>개인정보처리방침</span>
+                <span style="color: var(--primary);">개인정보처리방침</span>
               </a>
             </li>
             <li class="footer-menulink">
@@ -315,20 +123,42 @@
               </a>
             </li>
           </ul>
+          <ul class="footer-snslist">
+            <li class="footer-snsitem">
+              <a class="footer-snslink" href="javascript:void(0)">
+                <img src="./resources/icons/ico_instagram_lightgrey.svg" alt="인스타그램" />
+              </a>
+            </li>
+            <li class="footer-snsitem">
+              <a class="footer-snslink" href="javascript:void(0)">
+                <img src="./resources/icons/ico_youtube_lightgrey.svg" alt="유튜브" />
+              </a>
+            </li>
+            <li class="footer-snsitem">
+              <a class="footer-snslink" href="javascript:void(0)">
+                <img src="./resources/icons/ico_facebook_lightgrey.svg" alt="페이스북" />
+              </a>
+            </li>
+            <li class="footer-snsitem">
+              <a class="footer-snslink" href="javascript:void(0)">
+                <img src="./resources/icons/ico_kakao_lightgrey.svg" alt="카카오톡" style="color: var(--primary);" />
+              </a>
+            </li>
+          </ul>
         </div>
         <div class="footer-bottom">
           <div class="footer-txtgroup">
             <address class="footer-txt">
-              <p class="p3">
+              <p class="p3" style="color: var(--primary);">
                 서울특별시 금천구 벚꽃로36길 30 가산KS타워 1409호
               </p>
-              <p class="p3">
-                <span>T. 070-8872-8874</span>
-                <span>E. help@openfield.co.kr</span>
+              <p>
+                <span class="p3" style="color: var(--primary);">T. 070-8872-8874</span>
+                <span class="p3" style="color: var(--primary);">E. help@openfield.co.kr</span>
               </p>
             </address>
             <div class="footer-txt">
-              <p class="p3">ⓒ TEMPLATEHOUSE. ALL RIGHTS RESEVED</p>
+              <p class="p3" style="color: var(--black);">2022 BY TEMPLATEHOUSE. ALL RIGHTS RESEVED</p>
             </div>
           </div>
         </div>
@@ -511,18 +341,18 @@
                     <p>이용자 및 법정 대리인은 언제든지 등록되어 있는 자신 혹은 당해 만 14세 미만 아동의 개인정보를 조회하거나 수정할 수 있으며 가입해지를 요청할 수도 있습니다.
                     </p>
                     <p class="mtb">
-                      이용자 혹은 만 14세 미만 아동의 개인정보 조회 및 수정을 위해서는 '개인정보변경'(또는 '회원정보수정' 등)을 가입해지(동의철회)를 위해서는 "회원탈퇴"를 클릭하여 본인 확인 절차를 거치신 후 직접 열람, 정정 또는 탈퇴가 가능합니다. 혹은 개인정보관리책임자에게 서면, 전화
+                      이용자 혹은 만 14세 미만 아동의 개인정보 조회 및 수정을 위해서는 ‘개인정보변경’(또는 ‘회원정보수정’ 등)을 가입해지(동의철회)를 위해서는 “회원탈퇴”를 클릭하여 본인 확인 절차를 거치신 후 직접 열람, 정정 또는 탈퇴가 가능합니다. 혹은 개인정보관리책임자에게 서면, 전화
                       또는 이메일로 연락하시면 지체없이 조치하겠습니다.
                     </p>
                     <p>귀하가 개인정보의 오류에 대한 정정을 요청하신 경우에는 정정을 완료하기 전까지 당해 개인정보를 이용 또는 제공하지 않습니다. 또한 잘못된 개인정보를 제3자에게 이미 제공한 경우에는 정정 처리결과를 제3자에게 지체없이 통지하여 정정이 이루어지도록 하겠습니다.
-                      회사는 이용자 혹은 법정 대리인의 요청에 의해 해지 또는 삭제된 개인정보는 "회사가 수집하는 개인정보의 보유 및 이용기간"에 명시된 바에 따라 처리하고 그 외의 용도로 열람 또는 이용할 수 없도록 처리하고 있습니다.
+                      회사는 이용자 혹은 법정 대리인의 요청에 의해 해지 또는 삭제된 개인정보는 “회사가 수집하는 개인정보의 보유 및 이용기간”에 명시된 바에 따라 처리하고 그 외의 용도로 열람 또는 이용할 수 없도록 처리하고 있습니다.
                     </p>
                   </div>
                 </div>
                 <div class="info-group">
                   <strong>8. 개인정보 자동수집 장치의 설치, 운영 및 그 거부에 관한 사항</strong>
                   <div class="info-desc">
-                    <p>회사는 귀하의 정보를 수시로 저장하고 찾아내는 '쿠키(cookie)' 등을 운용합니다. 쿠키란 회사의 웹사이트를 운영하는데 이용되는 서버가
+                    <p>회사는 귀하의 정보를 수시로 저장하고 찾아내는 ‘쿠키(cookie)’ 등을 운용합니다. 쿠키란 회사의 웹사이트를 운영하는데 이용되는 서버가
                       귀하의 브라우저에 보내는 아주 작은 텍스트 파일로서 귀하의 컴퓨터 하드디스크에 저장됩니다. 회사는 다음과 같은 목적을 위해 쿠키를 사용합니다.</p>
                     <ul class="info-list">
                       <li>
@@ -602,10 +432,10 @@
       </div>
     </div>
   </footer>
-  <script src="./resources/js/setting_wardrobe.js"></script>
+  <script src="./resources/js/setting.js"></script>
   <script src="./resources/js/plugin.js"></script>
   <script src="./resources/js/templatehouse.js"></script>
-  <script src="./resources/js/style_wardrobe.js"></script>
+  <script src="./resources/js/style.js"></script>
 </body>
 
 </html>
