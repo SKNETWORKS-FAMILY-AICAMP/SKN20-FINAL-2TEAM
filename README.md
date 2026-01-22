@@ -1,7 +1,7 @@
 # 상하의 (cd agent) - 멀티 에이전트 기반 개인화 코디 추천 시스템
 
 <div align="center">
-  <img src="./front/mainpage/resources/images/hwamyeon_kaepcheo_2026-01-20_152751-removebg-preview.png" alt="상하의 로고" width="200"/>
+  <img src="./front/mainpage/resources/images/shanghai_white.png" alt="상하의 로고" width="200"/>
   
   [![SKN Family AI Camp](https://img.shields.io/badge/SKN%20Family%20AI%20Camp-20%EA%B8%B0-blue)](https://github.com)
   [![Team](https://img.shields.io/badge/Team-cd%20agent%20(2%EC%A1%B0)-green)](https://github.com)
