@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": ["regit_num", "comparisons", "risk_level", "decision_reason"],
+  "properties": {
+    "regit_num": {"type": "string"},
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["patent_element", "user_product_element", "match"],
+        "properties": {
+          "patent_element": {"type": "string"},
+          "user_product_element": {"type": ["string", "null"]},
+          "match": {
+            "type": "string",
+            "enum": ["대응", "비대응", "판단불가"]
+          }
+        }
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["높음", "애매", "낮음"]
+    },
+    "decision_reason": {"type": "string"}
+  }
+}
