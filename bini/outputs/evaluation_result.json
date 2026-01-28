@@ -1,0 +1,22 @@
+{
+  "metrics": {
+    "json_validity": 100.0,
+    "risk_level_accuracy": 97.14285714285714,
+    "match_accuracy": 98.57142857142858
+  },
+  "details": {
+    "total": 35,
+    "json_valid": 35,
+    "risk_level_correct": 34,
+    "match_correct": 69,
+    "match_total": 70
+  },
+  "errors": [
+    {
+      "idx": 9,
+      "query": "TBC 성분이 들어간 미백 크림을 만들었어",
+      "pred": "낮음",
+      "true": "높음"
+    }
+  ]
+}
