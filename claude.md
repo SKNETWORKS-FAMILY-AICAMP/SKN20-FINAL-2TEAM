@@ -1,141 +1,178 @@
 # BINI 프로젝트 - Claude 가이드
 
 ## 프로젝트 개요
-특허 침해 리스크 평가를 위한 sLLM(Small LLM) 미세조정 프로젝트
 
-### 핵심 목표
-사용자가 개발 중인 제품이 특정 특허를 침해할 가능성을 자동으로 평가하는 경량 AI 모델 개발
+**상품 출시 전 특허 침해 여부 사전 검증 서비스**
 
-### 모델 로드맵
-| 단계 | 모델 | 파라미터 | 상태 |
-|------|------|----------|------|
-| 1단계 | google/gemma-3-1b-it | 1B | 진행 중 |
-| 2단계 | google/gemma-3-4b-it | 4B | 대기 |
-| 3단계 | google/gemma-3-8b-it | 8B | 대기 |
+### 서비스 대상
+- 상품을 출시하려는 사람
+- 특허 침해 여부를 사전에 확인하고 싶은 사람
+
+### 핵심 기능
+1. **이미지 분석**: 제품 이미지 → 로카르노 분류 → 이미지 RAG → 유사도 모델 → LLM 답변
+2. **텍스트 분석**: 제품 설명 → 키워드 추출 → 청구항 RAG → Rerank → sLLM 답변
+3. **채팅 기록**: 로그인 사용자만 사용 가능, 채팅 기록 저장/조회
+
+---
+
+## 시스템 아키텍처
+
+### 이미지 입력 플로우
+```
+이미지 업로드 → 로카르노 분류 (자동) → 이미지 RAG (Top 20) → 유사도 모델 검증 → LLM 답변
+```
+
+### 텍스트 입력 플로우
+```
+텍스트 입력 → Key값 추출 → 청구항 RAG → Rerank → sLLM 답변
+```
+
+---
 
 ## 현재 상태
 
 ### 완료된 작업
 - [x] 프로젝트 구조 설정
-- [x] 출력 스키마 정의 (`output_schema.json`)
-- [x] 시드 케이스 35개 생성 (`seed_cases.json`)
-- [x] 라벨 데이터 생성 (`train.jsonl`)
-- [x] SFT 데이터셋 빌더 (`build_sft_jsonl.py`)
-- [x] 학습 스크립트 (`train.py`)
-- [x] LoRA 설정 (`lora_config.yaml`)
+- [x] 청구항 데이터 (seed_cases.json, train.jsonl)
+- [x] sLLM 학습 (Gemma 1B + LoRA) - 97.1% 정확도
+- [x] 평가/추론/비교 스크립트
+- [x] ERD 설계 완료 (ERD_FINAL.md)
+
+### 진행 중인 작업 (팀원)
+- [ ] 디자인 특허 이미지 데이터 수집
+- [ ] 이미지 유사도 모델 학습
 
 ### 해야 할 작업
-- [ ] 데이터셋 품질 검증 및 수정
-- [ ] 1B 모델 학습 실행
-- [ ] 평가 스크립트 작성
-- [ ] 추론 스크립트 작성
-- [ ] 데이터셋 확장 (더 많은 특허, 더 다양한 케이스)
-- [ ] 4B/8B 모델 업그레이드
+- [ ] 로카르노 분류 모델
+- [ ] 이미지 RAG 시스템
+- [ ] 텍스트 RAG 시스템 (청구항)
+- [ ] Reranker 적용
+- [ ] 백엔드 API 개발
+- [ ] 프론트엔드 개발
+- [ ] 로그인/회원가입 시스템
+
+---
 
 ## 파일 구조
 
 ```
 bini/
-├── training/
-│   ├── train.py              # 메인 학습 스크립트
-│   ├── build_sft_jsonl.py    # 데이터셋 빌더
-│   ├── lora_config.yaml      # 학습 설정
-│   └── requirements.txt      # 의존성
 ├── data/
 │   ├── raw/seeds/
-│   │   └── seed_cases.json   # 입력 데이터
+│   │   └── seed_cases.json       # 텍스트 학습 데이터
 │   ├── processed/
-│   │   ├── train.jsonl       # 라벨 (정답)
-│   │   └── sft_train.jsonl   # 학습용 데이터
+│   │   ├── train.jsonl           # 라벨 데이터
+│   │   └── sft_train.jsonl       # SFT 학습 데이터
 │   └── schema/
-│       └── output_schema.json
-└── prompts/                   # (현재 미사용)
+│       └── output_schema.json    # 출력 스키마
+│
+├── training/
+│   ├── train.py                  # sLLM 학습 스크립트
+│   ├── evaluate.py               # 평가 스크립트
+│   ├── inference.py              # 추론 스크립트
+│   ├── compare_models.py         # 모델 비교
+│   ├── build_sft_jsonl.py        # 데이터셋 빌더
+│   ├── lora_config.yaml          # LoRA 설정
+│   └── requirements.txt          # 의존성
+│
+├── outputs/
+│   └── gemma3-1b-it-lora/        # 학습된 sLLM
+│
+└── docs/
+    ├── ERD_FINAL.md              # 최종 ERD (13개 테이블)
+    ├── TRAINING_REPORT.md        # 학습 결과 리포트
+    └── PRESENTATION_GUIDE.md     # 발표 가이드
 ```
+
+---
+
+## 모델 현황
+
+### sLLM (텍스트 분석용)
+| 항목 | 내용 |
+|------|------|
+| 베이스 모델 | google/gemma-3-1b-it |
+| 학습 방법 | LoRA (r=16, alpha=32) |
+| 정확도 | 97.1% (34/35) |
+| 저장 위치 | outputs/gemma3-1b-it-lora |
+
+### 이미지 유사도 모델 (예정)
+- 팀원이 학습 진행 중
+- 디자인 특허 이미지 데이터 수집 중
+
+### 로카르노 분류 모델 (예정)
+- 이미지 → 로카르노 클래스 자동 분류
+
+---
+
+## 데이터베이스 (ERD 요약)
+
+### 테이블 13개
+
+| 구분 | 테이블 |
+|------|--------|
+| 사용자 | `users` |
+| 채팅 | `chats`, `messages` |
+| 분석 | `analyses`, `analysis_images`, `analysis_keywords`, `image_matches`, `claim_matches` |
+| 디자인특허 | `design_patents`, `design_embeddings` |
+| 일반특허 | `patents`, `claims`, `claim_embeddings` |
+
+### 주요 관계
+- users → chats (1:N)
+- chats → messages (1:N)
+- messages → analyses (1:1)
+- analyses → image_matches / claim_matches (1:N)
+
+---
+
+## 기술 스택
+
+| 구분 | 기술 |
+|------|------|
+| sLLM | Gemma 1B + LoRA |
+| 이미지 임베딩 | CLIP (예정) |
+| 텍스트 임베딩 | OpenAI ada-002 또는 KoSimCSE |
+| Vector DB | PostgreSQL + pgvector |
+| Reranker | bge-reranker (예정) |
+| 백엔드 | FastAPI (예정) |
+| 프론트엔드 | React/Next.js (예정) |
+
+---
 
 ## 작업 가이드라인
 
 ### Claude가 도와줄 수 있는 작업
-
-1. **데이터 품질 개선**
-   - seed_cases.json과 train.jsonl 간의 불일치 수정
-   - 더 다양한 케이스 추가
-   - 라벨링 오류 검토
-
-2. **코드 수정**
-   - train.py 개선 (로깅, 체크포인트 등)
-   - 평가/추론 스크립트 작성
-   - 데이터 전처리 개선
-
-3. **모델 업그레이드**
-   - lora_config.yaml에서 base_model 변경
-   - 모델 크기에 맞는 하이퍼파라미터 조정
-
-4. **실험 관리**
-   - 실험 결과 기록
-   - 성능 비교 분석
+1. **코드 개발**: 백엔드 API, RAG 시스템, 모델 추론
+2. **데이터 처리**: 특허 데이터 전처리, 임베딩 생성
+3. **모델 개선**: sLLM 추가 학습, 평가
+4. **문서화**: ERD, API 문서, 가이드
 
 ### 주의사항
-
 - 모든 대답은 **한글**로 할 것
-- 코드 수정 시 기존 구조 유지
-- 학습 데이터 수정 시 JSON 형식 검증 필수
-- 모델 업그레이드 시 GPU 메모리 고려
+- 로그인 필수 - 비로그인 사용 불가
+- 이미지 플로우: 로카르노 분류 → RAG → 유사도 모델 → LLM
+- 텍스트 플로우: 키워드 추출 → RAG → Rerank → sLLM
 
-## 모델별 권장 설정
-
-### Gemma 1B (현재)
-```yaml
-base_model: google/gemma-3-1b-it
-r: 16
-lora_alpha: 32
-per_device_train_batch_size: 1
-gradient_accumulation_steps: 8
-```
-
-### Gemma 4B (예정)
-```yaml
-base_model: google/gemma-3-4b-it
-r: 32
-lora_alpha: 64
-per_device_train_batch_size: 1
-gradient_accumulation_steps: 16
-```
-
-### Gemma 8B (예정)
-```yaml
-base_model: google/gemma-3-8b-it
-r: 64
-lora_alpha: 128
-per_device_train_batch_size: 1
-gradient_accumulation_steps: 32
-```
-
-## 현재 데이터셋 이슈
-
-### 발견된 문제점
-1. **라벨 불일치**: 일부 sft_train.jsonl에서 user_query와 라벨이 매칭되지 않음
-   - 예: "트리부틸 아세틸시트레이트를 함유한 세럼"인데 라벨에는 "retinol"로 되어 있음
-
-2. **데이터 다양성 부족**: 현재 1개 특허(102918091)만 사용 중
-
-### 개선 방향
-- 라벨 데이터 재검토 및 수정
-- 추가 특허 케이스 확보
-- 다양한 산업 분야 특허 추가
+---
 
 ## 빠른 명령어
 
 ```bash
-# 데이터셋 생성
-cd bini && python training/build_sft_jsonl.py
-
-# 학습 실행
+# sLLM 학습
 cd bini && python training/train.py
+
+# 평가
+python training/evaluate.py
+
+# 추론 테스트
+python training/inference.py
 
 # 의존성 설치
 pip install -r bini/training/requirements.txt
 ```
 
-## 연락처 / 메모
+---
+
+## 팀 정보
 - 프로젝트: SKN20-FINAL-2TEAM
-- 다정님 확인 필요 데이터: `data/다정님이_확인하기전데이터/`
+- GitHub: SKNETWORKS-FAMILY-AICAMP/SKN20-FINAL-2TEAM
