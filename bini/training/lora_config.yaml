@@ -1,0 +1,26 @@
+base_model: google/gemma-3-1b-it
+
+# LoRA
+r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+bias: none
+target_modules: all-linear
+
+# SFT
+max_seq_length: 2048
+num_train_epochs: 10
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 2.0e-4
+warmup_ratio: 0.05
+weight_decay: 0.0
+logging_steps: 5
+save_steps: 50
+
+# Precision / Optim
+bf16: true      # 안 되면 train.py에서 fp16로 자동 폴백
+fp16: false
+optim: paged_adamw_8bit
+
+output_dir: outputs/gemma3-1b-it-lora
