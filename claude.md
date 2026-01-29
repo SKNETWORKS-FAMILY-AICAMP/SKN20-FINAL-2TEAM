@@ -39,13 +39,16 @@
 - [x] sLLM 학습 (Gemma 1B + LoRA) - 97.1% 정확도
 - [x] 평가/추론/비교 스크립트
 - [x] ERD 설계 완료 (ERD_FINAL.md)
+- [x] 4B 모델 학습용 다중 특허 데이터 생성 (85건 / 3개 특허)
 
-### 진행 중인 작업 (팀원)
-- [ ] 디자인 특허 이미지 데이터 수집
-- [ ] 이미지 유사도 모델 학습
+### 진행 중인 작업
+- [ ] **4B 모델 학습 데이터 확장** — 특허 청구항 추가 입력 대기 중 (아래 "데이터 추가 방법" 참조)
+- [ ] 디자인 특허 이미지 데이터 수집 (팀원)
+- [ ] 이미지 유사도 모델 학습 (팀원)
 
 ### 해야 할 작업
-- [ ] **4B 모델 학습** (다음 작업 - 아래 상세 참조)
+- [ ] **4B 모델 학습** (데이터 충분히 모인 후)
+- [ ] sft_train.jsonl 재생성 (`python training/build_sft_jsonl.py`)
 - [ ] 로카르노 분류 모델
 - [ ] 이미지 RAG 시스템
 - [ ] 텍스트 RAG 시스템 (청구항)
@@ -222,6 +225,58 @@ pip install -r bini/training/requirements.txt
 ### 학습 환경
 - GPU: RTX 2000 Ada 16GB (4B LoRA 가능)
 - 예상 학습 시간: 데이터 양에 따라 다름
+
+---
+
+## 백엔드 후처리: sLLM 출력 → 테이블 변환
+
+### 결정사항
+- sLLM은 **JSON 형식**으로 출력 유지 (파싱 안정성, 검증 용이)
+- 백엔드(FastAPI)에서 JSON → 사용자 표시용 테이블 형식으로 **후처리 변환**
+
+### 변환 함수 (백엔드 구현 시 적용)
+```python
+def format_response(data: dict) -> str:
+    regit_num = data["regit_num"]
+    comparisons = data["comparisons"]
+    decision_reason = data["decision_reason"]
+
+    lines = []
+    lines.append(f"특허번호 {regit_num}의 특허 구성과 사용자가 실시하고자 하는 제품의 구성을 비교한 결과는 다음과 같습니다.")
+    lines.append("")
+    lines.append("[구성 대비]")
+    lines.append("| 특허 구성 | 사용자 제품 구성 | 대응 여부 |")
+    lines.append("|-----------|------------------|-------|")
+
+    for comp in comparisons:
+        pe = comp["patent_element"]
+        upe = comp["user_product_element"] if comp["user_product_element"] else "확인 불가"
+        match = comp["match"]
+        lines.append(f"| {pe} | {upe} | {match} |")
+
+    lines.append("")
+    lines.append("[판단]")
+    lines.append(decision_reason.replace("해당 특허를", f"해당 특허 {regit_num}를"))
+
+    return "\n".join(lines)
+```
+
+### 출력 예시
+```
+특허번호 1029170800000의 특허 구성과 사용자가 실시하고자 하는 제품의 구성을 비교한 결과는 다음과 같습니다.
+
+[구성 대비]
+| 특허 구성 | 사용자 제품 구성 | 대응 여부 |
+|-----------|------------------|-------|
+| 아크릴레이트/C10-30 알킬 아크릴레이트 크로스폴리머 | 아크릴레이트/C10-30 알킬 아크릴레이트 크로스폴리머 | 대응 |
+| 필름포머(...) | 피피지-17/아이피디아이/디엠피에이코폴리머 | 대응 |
+| 수중유형 에멀젼 | O/W | 대응 |
+| 화장료 조성물 | 선크림 | 대응 |
+
+[판단]
+사용자의 제품 구성은 등록된 특허의 구성 성분을 모두 포함하고 있어,
+해당 특허 1029170800000를 침해할 가능성은 높은 것으로 판단됩니다.
+```
 
 ---
 
