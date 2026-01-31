@@ -1,9 +1,12 @@
 import os
 import json
 import torch
+from dotenv import load_dotenv
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 from pathlib import Path
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 ADAPTER_PATH = BASE_DIR / "outputs/gemma3-4b-it-lora"
