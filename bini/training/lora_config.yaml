@@ -1,4 +1,4 @@
-base_model: google/gemma-3-1b-it
+base_model: google/gemma-3-4b-it
 
 # LoRA
 r: 16
@@ -23,4 +23,4 @@ bf16: true      # 안 되면 train.py에서 fp16로 자동 폴백
 fp16: false
 optim: paged_adamw_8bit
 
-output_dir: outputs/gemma3-1b-it-lora
+output_dir: outputs/gemma3-4b-it-lora

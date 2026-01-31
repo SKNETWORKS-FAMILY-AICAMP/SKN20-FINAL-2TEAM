@@ -1,4 +1,6 @@
 > **Claude에게**: 대화 시작 시 이 파일을 먼저 읽고 프로젝트 상황을 파악한 후 진행하세요.
+>
+> **⚠️ 중요**: sLLM 학습 관련 작업 시, 아래 "금반언(Prosecution History Estoppel) 기능" 섹션을 확인하고 사용자에게 학습 방식(확장/현재)을 먼저 물어보세요.
 
 # BINI 프로젝트 - Claude 가이드
 
@@ -56,6 +58,43 @@
 - [ ] 백엔드 API 개발
 - [ ] 프론트엔드 개발
 - [ ] 로그인/회원가입 시스템
+
+---
+
+## ⚠️ Claude 확인 필요: 금반언(Prosecution History Estoppel) 기능
+
+> **대화 시작 시 사용자에게 반드시 확인할 것!**
+
+### 금반언이란?
+- 특허 출원 과정에서 **공개 청구항(claim_pub)**에는 있었으나 **등록 청구항(claim_reg)**에서 삭제된 구성요소는 침해 판단에서 제외됨
+- 특허권자가 심사 과정에서 포기한 권리를 나중에 주장할 수 없다는 법리
+- **특허 침해 판단의 필수 기능**
+
+### 현재 상태
+- 현재 학습 데이터: **단일 청구항(claim)** 구조
+- 금반언 판단을 위해서는 **claim_pub/claim_reg 분리** 필요
+
+### 사용자에게 물어볼 질문
+```
+금반언(Prosecution History Estoppel) 기능 추가 학습을 진행할까요?
+
+1. **확장 방식**: claim_pub(공개 청구항) + claim_reg(등록 청구항) 분리 학습
+   - 장점: 금반언 판단 가능, 더 정확한 침해 분석
+   - 단점: 기존 데이터 재작성 필요, KIPRIS에서 공개공보 추가 수집 필요
+
+2. **현재 방식 유지**: 단일 청구항(claim)으로 학습
+   - 장점: 기존 데이터 활용 가능, 빠른 학습
+   - 단점: 금반언 판단 불가
+```
+
+### 확장 방식 선택 시 변경 사항
+| 파일 | 변경 내용 |
+|------|----------|
+| seed_cases.json | `claim_text` → `claim_pub`, `claim_reg` 분리 |
+| train.jsonl | `claim` → `claim_pub`, `claim_reg` 분리 |
+| build_sft_jsonl.py | 새 필드 처리 로직 추가 |
+| output_schema.json | 스키마 업데이트 |
+| SYSTEM 프롬프트 | 금반언 판단 로직 추가 |
 
 ---
 
@@ -164,6 +203,9 @@ bini/
 ## 빠른 명령어
 
 ```bash
+# 의존성 설치
+pip install -r bini/training/requirements.txt
+
 # sLLM 학습
 cd bini && python training/train.py
 
@@ -172,10 +214,30 @@ python training/evaluate.py
 
 # 추론 테스트
 python training/inference.py
-
-# 의존성 설치
-pip install -r bini/training/requirements.txt
 ```
+
+---
+
+## 환경 설정 (.env)
+
+Gemma 모델은 Hugging Face gated 모델이므로 토큰 설정이 필요합니다.
+
+### 설정 방법
+```bash
+# 1. .env.example을 .env로 복사
+cp bini/.env.example bini/.env
+
+# 2. .env 파일 열어서 HF_TOKEN 입력
+```
+
+### Hugging Face 토큰 발급 순서
+1. https://huggingface.co 로그인
+2. https://huggingface.co/settings/tokens → 토큰 생성
+   - 권한: **"Read access to contents of all public gated repos you can access"**
+3. https://huggingface.co/google/gemma-3-4b-it → 모델 접근 권한 승인
+4. `.env` 파일에 토큰 입력
+
+> ⚠️ `.env` 파일은 `.gitignore`에 포함되어 있어 Git에 업로드되지 않습니다.
 
 ---
 

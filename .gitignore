@@ -1,4 +1,6 @@
 fashion/.env
+bini/.env
 .env
 .vscode/settings.json
-nul
+nul.env
+bini/outputs/gemma3-4b-it-lora/

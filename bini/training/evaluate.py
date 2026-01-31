@@ -1,14 +1,27 @@
 import os
 import json
+import re
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from dotenv import load_dotenv
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 from pathlib import Path
 from collections import defaultdict
 
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parents[1]
-ADAPTER_PATH = BASE_DIR / "outputs/gemma3-1b-it-lora"
-BASE_MODEL = "google/gemma-3-1b-it"
+
+# 모델 선택 (환경변수 또는 기본값)
+MODEL_SIZE = os.environ.get("MODEL_SIZE", "4b")  # "1b" or "4b"
+
+if MODEL_SIZE == "1b":
+    ADAPTER_PATH = BASE_DIR / "outputs/gemma3-1b-it-lora"
+    BASE_MODEL = "google/gemma-3-1b-it"
+else:
+    ADAPTER_PATH = BASE_DIR / "outputs/gemma3-4b-it-lora"
+    BASE_MODEL = "google/gemma-3-4b-it"
+
 SEED_PATH = BASE_DIR / "data/raw/seeds/seed_cases.json"
 LABEL_PATH = BASE_DIR / "data/processed/train.jsonl"
 
@@ -53,14 +66,17 @@ def main():
     print(f"데이터셋: {len(seeds)}개")
 
     # 모델 로드
-    print("\n모델 로딩 중...")
+    print(f"\n모델 로딩 중... ({MODEL_SIZE.upper()})")
     tokenizer = AutoTokenizer.from_pretrained(ADAPTER_PATH)
+
+    # bfloat16으로 로드
     model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL,
         token=token,
         torch_dtype=torch.bfloat16,
         device_map="auto",
     )
+
     model = PeftModel.from_pretrained(model, ADAPTER_PATH)
     model.eval()
     print("모델 로딩 완료\n")
@@ -104,9 +120,25 @@ def main():
         if "</assistant>" in response:
             response = response.split("</assistant>")[0].strip()
 
+        # JSON 추출 (마크다운 코드블럭, 앞뒤 텍스트 제거)
+        json_str = response
+
+        # ```json ... ``` 또는 ``` ... ``` 형태 처리
+        if "```json" in json_str:
+            json_str = json_str.split("```json")[-1].split("```")[0].strip()
+        elif "```" in json_str:
+            parts = json_str.split("```")
+            if len(parts) >= 2:
+                json_str = parts[1].strip()
+
+        # { } 사이의 JSON만 추출
+        json_match = re.search(r'\{[\s\S]*\}', json_str)
+        if json_match:
+            json_str = json_match.group()
+
         # JSON 파싱
         try:
-            pred = json.loads(response)
+            pred = json.loads(json_str)
             results["json_valid"] += 1
 
             # risk_level 평가
@@ -141,12 +173,16 @@ def main():
 
             print(f"[{i+1:2d}/{len(seeds)}] {status} risk: {pred_risk:4s} (정답: {true_risk:4s}) | {user_query[:25]}...")
 
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             print(f"[{i+1:2d}/{len(seeds)}] ✗ JSON 파싱 실패 | {user_query[:25]}...")
+            print(f"    [DEBUG] 원본 응답 길이: {len(response)}")
+            print(f"    [DEBUG] 추출된 JSON: {json_str}")
+            print(f"    [DEBUG] 오류: {e}")
             errors.append({
                 "idx": i + 1,
                 "query": user_query[:30],
-                "error": "JSON 파싱 실패"
+                "error": "JSON 파싱 실패",
+                "response": response[:500]
             })
 
     # 결과 출력
@@ -194,18 +230,25 @@ def main():
     print("평가 완료")
     print("=" * 60)
 
-    # 결과 저장
-    result_path = BASE_DIR / "outputs/evaluation_result.json"
+    # 결과 저장 (모델별 폴더에 저장)
+    result_path = ADAPTER_PATH / "evaluation_result.json"
+    eval_data = {
+        "model": MODEL_SIZE.upper(),
+        "base_model": BASE_MODEL,
+        "metrics": {
+            "json_validity": json_acc,
+            "risk_level_accuracy": risk_acc,
+            "match_accuracy": match_acc,
+        },
+        "details": results,
+        "errors": errors,
+        "confusion_matrix": {
+            "risk_level": {k: dict(v) for k, v in risk_confusion.items()},
+            "match": {k: dict(v) for k, v in match_confusion.items()},
+        }
+    }
     with open(result_path, "w", encoding="utf-8") as f:
-        json.dump({
-            "metrics": {
-                "json_validity": json_acc,
-                "risk_level_accuracy": risk_acc,
-                "match_accuracy": match_acc,
-            },
-            "details": results,
-            "errors": errors,
-        }, f, ensure_ascii=False, indent=2)
+        json.dump(eval_data, f, ensure_ascii=False, indent=2)
     print(f"\n결과 저장: {result_path}")
 
 if __name__ == "__main__":
