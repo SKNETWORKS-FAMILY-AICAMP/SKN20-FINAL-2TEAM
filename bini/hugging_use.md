@@ -23,7 +23,7 @@
    ```
 
 ### 저장소 접근 권한
-- Private 저장소이므로 팀원은 77eileen에게 **Collaborator** 권한 요청 필요
+- Private 저장소이므로 팀원(username)은 77eileen에게 **Collaborator** 권한 요청 필요
 - HuggingFace 저장소 Settings > Collaborators에서 팀원 추가
 
 ---
