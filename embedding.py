@@ -30,27 +30,26 @@ except ImportError:
 '''
 
 
-# 설정
-JSON_FILE = r"C:\Users\playdata2\Desktop\디자인\0901_1966_1999_json\3019990031932-5.json"
-DOWNLOAD_DIR = r"C:\Users\playdata2\Desktop\디자인\VectorDB\downloaded_images"
-EMBEDDING_OUTPUT = r"C:\Users\playdata2\Desktop\디자인\VectorDB\embeddings"
-
-# 디렉토리 생성
-Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
-Path(EMBEDDING_OUTPUT).mkdir(parents=True, exist_ok=True)
-
 # CLIP 모델 로드 (ViT-B/32)
 print("CLIP 모델 로딩 중...")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
-# json 폴더
+# json 파일이 있는 폴더
 JSON_FOLDER = r"C:\Users\playdata2\Desktop\디자인\0901_1966_1999_json"
+# 이미지 저장할 폴더
+DOWNLOAD_DIR = r"C:\Users\playdata2\Desktop\디자인\VectorDB\downloaded_images"
+# 벡터DB에 적재할 json(임베딩 벡터 포함 버전) 저장할 폴더
+EMBEDDING_OUTPUT = r"C:\Users\playdata2\Desktop\디자인\VectorDB\embeddings"
 
 
+# 디렉토리 생성
+Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
+Path(EMBEDDING_OUTPUT).mkdir(parents=True, exist_ok=True)
 
-list = os.listdir(JSON_FOLDER) #폴더 내 모든 파일 리스트 가져오기
+#폴더 내 모든 파일 리스트 가져오기
+list = os.listdir(JSON_FOLDER) 
 
 #for 문으로 폴더 내 모든 json 파일 처리
 for idx, filename in enumerate(list,1):
