@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000012912-09-01",
+  "applicationNumber": "3020000012912",
+  "registrationNumber": "3002796600001",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-09-21"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이정민",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "“포장용 용기”의 형상과 모양의 결합을 의장 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임.2. 본 의장의 용기 상부에는 덮개가 있는 유출구가 형성되어 있음.3. 본 의장의 덮개가 있는 유출구는 접철부에 의해 접혀진 상태로 유통되는 것임.4. 본 의장의 사용시에는 유출구를 일으켜 세운 후, 그 유출구에 씌워진 덮개를 개봉하는 방향으로 돌리게 되면 스커트가 제거되면서 열리게 되는 것임.5. 그 음용시는 덮개를 개봉한 상태에서 빨대에 입을 대고 빨게되면 용기내의 내용물이 빨대를 통해 흡출되고 이와 동시에 유출공으로 공기가 흡입되는 것임.6. 용기내의 내용물을 다른 용기에 옮기고자 할때는 용기를 일측으로 기울이게 되면 빨대를 통하여는 용기내로 공기가 유입됨과 동시 유출공을 통해 용기내의 내용물이 배출되는 것임.7. 용기내의 내용물을 재보관 하고자 할때는 유출구에 덮개를 씌우면 되는 것임."
+  },
+  "image": {
+    "image_id": "3020000012912-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b08964a6c84ce8cbe13965058d78ed76d452689b01fcf4a54339bd9a7740e7bf21",
+    "number": "7"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000018258-09-01",
+  "applicationNumber": "3020000018258",
+  "registrationNumber": "3002695180000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-09-27"
+  },
+  "meta": {
+    "articleName": "음료용 캔",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "최기정",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'음료용 캔'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 금속재 및 합성수지재임.</P><P N=\"2\">2. 본원의장은 상면에 입술형상의 모양을 결합하여 음료를 마실때 차갑고 딱딱한 느낌과는 다른 친밀감을 느낄 수 있음.</P><P N=\"3\">3. 본원의장에서 입술형상의 모양은 다양한 입술형상의 모양을 결합하여 사용할 수 있음.</P>"
+  },
+  "image": {
+    "image_id": "3020000018258-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0deac54f8925f4c7d8c19ebbaa9b69594dbe0bf3a992ba5bff8d0a2c19f711652",
+    "number": "7"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000022833-09-01",
+  "applicationNumber": "3020000022833",
+  "registrationNumber": "3002711800000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-30"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 일진코스메틱",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'화장품 용기' 의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재임.</P><P N=\"2\">2. 화장품 용기로 사용함.</P><P N=\"3\">3. 도면상 뚜껑은 제외한 도면임.</P>"
+  },
+  "image": {
+    "image_id": "3020000022833-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b02e6ec20e9488ca66130eded9a6166686f02a4eb76ba91ba4a888248a714abcde",
+    "number": "6"
+  }
+}

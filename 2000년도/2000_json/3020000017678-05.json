@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000017678-09-01",
+  "applicationNumber": "3020000017678",
+  "registrationNumber": "3002686110000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-09-27"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 도도화장품",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재 및 유리임.</P><P N=\"2\">2. 단면도는 생략하였음.</P>"
+  },
+  "image": {
+    "image_id": "3020000017678-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0d8ee6709638b6fa1301e6f2c98fb3cd7cb5c72a4760d6b428839c56ed8c27f6e",
+    "number": "5"
+  }
+}

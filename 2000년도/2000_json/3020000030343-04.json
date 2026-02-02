@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000030343-09-01",
+  "applicationNumber": "3020000030343",
+  "registrationNumber": "3002772490000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-02-13"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 에스티씨나라",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'화장품 용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지재 및 금속재임.2. 용기의 뚜껑은 투명한 것임.3. 용기의 뚜껑을 열면, 내용물을 인출시킬 수 있는 수단으로서, 밸브형태로 된 누름식 버튼이 마련된 것임."
+  },
+  "image": {
+    "image_id": "3020000030343-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b9420cad9c5990e003a10973d6bdbbe30c9e2e3fef628cce2055583b9e5f484e",
+    "number": "4"
+  }
+}

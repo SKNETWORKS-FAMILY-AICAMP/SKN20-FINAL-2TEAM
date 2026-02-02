@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000009605-09-01",
+  "applicationNumber": "3020000009605",
+  "registrationNumber": "3002673740000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-30"
+  },
+  "meta": {
+    "articleName": "포장용용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이제후",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">공지된 포장용용기형상에 모양이 표현된 포장용용기의 형상과 </P>",
+    "designDescription": "<P N=\"1\">1.  재질은 합성수지재 및 금속재임. </P><P N=\"2\">2.  사시도에서 볼수 있듯이 화살표시부분을 눌러 모기, 파리, 벼룩, 빈대, 바퀴벌레등 해충에 직접분사 또는 해충이 발생하기 쉬운 장소에 분무하여 사용되는 것임. </P>"
+  },
+  "image": {
+    "image_id": "3020000009605-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b073590199e4f1dc16c4994de40142535656b5c33ac9d6f26d23f0be18da90841c",
+    "number": "2"
+  }
+}

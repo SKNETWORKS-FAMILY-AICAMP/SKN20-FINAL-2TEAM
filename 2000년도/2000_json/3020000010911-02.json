@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000010911-09-01",
+  "applicationNumber": "3020000010911",
+  "registrationNumber": "3002775840000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-02-15"
+  },
+  "meta": {
+    "articleName": "향수병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 엘지",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'향수병'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지재 및 유리재임.2. 향수를 보관하는 것이며, 용기 상부의 버튼을 눌러 향수를 분무시키는것임.3. 용기는 투명한 것임.4. 용기의 배면에는 나뭇잎과 같은 문양이 형성되어 있고, 거친면으로형성되어 있는 것임."
+  },
+  "image": {
+    "image_id": "3020000010911-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0ef3ea9b059e124218e78add106288283eeb4410ee4e47e419d5076e14aec105e",
+    "number": "2"
+  }
+}

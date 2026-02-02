@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000032279-09-01",
+  "applicationNumber": "3020000032279",
+  "registrationNumber": "3002774100000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "라미화장품주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "화장품 용기의 형상과 모양의 결합을 의장창작 내용의 요점으로 함",
+    "designDescription": "재질은 유리 및 합성수지재 임"
+  },
+  "image": {
+    "image_id": "3020000032279-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b056fef538e42de1147cde78c9acdcc39826435626186d051b6bb3b01a514da0d2",
+    "number": "1"
+  }
+}

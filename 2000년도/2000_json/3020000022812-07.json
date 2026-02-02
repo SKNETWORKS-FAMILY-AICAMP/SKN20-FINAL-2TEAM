@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000022812-09-01",
+  "applicationNumber": "3020000022812",
+  "registrationNumber": "3002760610000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-30"
+  },
+  "meta": {
+    "articleName": "포장용 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "박희인",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 병\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 투명합성수지재임. </P>"
+  },
+  "image": {
+    "image_id": "3020000022812-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b02e6ec20e9488ca663ad59844fd3ba6d2d1f8ed2d2803d4e44918356368c2b8cb",
+    "number": "7"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000000843-09-01",
+  "applicationNumber": "3020000000843",
+  "registrationNumber": "3002572950000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-02-24"
+  },
+  "meta": {
+    "articleName": "포장용 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "정태봉",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">“포장용 병”의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 또는 투명플라스틱임.</P><P N=\"2\">2. 용기내에 인삼, 술등을 넣어 장식용 병으로 사용될 수 있는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000000843-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0cc72ed919b342300e99b2acfcc6c677bc38cfbb896b57e90f51adc77a16c7638",
+    "number": "1"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000005512-09-01",
+  "applicationNumber": "3020000005512",
+  "registrationNumber": "3002646510000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-22"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "유니레버 엔.브이.",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지 및 유리임.</P><P N=\"2\">2. 단면은 생략하였음.</P>"
+  },
+  "image": {
+    "image_id": "3020000005512-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b08fe3e6d10b56cc3d22f91fa31f9e4b5d2d45b21b61a48a49e962137ba71b9699",
+    "number": "2"
+  }
+}

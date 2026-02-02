@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000027112-09-01",
+  "applicationNumber": "3020000027112",
+  "registrationNumber": "3002847670000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-07-25"
+  },
+  "meta": {
+    "articleName": "향수 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 아모레퍼시픽그룹",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'향수 용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함",
+    "designDescription": "1.재질은 합성수지재 및 금속재임.2.고체 향수를 담는 것임."
+  },
+  "image": {
+    "image_id": "3020000027112-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b01b6467bd697fe99c013e9190553069fb58aea5169a494bd31eac5f84d4a7a972",
+    "number": "5"
+  }
+}

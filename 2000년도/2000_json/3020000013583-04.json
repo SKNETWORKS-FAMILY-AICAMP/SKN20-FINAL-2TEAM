@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000013583-09-01",
+  "applicationNumber": "3020000013583",
+  "registrationNumber": "3002678340000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-07-31"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 아모레퍼시픽그룹",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1.재질은 합성수지재 및 유리재임</P><P N=\"2\">2.뚜껑의 구조는 투명체인 외부뚜껑과 불투명체인 내부뚜껑으로 구성되어진 이중구조이며, 투명체인 몸체 하단부에는 불투명한 별도의 부품이 조립구성되어진것임 </P>"
+  },
+  "image": {
+    "image_id": "3020000013583-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bdcfae06342df68572d7f7323bc50a0e94b7efa79b355815b264d43d7c50ce95",
+    "number": "4"
+  }
+}

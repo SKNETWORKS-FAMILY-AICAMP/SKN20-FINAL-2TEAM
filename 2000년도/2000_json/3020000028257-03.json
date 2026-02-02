@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000028257-09-01",
+  "applicationNumber": "3020000028257",
+  "registrationNumber": "3002848870000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-10-09"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "애경산업(주)",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "화장품 용기의 형상과 모양의 결합을 의장창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리 또는 합성수지재임. 2. 용기의 몸체는 투명 또는 반투명한 재질임."
+  },
+  "image": {
+    "image_id": "3020000028257-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0227542a1f24a736184b9181791c18e4f1c092183231ba9c3d9cd11b2ec58c422",
+    "number": "3"
+  }
+}

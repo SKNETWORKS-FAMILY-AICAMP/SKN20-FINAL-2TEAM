@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000025182-09-01",
+  "applicationNumber": "3020000025182",
+  "registrationNumber": "3002718750000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "라미화장품주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">        \"화장품 용기의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.\"</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 금속재, 합성수지재 및 유리재임.</P><P N=\"2\">2. 본 의장은 참고도2에 도시된 바와 같이, 겉뚜껑의 내부에 속두껑을 일체로 삽입함과 동시에 외용기의 내부에 내용기를 삽입한 다음 상기 외용기의 상부에 형상부를 결합하고나서 상기 내용기의 상부에 속뚜껑이 결합된 겉뚜껑을 결합하는 것으로, 상기 겉뚜껑과 외용기는 투명한 재질을 사용하고 상기 속뚜껑과 내용기 및 형상부는 불투명한 재질을 사용하는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000025182-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07a28099d0ef98e17b231862f9c4558f7c6d4adbe3a495f9d17b4edcf1dcaa2d1",
+    "number": "6"
+  }
+}

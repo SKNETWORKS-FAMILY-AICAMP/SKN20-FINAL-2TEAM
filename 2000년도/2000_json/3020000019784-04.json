@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000019784-09-01",
+  "applicationNumber": "3020000019784",
+  "registrationNumber": "3002695200000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-10"
+  },
+  "meta": {
+    "articleName": "식품포장용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "동진기업 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'식품포장용기'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1.  재질은 합성수지재임.</P><P N=\"2\">2.  덮개를 씌운 상태의 도면은 A로 덮개를 벗긴 상태의 도면은 B로 도시함.</P><P N=\"3\">3.  본 의장의 내부에 내용물 주입시 참고도 A-1에 도시된 저부의 돌출된 튜브관을 통해 주입한 후 그 단부를 실링하고, 사용시 참고도 B-1에 도시된 바와 같이 덮개를 개방시킨 상태에서 용기의 상측에 일체로 된 캡을 참고도 B-2에 도시된 바와 같이 회전 컷팅시킨 후 이를 통해 내용물을 섭취하고 또한 보관시 참고도 A-2에 도시된 바와 같이 덮개를 커버하여 내용물이 남은 용기를 보관하여 재 사용할 수 있도록 한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000019784-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0f63a2eefd11079d0981ed2fff931e701fbc7d790be4e3032311a79497300098e",
+    "number": "4"
+  }
+}

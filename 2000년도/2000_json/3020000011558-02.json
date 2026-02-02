@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000011558-09-01",
+  "applicationNumber": "3020000011558",
+  "registrationNumber": "3002629900000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-30"
+  },
+  "meta": {
+    "articleName": "술병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "동북주류 (주)",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">별첨 사진에 표현된 술병의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">재질이 유리로 된 술병 형상 및 모양.</P>"
+  },
+  "image": {
+    "image_id": "3020000011558-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b070abdd713d0b290a44af382d81afbb12e7c9bd040680775ce87704c458a2f440",
+    "number": "2"
+  }
+}

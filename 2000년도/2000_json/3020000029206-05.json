@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000029206-09-01",
+  "applicationNumber": "3020000029206",
+  "registrationNumber": "3002767870000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-01-31"
+  },
+  "meta": {
+    "articleName": "음료용캔",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 미래와 사람",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">음료용 캔의 형상 및 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1. 몸체부분은 플라스틱으로 이루어져 있으며 상단부는 알루미늄으로 이루어져 있음.</P>"
+  },
+  "image": {
+    "image_id": "3020000029206-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b011f68ef22f394dd2b6f51bfd28952d99654a7c38e8148a6329ed978d5a7e6586",
+    "number": "5"
+  }
+}

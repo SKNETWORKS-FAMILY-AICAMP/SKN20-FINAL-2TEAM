@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000016430-09-01",
+  "applicationNumber": "3020000016430",
+  "registrationNumber": "3002993020000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2002-04-03"
+  },
+  "meta": {
+    "articleName": "포장용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "씨제이 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "문자부분을 제외한 포장용기의 형상 및 모양과 색체의 결합을 의장창작내용의 요점으로 함",
+    "designDescription": "1. 재질은 플라스틱으로 이루어져 있음.2. 상부에 뚜껑이 달려 있어서 개폐할수 있음."
+  },
+  "image": {
+    "image_id": "3020000016430-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0edd65ac4880d0f0c232cb6b80bc0e8a33808bf7b0bacd52f2ede2d82907c57fa",
+    "number": "5"
+  }
+}

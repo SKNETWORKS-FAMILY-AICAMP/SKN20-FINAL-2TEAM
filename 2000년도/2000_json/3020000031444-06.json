@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000031444-09-01",
+  "applicationNumber": "3020000031444",
+  "registrationNumber": "3002779770000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "로제화장품 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "화장품 용기의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리재 및 합성수지, 알루미늄 금속재임.2. 화장품의 내용물을 보관하는데 사용하는 것임.3. 단면도는 생략함.4. 유리재는 반투명임."
+  },
+  "image": {
+    "image_id": "3020000031444-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b089d7a621b89857a21e79e0b1232a9ae91a3f9080e95cd3dd601359a9c57c6650",
+    "number": "6"
+  }
+}

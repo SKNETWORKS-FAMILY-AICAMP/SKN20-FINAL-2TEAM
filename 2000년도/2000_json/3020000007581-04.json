@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000007581-09-01",
+  "applicationNumber": "3020000007581",
+  "registrationNumber": "3002816610000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-05-11"
+  },
+  "meta": {
+    "articleName": "향수병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "불가리 쏘시에떼 퍼 아 찌오니",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'향수병'의 형상과 모양의 결합을 의장창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리 및 합성수지재임. 2. 상기 의장의 대상이 되는 물품은 남성용 또는 여성용 향수 등을 담는 용기임. 3. 도면 중 사시도, 정면도 및 평면도의 문자는 의장등록 대상에서 제외함."
+  },
+  "image": {
+    "image_id": "3020000007581-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0fdcd45318d7ff23cbe8f9d6b58b35c17304b4de69f264fbafa62ba50e9df3fa3",
+    "number": "4"
+  }
+}

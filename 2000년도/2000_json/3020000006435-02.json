@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000006435-09-01",
+  "applicationNumber": "3020000006435",
+  "registrationNumber": "3002625190000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-22"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "산토리 가부시키가이샤",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 금속재임.</P><P N=\"2\">2. 본 물품은 뚜껑부분을 제외한 투명체임.</P>"
+  },
+  "image": {
+    "image_id": "3020000006435-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0187836737e94fb39d6735824be9a53a7d1ed3c69c4b0e73d32ff709e4f4b4d3c",
+    "number": "2"
+  }
+}

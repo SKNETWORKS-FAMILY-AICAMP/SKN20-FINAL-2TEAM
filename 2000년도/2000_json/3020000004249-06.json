@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000004249-09-01",
+  "applicationNumber": "3020000004249",
+  "registrationNumber": "3002682690000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-08-31"
+  },
+  "meta": {
+    "articleName": "향수용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "태평양종합산업 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"향수 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">재질은 유리재이며 투명체임</P>"
+  },
+  "image": {
+    "image_id": "3020000004249-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b03069a7817908f14fa773e0122ae173ab13156cf6a3dc80ad6e6c65799ca44067",
+    "number": "6"
+  }
+}

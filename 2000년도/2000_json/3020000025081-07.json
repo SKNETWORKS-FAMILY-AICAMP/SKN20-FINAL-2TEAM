@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000025081-09-01",
+  "applicationNumber": "3020000025081",
+  "registrationNumber": "3002749300000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 엘지",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재 및 유리재임.</P><P N=\"2\">2. 여성용 기초 화장품으로 로션등의 크림류가 담겨질 수 있도록 한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000025081-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07a28099d0ef98e17803670e82954ba5ecaeb44c9f89127913ffe60f8020f1acd",
+    "number": "7"
+  }
+}

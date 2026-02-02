@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000012830-09-01",
+  "applicationNumber": "3020000012830",
+  "registrationNumber": "3002806220000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-06-19"
+  },
+  "meta": {
+    "articleName": "향수병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "유니레버 엔.브이.",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "' 향수병 '의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지 또는 유리임.2. 뚜껑을 제외한 몸체부분은 투명체임.3. 단면은 생략하였음."
+  },
+  "image": {
+    "image_id": "3020000012830-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b08964a6c84ce8cbe136b914a53e58c31f9b849f976a23c3598d63b9e8ce1d68cf",
+    "number": "2"
+  }
+}

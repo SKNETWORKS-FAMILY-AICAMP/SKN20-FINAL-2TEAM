@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000030701-09-01",
+  "applicationNumber": "3020000030701",
+  "registrationNumber": "3002738810000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-02-13"
+  },
+  "meta": {
+    "articleName": "음료수 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "김홍렬",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">음료수 병의 형상 및 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지와 유리임</P><P N=\"2\">2. 참고도2에서 보는 바와 같이 병안에 구슬이 있어 음료수를 천천히 마실 수 있는 것이 특징임</P>"
+  },
+  "image": {
+    "image_id": "3020000030701-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b9420cad9c5990e0b9dddcdc7170a076e2534647fede03ceb2ca292eabee791f",
+    "number": "3"
+  }
+}

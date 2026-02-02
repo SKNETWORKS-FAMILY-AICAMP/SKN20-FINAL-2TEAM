@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000030008-09-01",
+  "applicationNumber": "3020000030008",
+  "registrationNumber": "3002809950000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-05-31"
+  },
+  "meta": {
+    "articleName": "포장용 술병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "알 앤드 에이 베일리 앤드 코 언리미티드 컴퍼니",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'포장용 술병'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리임. 2. 단면은 생략하였음."
+  },
+  "image": {
+    "image_id": "3020000030008-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b9420cad9c5990e0672c1f955478a2c8edc8866b796d29a6383888db77e3c59f",
+    "number": "1"
+  }
+}

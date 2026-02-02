@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000028555-09-01",
+  "applicationNumber": "3020000028555",
+  "registrationNumber": "3002814260000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-07-25"
+  },
+  "meta": {
+    "articleName": "향수병{PERFUME BOTTLE}",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "엘브이엠에이치 프라그란스 브랜즈",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'향수병'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 플라스틱, 금속 및 유리임. 2. 본 의장의 몸체 및 뚜껑은 투명 또는 반투명임."
+  },
+  "image": {
+    "image_id": "3020000028555-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0227542a1f24a73610c8bbe2556fb255ef8db2587fe0aeba647adc9db5fbf8840",
+    "number": "3"
+  }
+}

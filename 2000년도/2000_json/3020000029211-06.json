@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000029211-09-01",
+  "applicationNumber": "3020000029211",
+  "registrationNumber": "3002736270000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-01-31"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "박용만",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">포장용 용기의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리재 또는 플라스틱 합성수지재 임.</P><P N=\"2\">2. 용기의 측면부에 가로 방향의 요철부를 형성함으로써 외관상의 미려함을 향상시킴과 동시에 손으로 잡았을 때의 미끄러짐을 방지하는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000029211-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b011f68ef22f394dd2cbe811d661abacb57f7d34fff32a6abf20b9d442baec733a",
+    "number": "6"
+  }
+}

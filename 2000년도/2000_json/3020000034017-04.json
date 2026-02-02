@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000034017-09-01",
+  "applicationNumber": "3020000034017",
+  "registrationNumber": "3002783330000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 삼양홀딩스",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'포장용 용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임. 2. 본의장의 뚜껑결합부를 제외한 몸통부는 투명체임."
+  },
+  "image": {
+    "image_id": "3020000034017-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bfb5e3af4d1caf7e41c1a10938b5a94553cd9bfe72ec18a87c19889883e0def4",
+    "number": "4"
+  }
+}

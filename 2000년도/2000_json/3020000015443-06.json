@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000015443-09-01",
+  "applicationNumber": "3020000015443",
+  "registrationNumber": "3002694390000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-08-16"
+  },
+  "meta": {
+    "articleName": "음료용 캔용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 현대신약바이오",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">공지된 '음료용 캔용기'의 형상에 무늬모양과 색채를 결합한 '음료용 캔용기'의 형상ㆍ무늬모양 및 색채의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1.재질은 금속재임.</P><P N=\"2\">2.음료를 수용할 수 있도록 형성된 '음료용 캔용기'의 내부에 음료를 수용하는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000015443-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07ba686bc001e12b77655048972b3dba9926fb1f6a70677cca9d316df53d47d19",
+    "number": "6"
+  }
+}

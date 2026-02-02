@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000033574-09-01",
+  "applicationNumber": "3020000033574",
+  "registrationNumber": "3002855690000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-09-28"
+  },
+  "meta": {
+    "articleName": "향수용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 엘지생활건강",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'향수용기'의 형상 및 모양을 결합을 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리, 합성수지 및 금속임. 2. 본원의 사시도, 정면도, 배면도, 좌측면도, 우측면도, 평면도에 표현된 가는 실선은 투명체 내부를 도시 한 것임. 3. 평면도에 사람의 눈처럼 형상인것이 특징임."
+  },
+  "image": {
+    "image_id": "3020000033574-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0f32787804da8b7add5c4bca3f493f084fbe15d523da3e9db021a46b5c0632184",
+    "number": "4"
+  }
+}

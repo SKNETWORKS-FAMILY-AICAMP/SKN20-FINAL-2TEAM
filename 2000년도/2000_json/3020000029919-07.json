@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000029919-09-01",
+  "applicationNumber": "3020000029919",
+  "registrationNumber": "3002772470000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-02-13"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 에스티씨나라",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'화장품 용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지재, 금속재 및 유리재임.2. 용기는 투명 또는 불투명한 것임.3. 용기의 뚜껑은 나사형 또는 여닫이형임.4. 화장품을 담는 내부용기와 이를 감싸고있는 외부용기로 되어 있는 것임."
+  },
+  "image": {
+    "image_id": "3020000029919-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b011f68ef22f394dd2f0b8046f71cf13a1b9d33cb8e90205880be227493e8963bb",
+    "number": "7"
+  }
+}

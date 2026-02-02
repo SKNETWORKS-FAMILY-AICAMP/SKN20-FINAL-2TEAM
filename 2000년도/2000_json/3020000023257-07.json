@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000023257-09-01",
+  "applicationNumber": "3020000023257",
+  "registrationNumber": "3002786520000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-03-07"
+  },
+  "meta": {
+    "articleName": "식품용용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "대상 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'식품용용기'의 형상과 모양의 결합을 의장창작내용의 요점으로 함",
+    "designDescription": "1. 재질은 투명, 반투명 합성수지재임 2. 본원에서 뚜껑과 손잡이는 반투명재이며, 용기는 투명재임"
+  },
+  "image": {
+    "image_id": "3020000023257-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b09b1f6789fb975124ddde99bf437cdce8b254f968dabd728dbd1ba965c1666fa0",
+    "number": "7"
+  }
+}

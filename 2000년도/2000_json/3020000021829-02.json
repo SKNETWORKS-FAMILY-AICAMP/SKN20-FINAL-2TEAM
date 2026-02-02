@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000021829-09-01",
+  "applicationNumber": "3020000021829",
+  "registrationNumber": "3002709930001",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-10-31"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 아모레퍼시픽그룹",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'화장품 용기'의 형상,모양 및 색채의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">재질은 합성수지재 및 유리재임</P>"
+  },
+  "image": {
+    "image_id": "3020000021829-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b006449c7f1c85a4a7b1e65d46d0f161f0338df3c924e96618a76f2b05399de135",
+    "number": "2"
+  }
+}

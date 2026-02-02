@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000005118-09-01",
+  "applicationNumber": "3020000005118",
+  "registrationNumber": "3002602310000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-04-14"
+  },
+  "meta": {
+    "articleName": "에어로졸 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 산도깨비",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"에어로졸 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재 및 금속임.</P><P N=\"2\">2. 본 의장물품은 뚜껑 정면의 하트형상의 버튼을 누르면 상부의 배출구를 통하여 본체내의 에어로졸이 분사되도록 된 것임.</P><P N=\"3\">3. 본 의장물품은 뒷쪽에 있는 벽걸이대를 양면테이프 또는 못으로 벽에 부착하여 사용할 수 있도록 된 것임.</P><P N=\"4\">4. 본 의장물품 중 본체부의 단면은 일반적인 것이므로 그 도시를 생략함.</P>"
+  },
+  "image": {
+    "image_id": "3020000005118-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b08fe3e6d10b56cc3d6fdd0a060b490f45a9cef516e81b9996e2638910046b2bfe",
+    "number": "2"
+  }
+}

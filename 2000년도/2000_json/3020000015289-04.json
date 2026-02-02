@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000015289-09-01",
+  "applicationNumber": "3020000015289",
+  "registrationNumber": "3002676770000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-08-16"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "애경산업(주)",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">화장품 용기의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재임.</P><P N=\"2\">2. 눈화장을 지우는 아이리므버등을 보관하기 위한 용기임.</P><P N=\"3\">3. 뚜껑은 투명한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000015289-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07ba686bc001e12b75d136b4df6d33bb584d7d79f71a4cb7c162dd4525d44a3df",
+    "number": "4"
+  }
+}

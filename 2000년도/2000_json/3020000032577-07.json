@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000032577-09-01",
+  "applicationNumber": "3020000032577",
+  "registrationNumber": "3002809990000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-07-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 참존",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'화장품용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로함.",
+    "designDescription": "1.재질은 유리, 합성수지 및 알루미늄제임. 2. 단면도의 일부는 생략하였음."
+  },
+  "image": {
+    "image_id": "3020000032577-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b056fef538e42de114a5789ee7e1d70e89bcd4e8929ad70eb4e15da63a0742f3d5",
+    "number": "7"
+  }
+}

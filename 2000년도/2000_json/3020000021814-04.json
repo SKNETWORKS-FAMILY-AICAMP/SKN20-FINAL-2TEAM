@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000021814-09-01",
+  "applicationNumber": "3020000021814",
+  "registrationNumber": "3002709930000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-10-31"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 아모레퍼시픽그룹",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'화장품 용기'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1.재질은 합성수지재 유리재 및 금속재임</P><P N=\"2\">2.용기의 상부로 설치되는 반투명 장치품의 내면에는 상하방향으로 길이를 가지는 엠보싱이 연속반복하여 형성되어 있는 것임</P>"
+  },
+  "image": {
+    "image_id": "3020000021814-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b006449c7f1c85a4a7187d3aa3a76c31b34df56d1f9862991d9a96a93acf096e0a",
+    "number": "4"
+  }
+}

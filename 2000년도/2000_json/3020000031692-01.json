@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000031692-09-01",
+  "applicationNumber": "3020000031692",
+  "registrationNumber": "3002771170000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 효성",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "포장용 용기의 형상과 모양의 결합을 의장창작내용의 요점으로 함.",
+    "designDescription": "1.재질은 합성수지재임."
+  },
+  "image": {
+    "image_id": "3020000031692-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b089d7a621b89857a2fe66ea06c9f515a9b20945a4ed5906a49e28885c552e49dd",
+    "number": "1"
+  }
+}

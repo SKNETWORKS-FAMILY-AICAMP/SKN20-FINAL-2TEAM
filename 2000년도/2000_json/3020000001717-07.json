@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000001717-09-01",
+  "applicationNumber": "3020000001717",
+  "registrationNumber": "3002610860000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-03-30"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 피어리스",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상 및 모양의 결합을 의장 창작의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 합성수지임.</P>"
+  },
+  "image": {
+    "image_id": "3020000001717-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b700f0235c7824b0816073cd945e8ed688343ee5b4af28a70bb9670a7c387321",
+    "number": "7"
+  }
+}

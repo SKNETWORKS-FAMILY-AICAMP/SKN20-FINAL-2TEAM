@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000005311-09-01",
+  "applicationNumber": "3020000005311",
+  "registrationNumber": "3002645680000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-22"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "조민규",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\" 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재 임.</P><P N=\"2\">2. 손잡이부의 홈에 돌출된 돌기부분에 캐릭터를 끼워사용하는것 임.</P>"
+  },
+  "image": {
+    "image_id": "3020000005311-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b08fe3e6d10b56cc3d6a7058d9a96cab40de9720b4b9585ebb9e2aee88bb09b20f",
+    "number": "4"
+  }
+}

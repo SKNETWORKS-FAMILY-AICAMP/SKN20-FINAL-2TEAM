@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000026521-09-01",
+  "applicationNumber": "3020000026521",
+  "registrationNumber": "3002734810000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "가부시키가이샤 시세이도",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리, 금속 및 플라스틱을 포함한 합성수지로 됨.</P>"
+  },
+  "image": {
+    "image_id": "3020000026521-09",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b035c516d305aed145b09b91918cd97e08dc085c0d9bf04342cbad6154de7b26c8",
+    "number": "9"
+  }
+}

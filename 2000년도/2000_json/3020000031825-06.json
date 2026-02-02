@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000031825-09-01",
+  "applicationNumber": "3020000031825",
+  "registrationNumber": "3002771050000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "포장용 통",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "김홍렬",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "포장용 통의 형상 및 모양의 결합을 의장창작 내용의 요점으로함.",
+    "designDescription": "1. 재질은 합성수지임."
+  },
+  "image": {
+    "image_id": "3020000031825-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b089d7a621b89857a260d6d19455edef4751e7dff37af5264c79dd421faeadd148",
+    "number": "6"
+  }
+}

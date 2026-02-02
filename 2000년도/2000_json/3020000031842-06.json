@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000031842-09-01",
+  "applicationNumber": "3020000031842",
+  "registrationNumber": "3002777030000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "포장용 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "바이오오키 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'포장용 병'의 형상과 모양의 결합을 의장 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 유리임.2. 단면도는 생략하였음."
+  },
+  "image": {
+    "image_id": "3020000031842-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b089d7a621b89857a23924c6b693bd0ccfdcc7562a1bfe4ba013dd07a254cf43b0",
+    "number": "6"
+  }
+}

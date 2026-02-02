@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000025777-09-01",
+  "applicationNumber": "3020000025777",
+  "registrationNumber": "3002754220000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "오마샤리프화장품 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로함</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 합성수지임.</P><P N=\"2\">2. 몸체부분과 뚜껑 윗 부분은 투명한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000025777-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07a28099d0ef98e17b856995e50d7dd6b930e7b2715be9f660d70f1b9cd7eec72",
+    "number": "3"
+  }
+}

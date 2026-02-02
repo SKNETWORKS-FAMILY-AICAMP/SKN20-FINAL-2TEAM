@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000021180-09-01",
+  "applicationNumber": "3020000021180",
+  "registrationNumber": "3002708110000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-10-31"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "롯데지주 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'포장용 용기'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함. </P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성 수지임. </P>"
+  },
+  "image": {
+    "image_id": "3020000021180-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b006449c7f1c85a4a78954e4e205fc4f348a4e84b6df120aa8ab7edf82126d112a",
+    "number": "2"
+  }
+}

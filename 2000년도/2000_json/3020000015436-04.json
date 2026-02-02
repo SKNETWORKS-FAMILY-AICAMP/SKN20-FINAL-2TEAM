@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000015436-09-01",
+  "applicationNumber": "3020000015436",
+  "registrationNumber": "3002682090000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2002-06-03"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 아모스인터내셔널",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지임.</P><P N=\"2\">2. 본 의장 창작 내용의 뚜껑부는 투명체임.</P>"
+  },
+  "image": {
+    "image_id": "3020000015436-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07ba686bc001e12b74f814a4956a5cebbf9ae9e1003c504836a6f3707269f97e6",
+    "number": "4"
+  }
+}

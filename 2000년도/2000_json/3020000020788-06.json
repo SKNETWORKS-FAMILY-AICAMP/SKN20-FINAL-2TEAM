@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000020788-09-01",
+  "applicationNumber": "3020000020788",
+  "registrationNumber": "3002725640000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이정민",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'포장용 용기'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지임.</P><P N=\"2\">2. 본 의장의 용기 상부에 씌워진 개폐용 덮개는 홈 방향으로 숙여져 고정되는 것임.</P><P N=\"3\">3. 본 의장의 사용시는 개폐용 덮개를 일으켜 세운 후, 덮개를 열고 빨대를 빨게 되면 용기내의 내용물이 흡출되는 것이며, 또한 본 의장의 용기를 일측으로 기울이게 되면 빨대를 통하여는 공기가 용기내로 유입됨과 동시 빨대의 일측 유출공을 통하여는 용기내의 내용물이 배출되는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000020788-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bea0399dd2b7a3e5217ce7d5ae936bbd90eef2e869c5b1133db298fa9f572d88",
+    "number": "6"
+  }
+}

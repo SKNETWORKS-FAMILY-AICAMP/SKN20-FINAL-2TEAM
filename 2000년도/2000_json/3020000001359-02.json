@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000001359-09-01",
+  "applicationNumber": "3020000001359",
+  "registrationNumber": "3002602370000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-03-31"
+  },
+  "meta": {
+    "articleName": "포장용병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "강현권",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용병\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 합성수지재임.</P><P N=\"2\">2. 본 의장은 탈착이 가능한 것으로서 탈착된 각각의 병에는 서로 다른 음료수를 담아 놓을 수 있도록 된 것임.</P><P N=\"3\">3. 본 의장은 결합된 상태를 기본으로 하여 참고도 1 내지 참고도 6은 우측 포장용병을 도시한 것이고, 참고도 7 내지 참고도 12는 좌측 포장용병을 도시한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000001359-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b700f0235c7824b0bee8638aea77cc447498725a26726401c7bfe79cda1a5b21",
+    "number": "2"
+  }
+}

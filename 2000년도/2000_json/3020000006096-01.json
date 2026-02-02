@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000006096-09-01",
+  "applicationNumber": "3020000006096",
+  "registrationNumber": "3002637750000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-22"
+  },
+  "meta": {
+    "articleName": "샴푸용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 엘지",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"샴푸용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재임.</P><P N=\"2\">2. 양측면 상하에 평면으로 처리된 부분은 생산라인에서 콘베이어 이송중 서로 밀착되는 부분으로서, 이송중인 용기가 이탈이나 넘어지지 않도록 한 것임.</P><P N=\"3\">3. 양측부에 다수의 돌기가 일체로 형성되어, 손으로 잡을시 미끄러짐을 방지한 것임.</P><P N=\"4\">4. 상부의 개폐용 뚜껑은 투명한 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000006096-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0187836737e94fb39b9d0139a39d2cc3968c91619229d47d66ce3613379a945cf",
+    "number": "1"
+  }
+}

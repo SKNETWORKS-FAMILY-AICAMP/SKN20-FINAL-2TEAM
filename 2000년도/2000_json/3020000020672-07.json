@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000020672-09-01",
+  "applicationNumber": "3020000020672",
+  "registrationNumber": "3002698410000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-10"
+  },
+  "meta": {
+    "articleName": "화장품용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "씨제이 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">화장품용기의 형상 및 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 합성수지재임</P><P N=\"2\">2. 단면도의 도시는 생략함</P>"
+  },
+  "image": {
+    "image_id": "3020000020672-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bea0399dd2b7a3e5480d32b373ec1d9434054c8c454dbef05d852b369e75f8cb",
+    "number": "7"
+  }
+}

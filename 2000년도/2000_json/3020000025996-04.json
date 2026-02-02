@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000025996-09-01",
+  "applicationNumber": "3020000025996",
+  "registrationNumber": "3002696380000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-15"
+  },
+  "meta": {
+    "articleName": "식용유병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "씨제이 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">1. 식용유병의 형상 및 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 플라스틱으로 이루어져 있으며, 손잡이부 상단에 엄지손가락 파지부가 형성되어 있음.</P>"
+  },
+  "image": {
+    "image_id": "3020000025996-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07a28099d0ef98e176c583cef1aca2061f34cb46582ffffa82f51f2ffd141d91a",
+    "number": "4"
+  }
+}

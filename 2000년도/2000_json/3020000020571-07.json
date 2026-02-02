@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000020571-09-01",
+  "applicationNumber": "3020000020571",
+  "registrationNumber": "3002721400000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-10"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "미라화장품주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지 및 유리재임.</P>"
+  },
+  "image": {
+    "image_id": "3020000020571-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bea0399dd2b7a3e5b435903018a1a9f5132e0826c9f45c0bc44024b4e976d323",
+    "number": "7"
+  }
+}

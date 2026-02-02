@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000002476-09-01",
+  "applicationNumber": "3020000002476",
+  "registrationNumber": "3002624900000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-04-14"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "조민규",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리재 및 합성수지재, 금속재임.</P><P N=\"2\">2. 본 의장물품은 좌측부와 우측부와 중앙부로 분리 가능하도록 된 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000002476-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0680d52483fc7b07df16a5d956a617ab8f7c6e699c1ad01fca773c55b1936f2d8",
+    "number": "5"
+  }
+}

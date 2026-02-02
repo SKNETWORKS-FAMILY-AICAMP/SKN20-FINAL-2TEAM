@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000020844-09-01",
+  "applicationNumber": "3020000020844",
+  "registrationNumber": "3002703500000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-10"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "씨제이 주식회사",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">화장품 용기의 형상·모양과 색채의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지로 된 것임.</P><P N=\"2\">2.로션, 크리싱크림 등을 내장할 수 있도록 된 화장품 용기로서, 뚜껑은 투명이고 몸체는 불투명으로 된 것임.</P><P N=\"3\">3. 몸체의 상단부에 다수의 띠 모양 홈이 형성된 것임. </P>"
+  },
+  "image": {
+    "image_id": "3020000020844-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bea0399dd2b7a3e54982b213b7706e58bb0a4596104785cde90eb981612c281d",
+    "number": "5"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000007013-09-01",
+  "applicationNumber": "3020000007013",
+  "registrationNumber": "3002680740000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-07-24"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 쥬리아",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"화장품 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지, 유리, 금속재임.</P><P N=\"2\">2. 본 물품은 화장품 용기로서, 크림 등을 수용할 수 있는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000007013-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0fdcd45318d7ff23c36f1af0f6d6ef8030ecaef5f51830e0f44fc4f583d2ac4ff",
+    "number": "5"
+  }
+}

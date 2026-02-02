@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000033000-09-01",
+  "applicationNumber": "3020000033000",
+  "registrationNumber": "3002755010000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-01-31"
+  },
+  "meta": {
+    "articleName": "술병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 씨. 앤. 디",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">술병의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지임.</P><P N=\"2\">2. 사시도 및 정면도, 배면도, 좌측면도, 우측면도, 평면도에 표시된 문자는 의장등록의 대상에서 제외함.</P>"
+  },
+  "image": {
+    "image_id": "3020000033000-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0f32787804da8b7ad0a83331d496f7b1207a70e4bb04e65890092261c90f01f7f",
+    "number": "3"
+  }
+}

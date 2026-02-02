@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000011312-09-01",
+  "applicationNumber": "3020000011312",
+  "registrationNumber": "3002809300000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-06-19"
+  },
+  "meta": {
+    "articleName": "술병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "도멘느 샤토 드 퐁피노 에스.아.에스.",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'술병'의 형상과 모양의 결합을 의장창작내용의 요점으로 함.",
+    "designDescription": "재질은 유리 및 합성수지재임."
+  },
+  "image": {
+    "image_id": "3020000011312-07",
+    "imageName": "006.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b070abdd713d0b290a5ffe1b8eef7e114d8d90f591f2f6baf8e8e82174a5676355",
+    "number": "7"
+  }
+}

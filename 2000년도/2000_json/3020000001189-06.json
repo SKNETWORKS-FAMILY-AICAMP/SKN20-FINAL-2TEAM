@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000001189-09-01",
+  "applicationNumber": "3020000001189",
+  "registrationNumber": "3002647830000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-05-31"
+  },
+  "meta": {
+    "articleName": "화장품용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "더 부츠 캄파니 피엘씨",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">화장품용기의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 유리 및 합성수지임.</P>"
+  },
+  "image": {
+    "image_id": "3020000001189-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0b700f0235c7824b019cbf7f16fb2c2fce15609f9a233e43ca8724fec52f5fd95",
+    "number": "6"
+  }
+}

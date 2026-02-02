@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000003007-09-01",
+  "applicationNumber": "3020000003007",
+  "registrationNumber": "3002822860000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-11-15"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이정민",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "“포장용 용기”의 형상과 모양의 결합을 의장 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임.2. 본 의장의 용기 목에는, 밀폐시는 뚜껑을 눌러서 닫고, 개봉시는 스커트를 제거한후 뚜껑을 돌려서 여는 것임.3. 본 의장의 용기 목 상단에는 밀폐부가 형성되어 있고, 그 하부로는 수 개의 가는 나사산이 형성되어 있는 것이며, 용기 목에는 수 개의 접철부가 형성되어 있는데, 그 용기의 목 접철부가 펼쳐진 상태가 도시된 바와 같음."
+  },
+  "image": {
+    "image_id": "3020000003007-06",
+    "imageName": "005.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b00b66daf06c8a830629ab74559564aad12fba1de06c513337889997bf2dcbbc1d",
+    "number": "6"
+  }
+}

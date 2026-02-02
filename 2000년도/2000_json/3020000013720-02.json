@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000013720-09-01",
+  "applicationNumber": "3020000013720",
+  "registrationNumber": "3002653610000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-07-31"
+  },
+  "meta": {
+    "articleName": "포장용 가스용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "김 선 기",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 가스용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 금속재임.</P><P N=\"2\">2. 상단부에 함몰된 요함부를 배하고 그 내측에 주입밸브를 함몰되게 배한것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000013720-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bdcfae06342df685cc71edacb97aad161b31984e8f194ecb003dddfdee0cc453",
+    "number": "2"
+  }
+}

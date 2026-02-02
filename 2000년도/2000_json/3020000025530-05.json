@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000025530-09-01",
+  "applicationNumber": "3020000025530",
+  "registrationNumber": "3002726470000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "유도현",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'화장품 용기'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재 및 유리재임.</P>"
+  },
+  "image": {
+    "image_id": "3020000025530-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b07a28099d0ef98e178c9f3750ac8a36e095e833a158b4e51a6a60993646329a4f",
+    "number": "5"
+  }
+}

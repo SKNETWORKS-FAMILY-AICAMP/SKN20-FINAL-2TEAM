@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000021422-09-01",
+  "applicationNumber": "3020000021422",
+  "registrationNumber": "3002718360000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-10-31"
+  },
+  "meta": {
+    "articleName": "화장품 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 코리아나화장품",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">화장품 용기의 형상,모양,색채의 결합을 의장 창작 내용의 요점으로 함 </P>",
+    "designDescription": "<P N=\"1\">재질은 합성수지 및 유리임</P>"
+  },
+  "image": {
+    "image_id": "3020000021422-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b006449c7f1c85a4a7e93b067df666c42493cd6ac1ba8fe92e0d0e20f8ee42cac2",
+    "number": "4"
+  }
+}

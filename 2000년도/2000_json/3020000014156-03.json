@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000014156-09-01",
+  "applicationNumber": "3020000014156",
+  "registrationNumber": "3002799870000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-09-21"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이정민",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "“포장용 용기”의 형상과 모양의 결합을 의장 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임.2. 본 의장의 용기 상 측방부에는 빨대가 있는 접철식 구부가 형성되어 있음.3. 본 의장의 접철식 구부에는 뚜껑이 씌워진후 공간에 접혀지는 것임.4. 사용시에는 구부에 씌워진 뚜껑을 벗긴 후, 빨대에 입을 대고 빨게되면 용기내의 내용물이 빨려나오는 것이고, 용기내의 내용물을 다른 용기에 옮기고자 할때는 용기를 일측으로 기울이게 되면 빨대를 지지하고 있는 유출공으로 용기내의 내용물이 배출되는 것임. 이때 빨대를 통하여는 용기내로 공기가 유입되는 것임.5. 접철부는 임의 일측으로 휘어지는 것과, 상하방으로 늘어나고 접어지는 것이 자유스러운 것임."
+  },
+  "image": {
+    "image_id": "3020000014156-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0606f4df1f99f40811db3d332d4213ea5a0c3abbac09cc95edfcabc6e7cafe9bd",
+    "number": "3"
+  }
+}

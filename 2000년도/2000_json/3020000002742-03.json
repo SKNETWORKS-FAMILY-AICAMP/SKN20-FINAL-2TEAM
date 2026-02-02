@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000002742-09-01",
+  "applicationNumber": "3020000002742",
+  "registrationNumber": "3002585250000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-03-31"
+  },
+  "meta": {
+    "articleName": "포장용 깡통",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 금호맥주",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 깡통\"의 형상. 모양과 색채의 결합을 의장창착 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1.재질은 알루미늄 임.</P><P N=\"2\">2.탄산수 등 음료수 용기로 사용하는 것임.</P>"
+  },
+  "image": {
+    "image_id": "3020000002742-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0680d52483fc7b07d43e6cf9e73fd83bfdb42ecec732ea7842dca67999cea5430",
+    "number": "3"
+  }
+}

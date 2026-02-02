@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000011029-09-01",
+  "applicationNumber": "3020000011029",
+  "registrationNumber": "3002706680000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-10-31"
+  },
+  "meta": {
+    "articleName": "음료 포장용 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "더 코카콜라 컴파니",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">'음료 포장용 병'의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함</P>",
+    "designDescription": "<P N=\"1\">1.  재질은 합성수지임</P><P N=\"2\">2.  청량음료 등을 포장하기 위한 것임</P>"
+  },
+  "image": {
+    "image_id": "3020000011029-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b070abdd713d0b290ada1a9beb49be1f147b571f7e3467ed9b7e87cdc737f116d9",
+    "number": "5"
+  }
+}

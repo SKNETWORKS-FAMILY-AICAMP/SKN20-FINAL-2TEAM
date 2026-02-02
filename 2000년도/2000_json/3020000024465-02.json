@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000024465-09-01",
+  "applicationNumber": "3020000024465",
+  "registrationNumber": "3002753350000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-12-20"
+  },
+  "meta": {
+    "articleName": "포장용 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "주식회사 제이엠피",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"포장용 용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지임</P><P N=\"2\">2. 본 물품은 투명 또는 반투명임</P>"
+  },
+  "image": {
+    "image_id": "3020000024465-02",
+    "imageName": "001.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b005b3db6b458aa73be969790f4b87eaa590971886d7a6ca3ed56ab7a22d41b639",
+    "number": "2"
+  }
+}

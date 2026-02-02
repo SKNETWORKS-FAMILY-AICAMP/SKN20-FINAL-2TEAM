@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000007443-09-01",
+  "applicationNumber": "3020000007443",
+  "registrationNumber": "3002620700000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2000-06-12"
+  },
+  "meta": {
+    "articleName": "샴푸용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "애경산업(주)",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "<P N=\"1\">\"샴푸용기\"의 형상과 모양의 결합을 의장 창작 내용의 요점으로 함.</P>",
+    "designDescription": "<P N=\"1\">1. 재질은 합성수지재임.</P>"
+  },
+  "image": {
+    "image_id": "3020000007443-01",
+    "imageName": "000.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0fdcd45318d7ff23c308bbaa2658dde0932dde688c5cdc6dcc686173437eb1f5b",
+    "number": "1"
+  }
+}

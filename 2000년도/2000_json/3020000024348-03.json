@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000024348-09-01",
+  "applicationNumber": "3020000024348",
+  "registrationNumber": "3002775560000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-23"
+  },
+  "meta": {
+    "articleName": "개인용 세제 용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "유니레버 엔.브이.",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "'개인용 세제 용기'의 형상과 모양의 결합을 의장창작 내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임.2. 단면은 생략하였음."
+  },
+  "image": {
+    "image_id": "3020000024348-03",
+    "imageName": "002.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b005b3db6b458aa73bb6f93c107a5863dda9dd3ddeee8bc0361bb9dcd1f98ec175",
+    "number": "3"
+  }
+}

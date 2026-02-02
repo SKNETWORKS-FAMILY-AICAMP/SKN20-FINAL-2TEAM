@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000003961-09-01",
+  "applicationNumber": "3020000003961",
+  "registrationNumber": "3002851220000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-01-08"
+  },
+  "meta": {
+    "articleName": "식음료용 병",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이정민",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "“식음료용 병”의 형상과 모양의 결합을 의장 창작내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지임. 2. 본 의장의 용기 목에 뚜껑을 눌러서 조립하는 것이며, 본 의장의 용기 목 상단 외환부에는 환홈이 형성되고, 그 환홈의 내벽은 내측으로 돌출되어 밀폐부를 형성하도록 구성되어 있음."
+  },
+  "image": {
+    "image_id": "3020000003961-05",
+    "imageName": "004.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b00b66daf06c8a8306030a04a3ad2dfd54658d347cc6bb553021f0729cf2b908df",
+    "number": "5"
+  }
+}

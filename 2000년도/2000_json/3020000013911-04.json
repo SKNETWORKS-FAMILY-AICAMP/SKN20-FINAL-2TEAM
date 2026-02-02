@@ -1,0 +1,28 @@
+{
+  "design_id": "3020000013911-09-01",
+  "applicationNumber": "3020000013911",
+  "registrationNumber": "3002803320000",
+  "publicationNumber": null,
+  "status": {
+    "regFg": "Y",
+    "admstStat": "소멸",
+    "lastDispositionDate": "2001-04-25"
+  },
+  "meta": {
+    "articleName": "라이터용 일회용 가스용기",
+    "LCCode": "09-01",
+    "designNumber": "M01",
+    "applicantName": "이경철",
+    "agentName": null
+  },
+  "creative": {
+    "designSummary": "″라이터용 일회용 가스용기″의 형상과 모양의 결합을 의장창작  내용의 요점으로 함.",
+    "designDescription": "1. 재질은 합성수지재 및 금속재임.2. 사용상태도에서와 같이 충전된 일회용 가스용기를 라이터의   내부공간에 삽입하여 사용하는 것임."
+  },
+  "image": {
+    "image_id": "3020000013911-04",
+    "imageName": "003.JPG",
+    "imagePath": "http://plus.kipris.or.kr/openapi/fileToss.jsp?arg=75a63eed5a438998f9dc3380f5cb642cd56dcb0e0f0995b0bdcfae06342df685294523d8a9b8e49cdcbe291eb43f53186d3b80902ebc4992",
+    "number": "4"
+  }
+}
