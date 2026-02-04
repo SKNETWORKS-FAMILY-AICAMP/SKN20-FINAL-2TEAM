@@ -3,3 +3,4 @@ fashion/.env
 .vscode/settings.json
 model/data/Sample
 data/
+chromadb/
