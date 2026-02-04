@@ -4,3 +4,11 @@ langgraph
 openai
 Pillow
 python-dotenv
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+bcrypt
+pyjwt
+python-multipart
+pydantic-settings
