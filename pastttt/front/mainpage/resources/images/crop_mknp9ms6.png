@@ -1,1 +1,0 @@
-<script>alert('파일을 찾을 수  없습니다.');history.go(-1);</script>
