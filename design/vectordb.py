@@ -13,6 +13,7 @@ image_collection = chroma_client.get_or_create_collection(
     name="design", # **컬렉션 이름 지정**
     metadata={"hnsw:space": "cosine"} # 거리 계산 방식 : 코사인
 ) 
+print("벡터 DB 컬렉션 이름: ", image_collection.name)
 
 # === embeddings 폴더 내 json 전체 로드 ===
 EMBEDDING_DIR = "./data/embeddings"
@@ -38,10 +39,11 @@ for filename in os.listdir(EMBEDDING_DIR):
             "design_id": data.get("metadata", {}).get("design_id"), #디자인id
             "applicationNumber": data.get("metadata", {}).get("applicationNumber"), #출원번호
             "LCCode": data.get("metadata", {}).get("LCCode", ""), #LCCode
-            "articleName": data.get("metadata", {}).get("articleName", ""), #상품명
-            "imageNumber": data.get("metadata", {}).get("number", ""), #도면번호
+            "articleName": data.get("metadata", {}).get("articleName", ""), # 상품명
+            "imageNumber": data.get("metadata", {}).get("imageNumber", ""), #도면번호
             "admstStat": data.get("metadata", {}).get("status", {}).get("admstStat", ""), #상태
-            "imagePath": data.get("metadata", {}).get("imagePath", "") #이미지경로
+            "imagePath": data.get("metadata", {}).get("imagePath", ""), #이미지경로
+            "designSummary": data.get("metadata", {}).get("designSummary", "") #디자인 요약
         }]
     )
 
