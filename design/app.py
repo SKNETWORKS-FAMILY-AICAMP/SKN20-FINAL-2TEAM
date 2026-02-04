@@ -21,7 +21,7 @@ st.title("🎨 디자인 유사도 검색 챗봇")
 def load_models():
     """모델 로드 (한 번만 실행)"""
     chroma_client = chromadb.PersistentClient(path="./chroma_db")
-    image_collection = chroma_client.get_collection(name="design_img")
+    image_collection = chroma_client.get_collection(name="design")
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device)
@@ -40,18 +40,34 @@ prompt_template = ChatPromptTemplate.from_messages([
         "system",
         """
 당신은 사용자가 보낸 디자인 사진을 보고, 현재 등록된 디자인 중 비슷한 디자인 후보군을
-추천해주는 친절한 챗봇입니다. 
-다음 문맥을 참고해 질문에 답변하세요.
-답변에는 id, 출원번호, 유사도 거리, 상품명, 상태를 포함하여 친근하고 자연스럽게 답변하세요.
+추천해주는 역할입니다. 
+
+다음 지침을 따라 답변하세요:
+1. 유사도 거리가 낮을수록 더 유사한 디자인입니다 (거리 0에 가까울수록 좋음)
+2. 가장 유사한 순서대로 순위를 매겨서 제시하세요 (1순위, 2순위, ...)
+3. 각 디자인마다 다음 정보를 포함하세요:
+   - 순위
+   - 유사도 거리 (구체적인 수치)
+   - 출원번호
+   - 상품명
+   - 도면번호
+   - 상태
+   - 간단한 설명
+4. 한 디자인 당 한 줄로 간결하게 정보를 표시하고, 상세 정보는 구분하세요
+5. 최상위 5개 디자인에 대해서는 더 자세하게 설명해주세요
+
 """
     ),
     (
         "user",
         """
-다음 정보를 참고해 질문에 답변하세요.
-정보(context): {context}
+다음은 벡터DB 검색 결과입니다. 유사도 거리 순서대로 정렬되어 있습니다.
+
+{context}
 
 사용자 질문: {question}
+
+위 검색 결과를 바탕으로, 가장 유사한 디자인 순서대로 정렬하여 답변하세요.
 """
     )
 ])

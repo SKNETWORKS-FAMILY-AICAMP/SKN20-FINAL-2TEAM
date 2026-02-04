@@ -29,7 +29,7 @@ chroma_client = chromadb.PersistentClient(path="./chroma_db")
 
 #생성할때와 동일한 이름으로 컬렉션 불러오기
 image_collection = chroma_client.get_collection(
-    name="design_img"
+    name="design"
 )
 
 collections = chroma_client.list_collections()
@@ -117,19 +117,29 @@ prompt_template =ChatPromptTemplate.from_messages([
         """
 당신은 사용자가 보낸 디자인 사진을 보고, 현재 등록된 디자인 중 비슷한 디자인 후보군을
 추천해주는 역할입니다. 
-다음 문맥을 참고해 질문에 답변하세요.
-답변에는 id, 유사도 거리, 상품명, 도면번호, 상태, 이미지 경로를 포함하여 답변하세요. 
+
+다음 지침을 따라 답변하세요:
+1. 유사도 거리가 낮을수록 더 유사한 디자인입니다 (거리 0에 가까울수록 좋음)
+2. 가장 유사한 순서대로 순위를 매겨서 제시하세요 (1순위, 2순위, ...)
+3. 각 디자인마다 다음 정보를 포함하세요:
+   - 순위
+   - ID
+   - 출원번호
+   - 상품명
+   - 도면번호
+   - 상태
+
 
 """
     ),
     (
         "user",
         """
-다음 정보를 참고해 질문에 답변하세요.
-정보(context): {context}
+다음은 벡터DB 검색 결과입니다. 유사도 거리 순서대로 정렬되어 있습니다.
+
+{context}
 
 사용자 질문: {question}
-
 
 """
     )
@@ -147,9 +157,9 @@ def design_search_chain(image_input, user_question):
     if query_embedding is None:
         return "❌ 이미지 처리에 실패했습니다."
     
-    # 2️⃣ 벡터DB에서 상위 30개 검색
+    # 2️⃣ 벡터DB에서 상위 10개 검색
     print("2️⃣ 벡터DB에서 유사 도면 검색 중...")
-    context = search_similar_designs(query_embedding, n_results=30)
+    context = search_similar_designs(query_embedding, n_results=10)
     
     # 3️⃣ LLM 답변 생성
     print("3️⃣ LLM 답변 생성 중...")
@@ -162,10 +172,35 @@ def design_search_chain(image_input, user_question):
     
     return answer
 
-'''
+
 # 테스트
-image_path = r"C:\Users\playdata2\Desktop\디자인\VectorDB\downloaded_images\3019870006829-09-01_001.JPG"
+image_path = [r"data/images/3020250000209-09-01-1_001.jpg",
+              r"data/images/3020250000621-09-01-1_001.jpg",
+              r"data/images/3020250000933-09-01-2_002.jpg",
+              r"data/images/3020250002535-09-01-1_001.jpg",
+              r"data/images/3020250003207-09-01-1_001.jpg",
+              r"data/images/3020250005637-09-01-1_001.jpg",
+              r"data/images/3020250006569-09-01-0_000.jpg",
+              r"data/images/3020250006350-09-01-1_001.jpg",
+              r"data/images/3020250007527-09-01-1_001.jpg",
+              r"data/images/3020250010245-09-01-0_000.jpg",
+              r"data/images/3020250010508-09-01-0_000.jpg",
+              r"data/images/3020250011149-09-01-1_001.jpg",
+              r"data/images/3020250012547-09-01-0_000.jpg",
+              r"data/images/3020250013529-09-01-1_001.jpg",
+              r"data/images/3020250024537-09-01-1_001.jpg",
+              r"data/images/3020250027386-09-01-1_001.jpg",
+              r"data/images/3020250029275-09-01-0_000.jpg",
+              r"data/images/3020250040610-09-01-1_001.jpg",
+              r"data/images/3020250042568-09-01-1_001.jpg"]
+
+
+                 
 question = "이 도면과 유사한 디자인을 찾아줘."
-result = design_search_chain(image_path, question)
-print(result)
-'''
+
+# 각 이미지에 대해 반복 실행
+for idx, img_path in enumerate(image_path, 1):
+    
+    print(f"[{idx}/{len(image_path)}] 이미지:")
+    result = design_search_chain(img_path, question)
+    print(result)

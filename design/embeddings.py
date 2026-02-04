@@ -10,13 +10,11 @@ import sys
 import clip
 
 '''
-각 도면 json파일에서 
-이미지를 다운받는다. (-> 이는 jpg 형태로 "downloaded_images" 폴더에 저장된다.)
+각 도면 json파일에서  이미지를 다운받는다. (-> jpg 형태로 "data/images" 폴더에 저장된다.)
 
-clip으로 이미지 임베딩 벡터(512차원)를 생성한다. 
+다운받은 이미지를 불러와, clip으로 이미지 임베딩 벡터(512차원)를 생성한다. 
 
-{임베딩 벡터/메타데이터} 구조의 json 포맷으로 저장한다. (-> "embeddings" 폴더에 저장된다.)
-
+{임베딩 벡터/메타데이터} 구조의 json 포맷으로 저장한다. (-> "data/embeddings" 폴더에 저장된다.)
 '''
 '''
 # CLIP 동적 로드 - 최초 1회만
@@ -37,12 +35,11 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
 # json 파일이 있는 폴더
-JSON_FOLDER = r"C:\Users\playdata2\Desktop\디자인\0901_1966_1999_json"
+JSON_FOLDER = r"data/json/2025_2026"
 # 이미지 저장할 폴더
-DOWNLOAD_DIR = r"C:\Users\playdata2\Desktop\디자인\VectorDB\downloaded_images"
+DOWNLOAD_DIR = r"data/images"
 # 벡터DB에 적재할 json(임베딩 벡터 포함 버전) 저장할 폴더
-EMBEDDING_OUTPUT = r"C:\Users\playdata2\Desktop\디자인\VectorDB\embeddings"
-
+EMBEDDING_OUTPUT = r"data/embeddings"
 
 # 디렉토리 생성
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
@@ -99,7 +96,6 @@ for idx, filename in enumerate(list,1):
         print(f"✓ 이미지 크기: {image.size}")
         
         # CLIP 전처리 및 임베딩
-        print("\nCLIP 임베딩 계산 중...")
         image_tensor = preprocess(image).unsqueeze(0).to(device)
         
         with torch.no_grad():
@@ -130,16 +126,16 @@ for idx, filename in enumerate(list,1):
             "id": id_field,
             "embedding": embedding_array.tolist()[0],  # 첫 번째 배치 항목
             "metadata": {
-                "design_id": design_id,
-                "applicationNumber": application_number,
-                "registrationNumber": registration_number,
-                "status": status,
-                "articleName": meta.get('articleName', ''),
-                "LCCode": meta.get('LCCode', ''),
-                "image_id": image.get('image_id', ''),
-                "imagePath": image_path,
-                "imageNumber": image_number,
-                "designSummary": creative.get('designSummary', '')
+                "design_id": design_id, #디자인id
+                "applicationNumber": application_number, #출원번호
+                "registrationNumber": registration_number, #등록번호
+                "status": status, #상태
+                "articleName": meta.get('articleName', ''), #상품명
+                "LCCode": meta.get('LCCode', ''), #LCCode
+                "image_id": image.get('image_id', ''), #이미지id
+                "imagePath": image_path, #이미지경로
+                "imageNumber": image_number, #도면번호
+                "designSummary": creative.get('designSummary', '') #디자인 요약
             }
         }
         

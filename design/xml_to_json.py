@@ -69,7 +69,7 @@ def parse_xml_to_json_per_image(xml_file_path, locarno_code):
     if creative_description_info is not None:
         design_description = extract_text(creative_description_info.find('designDescription'))
     
-    # 도면 이미지 정보 추출
+    # 도면 이미지 정보 추출 (도면 번호 0, 1, 2만 추출)
     image_data = []
     design_image_info = root.find('.//designImageInfo')
     if design_image_info is not None:
@@ -79,14 +79,13 @@ def parse_xml_to_json_per_image(xml_file_path, locarno_code):
             large_path = extract_text(image_path.find('largePath'))
             number = extract_text(image_path.find('number'))
             
-            # 도면 번호가 0, 300 등 이상한 번호는 건너뛰기 (중복 이미지)
-            # 실제 도면 번호만 처리
+            # 도면 번호가 0, 1, 2인 것만 추출
             try:
                 num_int = int(number)
-                if num_int > 100:  # 300 같은 번호는 건너뛰기
+                if num_int not in [0, 1, 2]:  # 0, 1, 2만 수집
                     continue
             except:
-                pass
+                continue
             
             image_data.append({
                 'number': number,
@@ -201,9 +200,9 @@ if __name__ == "__main__":
     # 현재 디렉토리 경로
     current_dir = Path(__file__).parent
     
-    # 0901_1966_1999 폴더 변환
-    input_folder = current_dir / "0901_1966_1999"
-    output_folder = current_dir / "0901_1966_1999_json"
+    # xml\2025_2026 폴더 변환
+    input_folder = current_dir / "data/xml/2025_2026" #변경할 xml 폴더 경로
+    output_folder = current_dir / "data/json/2025_2026" #변경된 json 폴더 경로
     if input_folder.exists():
         print("=" * 50)
         print(f"{input_folder} 폴더 변환 시작 (이미지당 JSON 1개)")
