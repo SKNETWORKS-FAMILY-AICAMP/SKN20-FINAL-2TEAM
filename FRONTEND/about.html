@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소개 - FTOGuard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-pages.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" stroke-width="2"/>
+                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">FTOGuard</span>
+                </div>
+                
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">홈</a>
+                    <a href="how-it-works.html" class="nav-link">작동 원리</a>
+                    <a href="analysis.html" class="nav-link">리스크 분석</a>
+                    <a href="about.html" class="nav-link active">소개</a>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="btn-secondary" id="loginBtn">로그인</button>
+                    <button class="btn-primary" onclick="window.location.href='analysis.html'">분석 시작하기</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <section class="page-hero">
+            <div class="container">
+                <h1 class="page-title">FTOGuard 소개</h1>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <div class="container">
+                <div class="about-content">
+                    <p class="about-text">
+                        FTOGuard는 누구나 손쉽게 기초적인 Freedom-to-Operate(특허 침해 가능성) 분석을 수행할 수 있도록 돕는 실험적인 AI 툴입니다. 
+                        자타 언어 모델(LLM)과 벡터 검색 기술을 활용하여, 혁신기업이 제품 설계 초기 단계에서 잠재적인 특허 장애물을 식별할 수 있도록 지원합니다.
+                    </p>
+                    
+                    <p class="about-text">
+                        우리의 미션은 스타트업과 중소기업이 초기 지식재산권(IP) 검토 비용을 절감하고, 리걸 전문가를 이 단순 검색보다는 
+                        고부가가치 전략 수립에 집중할 수 있는 환경을 만드는 것입니다.
+                    </p>
+
+                    <div class="disclaimer-box">
+                        <div class="disclaimer-header">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 9V13M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.901 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.901 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <h3 class="disclaimer-title">법적 고지 (Disclaimer)</h3>
+                        </div>
+                        <div class="disclaimer-content">
+                            <p class="disclaimer-text">
+                                본 도구는 법적 자문을 제공하지 않습니다. FTOGuard에서 생성된 분석 결과는 정보 제공 목적으로만 사용되어야 합니다. 
+                                AI 모델은 기술적 한계로 인해 오류(환각, 현상)를 일으킬 수 있으므로, 최신 법률 표준이나 판례를 완벽히 반영하지 못할 수 있습니다.
+                            </p>
+                            <p class="disclaimer-text">
+                                본 웹사이트를 이용한다고 해서 변호사-의뢰인 관계가 형성되지 않습니다. 특허 침해 판단이나 제품 출시와 관련된 중요한 비즈니스 결정을 내리기 전에는 
+                                반드시 자격을 갖춘 변리사 또는 특허 전문 변호사의 상담하시기 바랍니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2024 FTOGuard AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

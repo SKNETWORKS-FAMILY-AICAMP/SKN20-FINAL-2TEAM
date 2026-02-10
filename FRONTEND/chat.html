@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 채팅 - FTOGuard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-pages.css">
+    <link rel="stylesheet" href="styles-chat.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" stroke-width="2"/>
+                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">FTOGuard</span>
+                </a>
+                
+                <div class="chat-session-info">
+                    <span class="session-type" id="sessionType">특허 FTO 분석</span>
+                    <span class="session-status">진행 중</span>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn-secondary" id="loginBtn">로그인</button>
+                    <button class="btn-primary" onclick="window.location.href='analysis.html'">새 분석</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Layout -->
+    <main class="chat-layout">
+        <!-- Sidebar -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-header">
+                <h3>대화 기록</h3>
+                <button class="btn-icon" id="newChatBtn" title="새 대화 시작">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="chat-sessions" id="chatSessions">
+                <!-- Chat session items will be inserted here -->
+            </div>
+        </aside>
+
+        <!-- Chat Container -->
+        <div class="chat-container">
+            <!-- Chat Header with Context -->
+            <div class="chat-context-bar" id="contextBar">
+                <div class="context-items">
+                    <div class="context-item">
+                        <span class="context-label">제품명</span>
+                        <span class="context-value" id="contextProduct">-</span>
+                    </div>
+                    <div class="context-item">
+                        <span class="context-label">출시 국가</span>
+                        <span class="context-value" id="contextCountry">-</span>
+                    </div>
+                    <div class="context-item">
+                        <span class="context-label">제품 유형</span>
+                        <span class="context-value" id="contextType">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="messages-wrapper">
+                    <!-- Welcome Message -->
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3"/>
+                                <path d="M24 32L30 38L40 28" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h2>FTOGuard AI 분석 시작</h2>
+                        <p>제품 정보를 입력하시면 특허 침해 리스크를 분석해드립니다.</p>
+                        
+                        <div class="suggested-prompts">
+                            <button class="prompt-chip" onclick="sendSuggestedPrompt('제품명과 주요 기능을 알려주세요')">
+                                제품 정보 입력하기
+                            </button>
+                            <button class="prompt-chip" onclick="sendSuggestedPrompt('이미 제품 설명이 있습니다. 분석을 시작해주세요.')">
+                                즉시 분석 시작
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messages will be appended here -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <!-- Analysis Type Selector -->
+                <div class="analysis-type-selector" id="analysisTypeSelector">
+                    <label>분석 유형:</label>
+                    <select id="analysisTypeSelect" class="analysis-select">
+                        <option value="fto">특허 FTO 분석</option>
+                        <option value="design">디자인 침해 분석</option>
+                    </select>
+                </div>
+
+                <!-- Input Box -->
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="chat-input" 
+                        placeholder="메시지를 입력하세요..."
+                        rows="1"
+                    ></textarea>
+                    <button class="btn-send" id="sendBtn" disabled>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- File Upload (Hidden) -->
+                <input type="file" id="fileInput" accept="image/*,.pdf" style="display: none;">
+                
+                <div class="input-hints">
+                    <span class="hint-item">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 7V10M7 4V4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Shift + Enter로 줄바꿈
+                    </span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="chat.js"></script>
+</body>
+</html>

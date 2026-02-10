@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - FTOGuard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-pages.css">
+    <link rel="stylesheet" href="styles-auth.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" stroke-width="2"/>
+                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">FTOGuard</span>
+                </a>
+                
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">홈</a>
+                    <a href="how-it-works.html" class="nav-link">작동 원리</a>
+                    <a href="about.html" class="nav-link">소개</a>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="btn-secondary" onclick="window.location.href='signup.html'">회원가입</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main auth-main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="auth-title">로그인</h1>
+                    <p class="auth-subtitle">FTOGuard 계정으로 로그인하세요</p>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email" class="form-label">이메일</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-input" 
+                            placeholder="example@email.com"
+                            required
+                            autocomplete="email"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">비밀번호</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                class="form-input" 
+                                placeholder="비밀번호를 입력하세요"
+                                required
+                                autocomplete="current-password"
+                            />
+                            <button type="button" class="password-toggle" id="togglePassword">
+                                <svg class="eye-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 10C2 10 5 4 10 4C15 4 18 10 18 10C18 10 15 16 10 16C5 16 2 10 2 10Z" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span>로그인 상태 유지</span>
+                        </label>
+                        <a href="forgot-password.html" class="forgot-link">비밀번호를 잊으셨나요?</a>
+                    </div>
+
+                    <button type="submit" class="btn-primary-large auth-submit">
+                        로그인
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>또는</span>
+                </div>
+
+                <div class="auth-social">
+                    <button class="btn-social btn-google">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.1713 8.36788H17.5001V8.33329H10.0001V11.6666H14.7096C14.0225 13.6069 12.1763 15 10.0001 15C7.23882 15 5.00007 12.7612 5.00007 9.99996C5.00007 7.23871 7.23882 4.99996 10.0001 4.99996C11.2746 4.99996 12.4342 5.48079 13.3171 6.26621L15.6742 3.90913C14.1859 2.52204 12.1951 1.66663 10.0001 1.66663C5.39799 1.66663 1.66674 5.39788 1.66674 9.99996C1.66674 14.602 5.39799 18.3333 10.0001 18.3333C14.6022 18.3333 18.3334 14.602 18.3334 9.99996C18.3334 9.44121 18.2767 8.89579 18.1713 8.36788Z" fill="#FFC107"/>
+                            <path d="M2.6275 6.12121L5.36542 8.12913C6.10625 6.29496 7.90042 4.99996 10.0004 4.99996C11.2750 4.99996 12.4346 5.48079 13.3175 6.26621L15.6746 3.90913C14.1863 2.52204 12.1954 1.66663 10.0004 1.66663C6.79917 1.66663 4.02334 3.47371 2.6275 6.12121Z" fill="#FF3D00"/>
+                            <path d="M10.0001 18.3333C12.1526 18.3333 14.1101 17.5095 15.5876 16.1712L13.0084 13.9875C12.1463 14.6479 11.0901 15.0008 10.0001 15C7.83258 15 5.99175 13.6179 5.29883 11.6891L2.58008 13.7829C3.96091 16.4816 6.76133 18.3333 10.0001 18.3333Z" fill="#4CAF50"/>
+                            <path d="M18.1713 8.36796H17.5V8.33337H10V11.6667H14.7096C14.3809 12.5902 13.7889 13.3972 13.0067 13.988L13.0079 13.9871L15.5871 16.1709C15.4046 16.3371 18.3333 14.1667 18.3333 10C18.3333 9.44129 18.2767 8.89587 18.1713 8.36796Z" fill="#1976D2"/>
+                        </svg>
+                        Google로 계속하기
+                    </button>
+                </div>
+
+                <div class="auth-footer">
+                    <p>계정이 없으신가요? <a href="signup.html" class="auth-link">회원가입</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
