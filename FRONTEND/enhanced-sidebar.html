@@ -1,0 +1,253 @@
+<!-- Enhanced Sidebar with Better UX -->
+<!-- 이 코드를 analysis.html의 사이드바 부분(line 31-38)에 교체 -->
+
+<aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col hidden lg:flex">
+    <!-- Header -->
+    <div class="p-6 border-b border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Recent Analysis</h3>
+            <button onclick="refreshSessions()" class="text-slate-600 hover:text-slate-400 transition">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-2">
+            <div class="bg-slate-800/50 rounded-lg p-3">
+                <div class="text-2xl font-black text-white" id="totalAnalysisCount">0</div>
+                <div class="text-[10px] text-slate-500 uppercase">Total</div>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg p-3">
+                <div class="text-2xl font-black text-blue-400" id="todayAnalysisCount">0</div>
+                <div class="text-[10px] text-slate-500 uppercase">Today</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analysis List -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-2" id="chatSessions">
+        <!-- Session cards will be dynamically added -->
+    </div>
+    
+    <!-- Empty State -->
+    <div id="emptyState" class="flex-1 flex items-center justify-center p-8">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-inbox text-2xl text-slate-600"></i>
+            </div>
+            <p class="text-slate-600 text-sm">분석 기록이 없습니다</p>
+            <p class="text-slate-700 text-xs mt-1">새 분석을 시작해보세요</p>
+        </div>
+    </div>
+</aside>
+
+<style>
+/* Sidebar session card styles */
+.session-card {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.session-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.session-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateX(4px);
+}
+
+.session-card:hover::before {
+    opacity: 1;
+}
+
+.session-card.active {
+    background: rgba(30, 41, 59, 1);
+    border-color: #3B82F6;
+}
+
+.session-card.active::before {
+    opacity: 1;
+}
+
+/* Session type badge */
+.session-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.session-type-fto {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60A5FA;
+}
+
+.session-type-design {
+    background: rgba(139, 92, 246, 0.1);
+    color: #A78BFA;
+}
+
+.session-type-multimodal {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34D399;
+}
+
+/* Fade in animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.session-card {
+    animation: slideIn 0.3s ease-out;
+}
+</style>
+
+<script>
+// Enhanced session rendering
+function renderSessionCard(session) {
+    const typeConfig = {
+        fto: { icon: 'fa-file-alt', label: 'FTO', class: 'session-type-fto' },
+        design: { icon: 'fa-images', label: 'Design', class: 'session-type-design' },
+        multimodal: { icon: 'fa-layer-group', label: 'Multi', class: 'session-type-multimodal' }
+    };
+    
+    const config = typeConfig[session.type] || typeConfig.fto;
+    const isActive = session.id === currentAnalysisId ? 'active' : '';
+    
+    return `
+        <div class="session-card ${isActive}" onclick="loadAnalysisSession('${session.id}')" data-session-id="${session.id}">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-2">
+                <span class="session-type-badge ${config.class}">
+                    <i class="fas ${config.icon}"></i>
+                    ${config.label}
+                </span>
+                <span class="text-[10px] text-slate-600">${session.date}</span>
+            </div>
+            
+            <!-- Product Name -->
+            <div class="text-white font-bold text-sm mb-1 truncate">
+                ${session.productName || '제품명 없음'}
+            </div>
+            
+            <!-- Risk Level -->
+            <div class="flex items-center gap-2">
+                <div class="flex-shrink-0 w-2 h-2 rounded-full ${getRiskColorClass(session.risk)}"></div>
+                <span class="text-xs text-slate-400">${getRiskText(session.risk)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function getRiskColorClass(risk) {
+    const colors = {
+        safe: 'bg-green-500',
+        warning: 'bg-yellow-500',
+        danger: 'bg-red-500'
+    };
+    return colors[risk] || 'bg-slate-500';
+}
+
+function getRiskText(risk) {
+    const texts = {
+        safe: '안전',
+        warning: '검토 필요',
+        danger: '위험'
+    };
+    return texts[risk] || '분석 중';
+}
+
+// Update session list
+function updateSessionList(sessions) {
+    const container = document.getElementById('chatSessions');
+    const emptyState = document.getElementById('emptyState');
+    
+    if (sessions.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'flex';
+    } else {
+        emptyState.style.display = 'none';
+        container.innerHTML = sessions.map(renderSessionCard).join('');
+    }
+    
+    // Update stats
+    document.getElementById('totalAnalysisCount').textContent = sessions.length;
+    const today = new Date().toDateString();
+    const todayCount = sessions.filter(s => new Date(s.timestamp).toDateString() === today).length;
+    document.getElementById('todayAnalysisCount').textContent = todayCount;
+}
+
+// Refresh sessions
+function refreshSessions() {
+    Toast.info('분석 기록을 새로고침하는 중...');
+    // In production, call API to fetch sessions
+    setTimeout(() => {
+        loadMockSessions();
+        Toast.success('새로고침 완료!');
+    }, 500);
+}
+
+// Load mock sessions for demo
+function loadMockSessions() {
+    const mockSessions = [
+        {
+            id: 'session-001',
+            type: 'fto',
+            productName: '스마트 머그컵 FTO 분석',
+            risk: 'safe',
+            date: '오늘',
+            timestamp: new Date()
+        },
+        {
+            id: 'session-002',
+            type: 'design',
+            productName: '주전자 출전 패드 디자인',
+            risk: 'warning',
+            date: '어제',
+            timestamp: new Date(Date.now() - 86400000)
+        },
+        {
+            id: 'session-003',
+            type: 'multimodal',
+            productName: '세라믹 히터 멀티모달 분석',
+            risk: 'safe',
+            date: '2일 전',
+            timestamp: new Date(Date.now() - 172800000)
+        }
+    ];
+    
+    updateSessionList(mockSessions);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadMockSessions();
+});
+</script>

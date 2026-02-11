@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분석 결과 - FTOGuard</title>
+    
+    <!-- Immediate Auth Check - Before any rendering -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('auth_token');
+            const tokenExpiry = localStorage.getItem('token_expiry');
+            const isAuthenticated = token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry);
+            
+            if (!isAuthenticated) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <!-- ✅ 새로 추가 - PDF 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-verdict.css">
+</head>
+<body class="bg-slate-50">
+    
+    <!-- ✅ 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- The Verdict Section -->
+    <main class="verdict-main">
+        <div class="verdict-container">
+            <!-- The Signal Orb - Hero of the page -->
+            <section class="signal-orb-section">
+                <div class="orb-container" id="orbContainer">
+                    <div class="orb-glow"></div>
+                    <div class="orb-pulse"></div>
+                    <div class="orb-core" id="orbCore">
+                        <svg class="orb-icon" id="orbIcon" width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Icon will be set by JavaScript -->
+                        </svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- The Verdict Message -->
+            <section class="verdict-message-section">
+                <h1 class="verdict-headline" id="verdictHeadline">출시 가능합니다</h1>
+                <p class="verdict-reason" id="verdictReason">
+                    검색된 4,247개 특허 중 침해 가능성이 있는 청구항이 발견되지 않았습니다.
+                </p>
+                
+                <div class="verdict-confidence">
+                    <div class="confidence-label">신뢰도</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill" style="width: 94%"></div>
+                    </div>
+                    <div class="confidence-value" id="confidenceValue">94%</div>
+                </div>
+
+                <button class="btn-reveal" id="revealBtn" onclick="revealEvidence()">
+                    <span>근거 데이터 확인</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </section>
+
+            <!-- Progressive Disclosure - Evidence Section -->
+            <section class="evidence-section" id="evidenceSection" style="display: none;">
+                <!-- Divider with fade-in animation -->
+                <div class="evidence-divider"></div>
+
+                <!-- Analysis Summary -->
+                <div class="evidence-card summary-card">
+                    <h2 class="evidence-title">분석 요약</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">제품명</div>
+                            <div class="summary-value" id="productName">스마트 온도 조절 머그컵</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">분석 일시</div>
+                            <div class="summary-value" id="analysisDate">2024년 2월 10일 14:32</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">검색된 특허</div>
+                            <div class="summary-value" id="patentCount">4,247건</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">침해 가능성</div>
+                            <div class="summary-value risk-low">낮음</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Patents -->
+                <div class="evidence-card">
+                    <h2 class="evidence-title">검토된 특허</h2>
+                    <p class="evidence-subtitle">유사도 상위 Top-10 특허 청구항을 분석했습니다</p>
+                    
+                    <div class="patents-list" id="patentsList">
+                        <!-- Patent cards will be inserted by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Component Mapping -->
+                <div class="evidence-card">
+                    <h2 class="evidence-title">구성요소 대응 관계</h2>
+                    <p class="evidence-subtitle">제품 구성요소와 특허 청구항의 매핑 분석 결과입니다</p>
+                    
+                    <div class="mapping-table-wrapper">
+                        <table class="mapping-table">
+                            <thead>
+                                <tr>
+                                    <th>제품 구성요소</th>
+                                    <th>특허 청구항 구성</th>
+                                    <th>매핑 여부</th>
+                                    <th>침해 우려</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mappingTableBody">
+                                <!-- Rows will be inserted by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Free-to-Operate Suggestions -->
+                <div class="evidence-card">
+                    <h2 class="evidence-title">자유실시기술 제안</h2>
+                    <p class="evidence-subtitle">특허 침해 없이 활용 가능한 기술과 대안을 제시합니다</p>
+                    
+                    <div class="fto-suggestions-grid" id="ftoSuggestions">
+                        <!-- FTO cards will be inserted by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Legal Disclaimer -->
+                <div class="legal-disclaimer">
+                    <div class="disclaimer-icon">⚖️</div>
+                    <div class="disclaimer-content">
+                        <h3>법적 고지</h3>
+                        <p>본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.</p>
+                    </div>
+                </div>
+
+                <!-- ✅ Action Buttons 수정 -->
+                <div class="evidence-actions">
+                    <!-- ✅ Graph RAG 버튼 추가 -->
+                    <button class="btn-secondary-large" onclick="window.location.href='graph-rag.html'">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="5" cy="5" r="2" fill="currentColor"/>
+                            <circle cx="15" cy="5" r="2" fill="currentColor"/>
+                            <circle cx="10" cy="15" r="2" fill="currentColor"/>
+                            <path d="M6.5 6L8.5 14M13.5 6L11.5 14" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        Graph RAG
+                    </button>
+                    
+                    <button class="btn-secondary-large" onclick="window.print()">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 7V3H15V7M5 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7H17C17.5523 7 18 7.44772 18 8V12C18 12.5523 17.5523 13 17 13H15M5 17H15V11H5V17Z" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        보고서 인쇄
+                    </button>
+                    
+                    <!-- ✅ 함수명 변경: downloadPDF() → downloadFTOReport() -->
+                    <button class="btn-secondary-large" onclick="downloadFTOReport()">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 3V13M10 13L6 9M10 13L14 9M3 17H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        PDF 다운로드
+                    </button>
+                    
+                    <button class="btn-primary-large" onclick="window.location.href='analysis.html'">
+                        새 분석 시작
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script src="verdict.js"></script>
+    
+    <!-- ✅ 새로 추가 - PDF 다운로드 -->
+    <script src="pdf-download.js"></script>
+</body>
+</html>
