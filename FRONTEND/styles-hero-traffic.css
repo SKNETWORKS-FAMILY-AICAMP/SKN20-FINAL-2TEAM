@@ -1,0 +1,316 @@
+/* Hero Traffic Light Section - Optimized Height with Traffic Light */
+.hero-traffic {
+    min-height: 80vh;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
+    display: flex;
+    align-items: center;
+}
+
+.container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 45% 55%;
+    gap: var(--spacing-3xl);
+    align-items: center;
+}
+
+/* Traffic Light Column */
+.traffic-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.traffic-light-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Hanging Wire */
+.traffic-wire {
+    width: 3px;
+    height: 80px;
+    background: linear-gradient(to bottom, #888, #666);
+    margin-bottom: 10px;
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Traffic Light Housing */
+.traffic-housing {
+    background: linear-gradient(135deg, #4A7C9C 0%, #2C5A75 100%);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 2px 10px rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Traffic Section (Each Light Row) */
+.traffic-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Wings (Side Flaps) */
+.wing {
+    width: 40px;
+    height: 60px;
+    background: linear-gradient(135deg, #3A6A85 0%, #1F4A60 100%);
+    clip-path: polygon(30% 0%, 100% 20%, 100% 80%, 30% 100%);
+}
+
+.wing-left {
+    transform: scaleX(-1);
+}
+
+/* Light Holder */
+.light-holder {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Light Bezel (Ring around light) */
+.light-bezel {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2A2A2A 0%, #1A1A1A 100%);
+    box-shadow: 
+        inset 0 2px 5px rgba(255, 255, 255, 0.1),
+        0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Traffic Circle (Light itself) */
+.traffic-circle {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+/* LED Grid Pattern */
+.led-grid {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-image: 
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 50%);
+}
+
+/* Light Shine Effect */
+.light-shine {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 35px;
+    height: 35px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent);
+    border-radius: 50%;
+    filter: blur(5px);
+    pointer-events: none;
+}
+
+/* Red Light (Off) */
+.red-circle {
+    background: radial-gradient(circle, #6B3333 0%, #4A2525 100%);
+    box-shadow: inset 0 -8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.red-leds {
+    background-color: #5A2828;
+}
+
+/* Yellow Light (Off) */
+.yellow-circle {
+    background: radial-gradient(circle, #7B6B3A 0%, #5B4B2A 100%);
+    box-shadow: inset 0 -8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.yellow-leds {
+    background-color: #6A5A35;
+}
+
+/* Green Light (ON - Active) */
+.green-circle {
+    background: radial-gradient(circle, #3FD663 0%, var(--color-safe) 100%);
+    box-shadow: 
+        inset 0 -5px 15px rgba(0, 0, 0, 0.2),
+        0 0 30px var(--color-safe-glow),
+        0 0 50px rgba(45, 90, 39, 0.5);
+    animation: greenLightGlow 2.5s ease-in-out infinite;
+}
+
+.green-leds {
+    background-color: #4FE673;
+    animation: ledPulse 2.5s ease-in-out infinite;
+}
+
+/* Green Light Glow Animation */
+@keyframes greenLightGlow {
+    0%, 100% {
+        box-shadow: 
+            inset 0 -5px 15px rgba(0, 0, 0, 0.2),
+            0 0 25px var(--color-safe-glow),
+            0 0 40px rgba(45, 90, 39, 0.4);
+    }
+    50% {
+        box-shadow: 
+            inset 0 -5px 15px rgba(0, 0, 0, 0.1),
+            0 0 40px var(--color-safe-glow),
+            0 0 70px rgba(45, 90, 39, 0.7);
+    }
+}
+
+@keyframes ledPulse {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Content Column */
+.content-column {
+    padding-left: var(--spacing-xl);
+}
+
+.hero-subtitle {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-lg);
+}
+
+.hero-title-large {
+    font-size: 3.5rem;
+    font-weight: var(--font-weight-black);
+    line-height: 1.15;
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.hero-description-large {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-2xl);
+    max-width: 540px;
+}
+
+.hero-actions-large {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn-primary-xl,
+.btn-secondary-xl {
+    padding: 1rem 2rem;
+    border-radius: var(--radius-full);
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.125rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-primary-xl {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary-xl:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary-xl {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.btn-secondary-xl:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--text-tertiary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .hero-traffic {
+        min-height: auto;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+    
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-2xl);
+        text-align: center;
+    }
+    
+    .content-column {
+        padding-left: 0;
+        order: 2;
+    }
+    
+    .traffic-column {
+        order: 1;
+    }
+    
+    .hero-description-large {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .hero-actions-large {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-title-large {
+        font-size: 2.5rem;
+    }
+    
+    .hero-description-large {
+        font-size: 1.125rem;
+    }
+    
+    .traffic-housing {
+        transform: scale(0.85);
+    }
+}

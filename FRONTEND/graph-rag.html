@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>Graph RAG 분석 - FTOGuard</title>
+    
+    <style>
+        /* Graph Container */
+        #graph-container {
+            background: #0f172a;
+            position: relative;
+        }
+        
+        /* Node Styles */
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .node:hover {
+            stroke-width: 3px;
+        }
+        
+        .node-user {
+            fill: #3B82F6;
+            stroke: #60A5FA;
+        }
+        
+        .node-patent {
+            fill: #EF4444;
+            stroke: #F87171;
+        }
+        
+        .node-component {
+            fill: #8B5CF6;
+            stroke: #A78BFA;
+        }
+        
+        .node-infringement {
+            fill: #F59E0B;
+            stroke: #FBBF24;
+        }
+        
+        /* Link Styles */
+        .link {
+            stroke: #334155;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+        
+        .link-high-risk {
+            stroke: #EF4444;
+            stroke-opacity: 0.8;
+            stroke-width: 3px;
+        }
+        
+        .link-medium-risk {
+            stroke: #F59E0B;
+            stroke-opacity: 0.6;
+        }
+        
+        .link-low-risk {
+            stroke: #10B981;
+            stroke-opacity: 0.4;
+        }
+        
+        /* Node Labels */
+        .node-label {
+            fill: #94A3B8;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+        
+        /* Detail Panel */
+        .detail-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .detail-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* Zoom Controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #94A3B8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: #1e293b;
+            color: #60A5FA;
+            border-color: #60A5FA;
+        }
+        
+        /* Legend */
+        .legend {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #94A3B8;
+        }
+        
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950">
+
+    <!-- ✅ 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- Main Content -->
+    <main class="min-h-screen pt-20">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-black text-white mb-2">Graph RAG 분석</h1>
+                        <p class="text-slate-400">특허 침해 관계 그래프 시각화</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="resetGraph()" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition">
+                            <i class="fas fa-redo mr-2"></i>초기화
+                        </button>
+                        <button onclick="exportGraph()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition">
+                            <i class="fas fa-download mr-2"></i>내보내기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Container -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden" style="height: 700px; position: relative;">
+                <svg id="graph-container" width="100%" height="100%"></svg>
+                
+                <!-- Legend -->
+                <div class="legend">
+                    <div class="text-white font-bold mb-3 text-sm">노드 유형</div>
+                    <div class="legend-item">
+                        <div class="legend-dot node-user"></div>
+                        <span>사용자 기술</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot node-patent"></div>
+                        <span>특허</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot node-component"></div>
+                        <span>구성요소</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot node-infringement"></div>
+                        <span>침해 포인트</span>
+                    </div>
+                </div>
+                
+                <!-- Detail Panel -->
+                <div id="detail-panel" class="detail-panel">
+                    <button onclick="closeDetailPanel()" class="absolute top-3 right-3 text-slate-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    
+                    <div id="detail-content">
+                        <div class="text-center text-slate-500 py-8">
+                            <i class="fas fa-mouse-pointer text-3xl mb-3"></i>
+                            <p class="text-sm">노드를 클릭하여<br/>상세 정보를 확인하세요</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Zoom Controls -->
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="zoom-btn" onclick="zoomOut()">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="zoom-btn" onclick="resetZoom()">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div class="text-slate-400 text-sm mb-2">총 노드</div>
+                    <div class="text-3xl font-black text-white" id="totalNodes">0</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div class="text-slate-400 text-sm mb-2">특허 수</div>
+                    <div class="text-3xl font-black text-red-400" id="patentCount">0</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div class="text-slate-400 text-sm mb-2">침해 포인트</div>
+                    <div class="text-3xl font-black text-yellow-400" id="infringementCount">0</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div class="text-slate-400 text-sm mb-2">연결 수</div>
+                    <div class="text-3xl font-black text-blue-400" id="linkCount">0</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script src="graph-rag.js"></script>
+</body>
+</html>

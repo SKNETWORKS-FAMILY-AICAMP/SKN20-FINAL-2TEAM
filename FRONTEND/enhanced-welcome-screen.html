@@ -1,0 +1,156 @@
+<!-- 이 코드를 analysis.html의 Welcome 화면 부분(line 45-50)에 교체 -->
+
+<!-- Enhanced Welcome Screen -->
+<div class="welcome-screen text-center py-12">
+    <!-- Animated Agent Icon -->
+    <div class="relative mx-auto mb-8 w-32 h-32">
+        <!-- Outer glow ring -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+        
+        <!-- Main icon container -->
+        <div class="relative w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/20 transform hover:scale-105 transition-all duration-300">
+            <i class="fas fa-robot text-5xl text-white"></i>
+        </div>
+        
+        <!-- Status indicator -->
+        <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+            <i class="fas fa-check text-white text-sm"></i>
+        </div>
+    </div>
+    
+    <!-- Title -->
+    <h2 class="text-3xl font-black text-white mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        AI 분석 에이전트 대기 중
+    </h2>
+    
+    <!-- Subtitle -->
+    <p class="text-slate-400 text-base mb-8 max-w-md mx-auto leading-relaxed">
+        제품의 기술 명세서나 이미지를 업로드하여<br/>
+        특허 침해 리스크 분석을 시작하세요
+    </p>
+    
+    <!-- Feature Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+        <!-- Card 1: FTO -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-blue-500/50 transition-all group">
+            <div class="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 transition">
+                <i class="fas fa-file-alt text-2xl text-blue-500"></i>
+            </div>
+            <h3 class="text-white font-bold mb-2">특허 FTO</h3>
+            <p class="text-slate-500 text-sm">텍스트 기반 청구항 분석</p>
+        </div>
+        
+        <!-- Card 2: Design -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
+            <div class="w-12 h-12 bg-purple-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-600/20 transition">
+                <i class="fas fa-images text-2xl text-purple-500"></i>
+            </div>
+            <h3 class="text-white font-bold mb-2">디자인 분석</h3>
+            <p class="text-slate-500 text-sm">이미지 유사도 검색</p>
+        </div>
+        
+        <!-- Card 3: Multimodal -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-green-500/50 transition-all group">
+            <div class="w-12 h-12 bg-green-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-600/20 transition">
+                <i class="fas fa-layer-group text-2xl text-green-500"></i>
+            </div>
+            <h3 class="text-white font-bold mb-2">멀티모달</h3>
+            <p class="text-slate-500 text-sm">텍스트 + 이미지 통합</p>
+        </div>
+    </div>
+    
+    <!-- Quick Start Guide -->
+    <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-2xl p-6 max-w-2xl mx-auto">
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-lightbulb text-blue-400"></i>
+                </div>
+            </div>
+            <div class="text-left">
+                <h4 class="text-white font-bold mb-2 flex items-center gap-2">
+                    💡 시작 가이드
+                </h4>
+                <ul class="text-slate-400 text-sm space-y-2">
+                    <li class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        제품 설명 텍스트 입력 또는 이미지 업로드
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                        AI가 자동으로 분석 유형 감지
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        실시간 워크플로우 진행 상황 확인
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sample Queries -->
+    <div class="mt-8">
+        <p class="text-slate-500 text-xs mb-3">빠른 시작 예시</p>
+        <div class="flex flex-wrap gap-2 justify-center">
+            <button onclick="fillSampleQuery('스마트 보온 머그컵')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                <i class="fas fa-coffee mr-2"></i>스마트 보온 머그컵
+            </button>
+            <button onclick="fillSampleQuery('무선 충전 패드')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                <i class="fas fa-bolt mr-2"></i>무선 충전 패드
+            </button>
+            <button onclick="fillSampleQuery('접이식 스마트폰')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                <i class="fas fa-mobile-alt mr-2"></i>접이식 스마트폰
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animation for the welcome screen */
+.welcome-screen {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulsing animation for status indicator */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+}
+</style>
+
+<script>
+// Quick sample query fill
+function fillSampleQuery(query) {
+    const input = document.getElementById('messageInput');
+    if (input) {
+        input.value = query;
+        input.focus();
+        // Trigger auto-resize if exists
+        if (typeof autoResizeTextarea === 'function') {
+            autoResizeTextarea(input);
+        }
+    }
+}
+</script>

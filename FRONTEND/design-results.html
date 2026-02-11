@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <!-- ✅ 새로 추가 - PDF 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <title>디자인 분석 결과 - FTOGuard</title>
+</head>
+
+<body class="bg-slate-50">
+
+    <!-- ✅ 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- Main Content -->
+    <main class="min-h-screen pt-24 pb-20">
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <!-- 페이지 헤더 -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-black text-slate-900 mb-2">디자인 유사도 분석 결과</h1>
+                        <p class="text-slate-500">AI 기반 이미지 유사도 검색 결과입니다</p>
+                    </div>
+                    <!-- ✅ 함수명 변경: downloadReport() → downloadDesignReport() -->
+                    <button onclick="downloadDesignReport()" class="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition">
+                        <i class="fas fa-download mr-2"></i>
+                        PDF 다운로드
+                    </button>
+                </div>
+            </div>
+
+            <!-- ⚠️ 참고용 분석 안내 문구 -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-xl mb-8">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-yellow-900 text-lg mb-2">⚠️ 참고용 분석 결과</h3>
+                        <p class="text-yellow-800 leading-relaxed">
+                            본 분석 결과는 <strong>참고 목적</strong>으로만 제공되며, 법적 효력이 없습니다. 
+                            디자인 침해 여부는 반드시 <strong>변리사 또는 법률 전문가의 상담</strong>을 통해 확인하시기 바랍니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 분석 요약 카드 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-sm text-slate-500 mb-1">검색된 디자인</div>
+                    <div class="text-3xl font-black text-slate-900" id="totalCount">12건</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-sm text-slate-500 mb-1">높은 유사도</div>
+                    <div class="text-3xl font-black text-red-600" id="highSimilarityCount">3건</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-sm text-slate-500 mb-1">낮은 유사도</div>
+                    <div class="text-3xl font-black text-green-600" id="lowSimilarityCount">9건</div>
+                </div>
+            </div>
+
+            <!-- Top-N 이미지 그리드 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-8">
+                <h2 class="text-2xl font-black text-slate-900 mb-6">
+                    <i class="fas fa-images mr-2 text-blue-600"></i>
+                    유사 디자인 검색 결과 (Top 12)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="imageGrid">
+                    <!-- 이미지 카드들이 여기 동적으로 추가됨 -->
+                </div>
+            </div>
+
+            <!-- 모델 평가 결과 (관리자/개발자용) -->
+            <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-8 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-black text-slate-900">
+                        <i class="fas fa-robot mr-2 text-purple-600"></i>
+                        모델 평가 결과
+                    </h2>
+                    <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-bold">
+                        개발자 전용
+                    </span>
+                </div>
+
+                <!-- LLM 평가 결과 -->
+                <div class="bg-white rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-brain text-blue-600"></i>
+                        LLM 평가 지표
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-slate-50 rounded-lg">
+                            <div class="text-sm text-slate-500 mb-1">정확도</div>
+                            <div class="text-2xl font-black text-slate-900">87.3%</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 rounded-lg">
+                            <div class="text-sm text-slate-500 mb-1">재현율</div>
+                            <div class="text-2xl font-black text-slate-900">91.2%</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 rounded-lg">
+                            <div class="text-sm text-slate-500 mb-1">F1 Score</div>
+                            <div class="text-2xl font-black text-slate-900">89.1%</div>
+                        </div>
+                        <div class="text-center p-4 bg-slate-50 rounded-lg">
+                            <div class="text-sm text-slate-500 mb-1">처리 시간</div>
+                            <div class="text-2xl font-black text-slate-900">2.3초</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 사람 검증 입력 -->
+                <div class="bg-white rounded-xl p-6">
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-user-check text-green-600"></i>
+                        사람 검증 결과 입력
+                    </h3>
+                    <div class="space-y-4" id="humanValidationList">
+                        <!-- 검증 항목들이 동적으로 추가됨 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 불일치 사례 -->
+            <div class="bg-red-50 rounded-2xl border border-red-200 p-8" id="mismatchSection" style="display: none;">
+                <h2 class="text-2xl font-black text-red-900 mb-6">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    AI-사람 판단 불일치 사례
+                </h2>
+                <div class="space-y-4" id="mismatchList">
+                    <!-- 불일치 사례들이 동적으로 추가됨 -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script src="design-results.js"></script>
+    
+    <!-- ✅ 새로 추가 - PDF 다운로드 -->
+    <script src="pdf-download.js"></script>
+</body>
+</html>

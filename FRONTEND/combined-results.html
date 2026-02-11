@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <!-- ✅ 새로 추가 - PDF 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <title>종합 분석 결과 - FTOGuard</title>
+</head>
+
+<body class="bg-slate-50">
+
+    <!-- ✅ 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- Main Content -->
+    <main class="min-h-screen pt-24 pb-20">
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <!-- 페이지 헤더 -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-black text-slate-900 mb-2">멀티모달 종합 분석 결과</h1>
+                        <p class="text-slate-500">텍스트 FTO 분석 + 디자인 유사도 분석</p>
+                    </div>
+                    <!-- ✅ 함수명 변경: downloadReport() → downloadCombinedReport() -->
+                    <button onclick="downloadCombinedReport()" class="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition">
+                        <i class="fas fa-download mr-2"></i>
+                        종합 보고서 다운로드
+                    </button>
+                </div>
+            </div>
+
+            <!-- ⚠️ 참고용 분석 안내 -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-xl mb-8">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-yellow-900 text-lg mb-2">⚠️ 참고용 분석 결과</h3>
+                        <p class="text-yellow-800 leading-relaxed">
+                            본 분석 결과는 <strong>참고 목적</strong>으로만 제공되며, 법적 효력이 없습니다. 
+                            특허 및 디자인 침해 여부는 반드시 <strong>변리사 또는 법률 전문가의 상담</strong>을 통해 확인하시기 바랍니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 종합 위험도 요약 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-8">
+                <h2 class="text-2xl font-black text-slate-900 mb-6">
+                    <i class="fas fa-shield-alt mr-2 text-blue-600"></i>
+                    종합 침해 리스크 평가
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 텍스트 FTO 리스크 -->
+                    <div class="border-2 border-blue-200 rounded-xl p-6 bg-blue-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-file-alt text-2xl text-blue-600"></i>
+                            <h3 class="text-xl font-bold text-slate-900">특허 FTO 분석</h3>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 rounded-full flex items-center justify-center" id="ftoRiskIcon">
+                                <!-- 신호등 아이콘 -->
+                            </div>
+                            <div>
+                                <div class="text-2xl font-black" id="ftoRiskText">안전</div>
+                                <div class="text-sm text-slate-600" id="ftoPatentCount">검색된 특허: 4,247건</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 디자인 유사도 리스크 -->
+                    <div class="border-2 border-purple-200 rounded-xl p-6 bg-purple-50">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-images text-2xl text-purple-600"></i>
+                            <h3 class="text-xl font-bold text-slate-900">디자인 유사도 분석</h3>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 rounded-full flex items-center justify-center" id="designRiskIcon">
+                                <!-- 신호등 아이콘 -->
+                            </div>
+                            <div>
+                                <div class="text-2xl font-black" id="designRiskText">경고</div>
+                                <div class="text-sm text-slate-600" id="designImageCount">높은 유사도: 3건</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 종합 판단 -->
+                <div class="mt-6 p-6 bg-slate-50 rounded-xl border-2" id="overallRisk">
+                    <div class="flex items-start gap-4">
+                        <i class="fas fa-exclamation-triangle text-3xl text-yellow-500"></i>
+                        <div>
+                            <h4 class="font-bold text-lg mb-2">종합 판단</h4>
+                            <p class="text-slate-700 leading-relaxed" id="overallRiskText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 네비게이션 -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm mb-8">
+                <div class="border-b border-slate-200">
+                    <div class="flex">
+                        <button 
+                            class="tab-btn active px-8 py-4 font-bold text-slate-900 border-b-2 border-blue-600 transition"
+                            onclick="switchTab('fto')"
+                            id="tab-fto"
+                        >
+                            <i class="fas fa-file-alt mr-2"></i>
+                            특허 FTO 분석
+                        </button>
+                        <button 
+                            class="tab-btn px-8 py-4 font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-900 transition"
+                            onclick="switchTab('design')"
+                            id="tab-design"
+                        >
+                            <i class="fas fa-images mr-2"></i>
+                            디자인 유사도 분석
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FTO 분석 탭 -->
+                <div id="content-fto" class="tab-content p-8">
+                    <h3 class="text-xl font-black text-slate-900 mb-6">검색된 특허 목록</h3>
+                    <div id="ftoPatentsList" class="space-y-4">
+                        <!-- 특허 목록 동적 렌더링 -->
+                    </div>
+
+                    <h3 class="text-xl font-black text-slate-900 mb-6 mt-8">구성요소 대응 관계</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full" id="componentMappingTable">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-bold text-slate-700">제품 구성요소</th>
+                                    <th class="px-4 py-3 text-left font-bold text-slate-700">특허 청구항</th>
+                                    <th class="px-4 py-3 text-center font-bold text-slate-700">매핑 상태</th>
+                                    <th class="px-4 py-3 text-center font-bold text-slate-700">리스크</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mappingTableBody">
+                                <!-- 매핑 테이블 동적 렌더링 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="text-xl font-black text-slate-900 mb-6 mt-8">자유실시기술 제안</h3>
+                    <div id="ftoSuggestionsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- FTO 제안 동적 렌더링 -->
+                    </div>
+                </div>
+
+                <!-- 디자인 분석 탭 -->
+                <div id="content-design" class="tab-content p-8 hidden">
+                    <h3 class="text-xl font-black text-slate-900 mb-6">유사 디자인 검색 결과</h3>
+                    <div id="designImageGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- 이미지 그리드 동적 렌더링 -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script src="combined-results.js"></script>
+    
+    <!-- ✅ 새로 추가 - PDF 다운로드 -->
+    <script src="pdf-download.js"></script>
+</body>
+</html>

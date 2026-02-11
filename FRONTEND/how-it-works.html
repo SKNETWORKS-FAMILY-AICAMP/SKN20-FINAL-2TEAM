@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- 기존 CSS -->
+    <link rel="stylesheet" href="styles.css">
+
+    <title>작동 원리 - FTOGuard</title>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+
+<!-- ✅ 공통 헤더 -->
+<div id="app-header"></div>
+
+<!-- ================= MAIN ================= -->
+<main class="max-w-7xl mx-auto px-6 py-20">
+
+    <!-- Page Hero -->
+    <header class="text-center mb-20">
+        <h1 class="text-4xl lg:text-[48px] font-extrabold leading-tight mb-6">
+            AI 파이프라인 프로세스
+        </h1>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            FTOGuard가 전 세계 특허·디자인 데이터를 분석해
+            침해 리스크를 판단하는 과정을 단계별로 설명합니다.
+        </p>
+    </header>
+
+    <!-- Steps -->
+    <section class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">01</div>
+            <h3 class="text-lg font-extrabold text-slate-900 mb-3">데이터 처리</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                제품 설명과 도면을 고차원 시맨틱 임베딩으로 벡터화하여 분석을 위한 입력 데이터를 구성합니다.
+            </p>
+        </article>
+
+        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">02</div>
+            <h3 class="text-lg font-extrabold text-slate-900 mb-3">벡터 검색</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                수백만 건의 특허 청구항·디자인 중 의미적으로 유사한 후보를 Vector DB에서 탐색합니다.
+            </p>
+        </article>
+
+        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">03</div>
+            <h3 class="text-lg font-extrabold text-slate-900 mb-3">정밀 재정렬</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                Cross-Encoder 기반 재정렬로 기술적 범위가 실제로 겹치는 후보를 선별합니다.
+            </p>
+        </article>
+
+        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">04</div>
+            <h3 class="text-lg font-extrabold text-slate-900 mb-3">LLM 심층 판단</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+                도메인 특화 LLM이 제품 기능과 청구항 구성을 1:1로 비교하여 최종 침해 리스크를 판정합니다.
+            </p>
+        </article>
+
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="py-12 bg-white border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+        <p class="text-slate-400 text-sm">© 2026 FTOGuard. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- 🔥 개발용 인증 우회 (배포 시 제거) -->
+    <script src="dev-bypass.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>AI 분석 - FTOGuard</title>
+    
+    <style>
+        /* Analysis 페이지 전용 다크 헤더 스타일 */
+        #app-header nav {
+            background: rgba(15, 23, 42, 0.8) !important;
+            border-bottom: 1px solid #334155 !important;
+        }
+        
+        #app-header nav a,
+        #app-header nav button,
+        #app-header nav span {
+            color: #94a3b8 !important;
+        }
+        
+        #app-header nav a:hover,
+        #app-header nav button:hover {
+            color: #60a5fa !important;
+        }
+        
+        #app-header nav .text-blue-600 {
+            color: #60a5fa !important;
+        }
+        
+        #app-header .bg-blue-600 {
+            background-color: #2563eb !important;
+        }
+        
+        /* Enhanced Welcome Screen Styles */
+        .welcome-screen {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Pulsing animation */
+        @keyframes pulse-ring {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.3;
+            }
+        }
+        
+        /* Sidebar Session Card Styles */
+        .session-card {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .session-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .session-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateX(4px);
+        }
+
+        .session-card:hover::before {
+            opacity: 1;
+        }
+
+        .session-card.active {
+            background: rgba(30, 41, 59, 1);
+            border-color: #3B82F6;
+        }
+
+        .session-card.active::before {
+            opacity: 1;
+        }
+
+        /* Session type badges */
+        .session-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .session-type-fto {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60A5FA;
+        }
+
+        .session-type-design {
+            background: rgba(139, 92, 246, 0.1);
+            color: #A78BFA;
+        }
+
+        .session-type-multimodal {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34D399;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 h-screen flex flex-col overflow-hidden">
+    
+    <!-- ✅ 공통 헤더 (다크 테마 적용) -->
+    <div id="app-header"></div>
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Enhanced Sidebar: History -->
+        <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col hidden lg:flex">
+            <!-- Header -->
+            <div class="p-6 border-b border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Recent Analysis</h3>
+                    <button onclick="refreshSessions()" class="text-slate-600 hover:text-slate-400 transition">
+                        <i class="fas fa-sync-alt text-xs"></i>
+                    </button>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <div class="text-2xl font-black text-white" id="totalAnalysisCount">0</div>
+                        <div class="text-[10px] text-slate-500 uppercase">Total</div>
+                    </div>
+                    <div class="bg-slate-800/50 rounded-lg p-3">
+                        <div class="text-2xl font-black text-blue-400" id="todayAnalysisCount">0</div>
+                        <div class="text-[10px] text-slate-500 uppercase">Today</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analysis List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2" id="chatSessions">
+                <!-- Session cards will be dynamically added -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="flex-1 flex items-center justify-center p-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-inbox text-2xl text-slate-600"></i>
+                    </div>
+                    <p class="text-slate-600 text-sm">분석 기록이 없습니다</p>
+                    <p class="text-slate-700 text-xs mt-1">새 분석을 시작해보세요</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="flex-1 flex flex-col bg-slate-950 relative">
+            <div class="flex-1 overflow-y-auto p-8" id="messagesContainer">
+                <!-- Enhanced Welcome Screen -->
+                <div class="max-w-3xl mx-auto space-y-8" id="messagesWrapper">
+                    <div class="welcome-screen text-center py-12">
+                        <!-- Animated Agent Icon -->
+                        <div class="relative mx-auto mb-8 w-32 h-32">
+                            <!-- Outer glow ring -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                            
+                            <!-- Main icon container -->
+                            <div class="relative w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/20 transform hover:scale-105 transition-all duration-300">
+                                <i class="fas fa-robot text-5xl text-white"></i>
+                            </div>
+                            
+                            <!-- Status indicator -->
+                            <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                                <i class="fas fa-check text-white text-sm"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h2 class="text-3xl font-black text-white mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            AI 분석 에이전트 대기 중
+                        </h2>
+                        
+                        <!-- Subtitle -->
+                        <p class="text-slate-400 text-base mb-8 max-w-md mx-auto leading-relaxed">
+                            제품의 기술 명세서나 이미지를 업로드하여<br/>
+                            특허 침해 리스크 분석을 시작하세요
+                        </p>
+                        
+                        <!-- Feature Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+                            <!-- Card 1: FTO -->
+                            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-blue-500/50 transition-all group">
+                                <div class="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 transition">
+                                    <i class="fas fa-file-alt text-2xl text-blue-500"></i>
+                                </div>
+                                <h3 class="text-white font-bold mb-2">특허 FTO</h3>
+                                <p class="text-slate-500 text-sm">텍스트 기반 청구항 분석</p>
+                            </div>
+                            
+                            <!-- Card 2: Design -->
+                            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-purple-500/50 transition-all group">
+                                <div class="w-12 h-12 bg-purple-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-600/20 transition">
+                                    <i class="fas fa-images text-2xl text-purple-500"></i>
+                                </div>
+                                <h3 class="text-white font-bold mb-2">디자인 분석</h3>
+                                <p class="text-slate-500 text-sm">이미지 유사도 검색</p>
+                            </div>
+                            
+                            <!-- Card 3: Multimodal -->
+                            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-green-500/50 transition-all group">
+                                <div class="w-12 h-12 bg-green-600/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-600/20 transition">
+                                    <i class="fas fa-layer-group text-2xl text-green-500"></i>
+                                </div>
+                                <h3 class="text-white font-bold mb-2">멀티모달</h3>
+                                <p class="text-slate-500 text-sm">텍스트 + 이미지 통합</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Start Guide -->
+                        <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-2xl p-6 max-w-2xl mx-auto">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-lightbulb text-blue-400"></i>
+                                    </div>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="text-white font-bold mb-2 flex items-center gap-2">
+                                        💡 시작 가이드
+                                    </h4>
+                                    <ul class="text-slate-400 text-sm space-y-2">
+                                        <li class="flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                            제품 설명 텍스트 입력 또는 이미지 업로드
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                                            AI가 자동으로 분석 유형 감지
+                                        </li>
+                                        <li class="flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                            실시간 워크플로우 진행 상황 확인
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sample Queries -->
+                        <div class="mt-8">
+                            <p class="text-slate-500 text-xs mb-3">빠른 시작 예시</p>
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <button onclick="fillSampleQuery('스마트 보온 머그컵')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                                    <i class="fas fa-coffee mr-2"></i>스마트 보온 머그컵
+                                </button>
+                                <button onclick="fillSampleQuery('무선 충전 패드')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                                    <i class="fas fa-bolt mr-2"></i>무선 충전 패드
+                                </button>
+                                <button onclick="fillSampleQuery('접이식 스마트폰')" class="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs transition">
+                                    <i class="fas fa-mobile-alt mr-2"></i>접이식 스마트폰
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-8 border-t border-slate-800 bg-slate-900/50">
+                <div class="max-w-3xl mx-auto">
+                    <div class="bg-slate-800 rounded-2xl p-2 flex items-end space-x-2 border border-slate-700 focus-within:border-blue-500 transition">
+                        <button id="attachBtn" class="p-3 text-slate-400 hover:text-white"><i class="fas fa-paperclip"></i></button>
+                        <textarea id="messageInput" class="flex-1 bg-transparent border-none focus:ring-0 text-white p-3 resize-none text-sm placeholder-slate-500" placeholder="제품의 핵심 구성 요소를 입력하세요..." rows="1"></textarea>
+                        <button id="sendBtn" class="bg-blue-600 text-white w-10 h-10 rounded-xl hover:bg-blue-500 transition flex items-center justify-center"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+                    <p class="text-[10px] text-slate-600 mt-3 text-center uppercase tracking-widest">Secure AI Analysis • Worldwide DB Connect</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script src="analysis-complete.js"></script>
+    
+    <script>
+        // Quick sample query fill
+        function fillSampleQuery(query) {
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.value = query;
+                input.focus();
+                // Trigger auto-resize if exists
+                if (typeof autoResizeTextarea === 'function') {
+                    autoResizeTextarea(input);
+                }
+            }
+        }
+        
+        // Enhanced session rendering
+        function renderSessionCard(session) {
+            const typeConfig = {
+                fto: { icon: 'fa-file-alt', label: 'FTO', class: 'session-type-fto' },
+                design: { icon: 'fa-images', label: 'Design', class: 'session-type-design' },
+                multimodal: { icon: 'fa-layer-group', label: 'Multi', class: 'session-type-multimodal' }
+            };
+            
+            const config = typeConfig[session.type] || typeConfig.fto;
+            const isActive = session.id === (typeof currentAnalysisId !== 'undefined' ? currentAnalysisId : '') ? 'active' : '';
+            
+            return `
+                <div class="session-card ${isActive}" onclick="loadAnalysisSession('${session.id}')" data-session-id="${session.id}">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="session-type-badge ${config.class}">
+                            <i class="fas ${config.icon}"></i>
+                            ${config.label}
+                        </span>
+                        <span class="text-[10px] text-slate-600">${session.date}</span>
+                    </div>
+                    
+                    <!-- Product Name -->
+                    <div class="text-white font-bold text-sm mb-1 truncate">
+                        ${session.productName || '제품명 없음'}
+                    </div>
+                    
+                    <!-- Risk Level -->
+                    <div class="flex items-center gap-2">
+                        <div class="flex-shrink-0 w-2 h-2 rounded-full ${getRiskColorClass(session.risk)}"></div>
+                        <span class="text-xs text-slate-400">${getRiskText(session.risk)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getRiskColorClass(risk) {
+            const colors = {
+                safe: 'bg-green-500',
+                warning: 'bg-yellow-500',
+                danger: 'bg-red-500'
+            };
+            return colors[risk] || 'bg-slate-500';
+        }
+
+        function getRiskText(risk) {
+            const texts = {
+                safe: '안전',
+                warning: '검토 필요',
+                danger: '위험'
+            };
+            return texts[risk] || '분석 중';
+        }
+
+        // Update session list
+        function updateSessionList(sessions) {
+            const container = document.getElementById('chatSessions');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (sessions.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'flex';
+            } else {
+                emptyState.style.display = 'none';
+                container.innerHTML = sessions.map(renderSessionCard).join('');
+            }
+            
+            // Update stats
+            document.getElementById('totalAnalysisCount').textContent = sessions.length;
+            const today = new Date().toDateString();
+            const todayCount = sessions.filter(s => new Date(s.timestamp).toDateString() === today).length;
+            document.getElementById('todayAnalysisCount').textContent = todayCount;
+        }
+
+        // Refresh sessions
+        function refreshSessions() {
+            Toast.info('분석 기록을 새로고침하는 중...');
+            // In production, call API to fetch sessions
+            setTimeout(() => {
+                loadMockSessions();
+                Toast.success('새로고침 완료!');
+            }, 500);
+        }
+
+        // Load mock sessions for demo
+        function loadMockSessions() {
+            const mockSessions = [
+                {
+                    id: 'session-001',
+                    type: 'fto',
+                    productName: '스마트 머그컵 FTO 분석',
+                    risk: 'safe',
+                    date: '오늘',
+                    timestamp: new Date()
+                },
+                {
+                    id: 'session-002',
+                    type: 'design',
+                    productName: '주전자 충전 패드 디자인',
+                    risk: 'warning',
+                    date: '어제',
+                    timestamp: new Date(Date.now() - 86400000)
+                },
+                {
+                    id: 'session-003',
+                    type: 'multimodal',
+                    productName: '세라믹 히터 멀티모달 분석',
+                    risk: 'safe',
+                    date: '2일 전',
+                    timestamp: new Date(Date.now() - 172800000)
+                }
+            ];
+            
+            updateSessionList(mockSessions);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMockSessions();
+        });
+    </script>
+</body>
+</html>
