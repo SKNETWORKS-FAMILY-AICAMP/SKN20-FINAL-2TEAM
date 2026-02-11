@@ -4,8 +4,8 @@ import os
 
 
 class Settings(BaseSettings):
-    # 데이터베이스 (기본값: SQLite for 테스트)
-    DATABASE_URL: str = "sqlite:///./bini_test.db"
+    # 데이터베이스 (MySQL)
+    DATABASE_URL: str = "mysql+pymysql://root:newpassword123@localhost:3306/bini"
 
     # JWT 설정
     SECRET_KEY: str = "your-secret-key-change-in-production"
