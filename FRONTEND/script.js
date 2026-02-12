@@ -99,6 +99,14 @@ function updateAuthUI() {
 
     if (!loginBtn) return;
 
+    // 만료된 토큰 자동 정리
+    if (authManager.token && !authManager.isTokenValid()) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        authManager.token = null;
+        authManager.user = null;
+    }
+
     if (authManager.isAuthenticated()) {
         loginBtn.textContent = "로그아웃";
         loginBtn.onclick = () => authManager.logout();

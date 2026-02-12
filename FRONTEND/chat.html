@@ -8,11 +8,18 @@
     <!-- Immediate Auth Check - Before any rendering -->
     <script>
         (function() {
-            const token = localStorage.getItem('auth_token');
-            const tokenExpiry = localStorage.getItem('token_expiry');
-            const isAuthenticated = token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry);
-            
-            if (!isAuthenticated) {
+            const token = localStorage.getItem('authToken');
+            if (!token) { window.location.replace('login.html'); return; }
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (Date.now() >= payload.exp * 1000) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('user');
+                    window.location.replace('login.html');
+                }
+            } catch {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
                 window.location.replace('login.html');
             }
         })();

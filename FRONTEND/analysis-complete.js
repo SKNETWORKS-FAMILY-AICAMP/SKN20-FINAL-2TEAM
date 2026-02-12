@@ -1,22 +1,29 @@
 // Analysis Complete JavaScript - All Features Implemented
 // Part 1: Initialization & Core Functions
-const DEV_MODE = true;
 
 // IMMEDIATE AUTH CHECK - Before any page rendering
 (function() {
     const protectedPages = ['analysis.html', 'chat.html', 'results.html'];
     const currentPage = window.location.pathname.split('/').pop();
-    
+
     if (protectedPages.includes(currentPage)) {
-        // Check if user is authenticated
-        const token = localStorage.getItem('auth_token');
-        const tokenExpiry = localStorage.getItem('token_expiry');
-        
-        const isAuthenticated = token && tokenExpiry && new Date().getTime() < parseInt(tokenExpiry);
-        
-        if (!DEV_MODE && (!token || Date.now() > tokenExpiry)) {
-    window.location.replace('login.html');
-}
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.replace('login.html');
+            return;
+        }
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (Date.now() >= payload.exp * 1000) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.replace('login.html');
+            }
+        } catch {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.replace('login.html');
+        }
     }
 })();
 
