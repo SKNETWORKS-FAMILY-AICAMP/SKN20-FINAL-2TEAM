@@ -1,8 +1,8 @@
 // Email Duplicate Check API Integration
 // auth.js에 추가하거나 교체
 
-// API endpoint (실제 백엔드 URL로 교체 필요)
-const API_BASE_URL = 'https://api.ftoguard.com'; // 예시 URL
+// API endpoint
+const API_BASE_URL = 'http://localhost:8000'; // 개발 서버
 
 // Email validation with debounce
 let emailCheckTimeout;

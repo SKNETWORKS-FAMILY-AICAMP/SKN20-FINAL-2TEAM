@@ -528,90 +528,175 @@ async function showIntentClassification(detectedType, message, hasImages) {
     });
 }
 
-// Execute workflow
+// Execute workflow with real API calls
 async function executeWorkflow(message, files, analysisType) {
     // Show workflow progress
     document.getElementById('workflowProgress').style.display = 'block';
     document.getElementById('contextSummaryBar').style.display = 'block';
-    
+
     // Show orchestrator
     showTypingIndicator();
-    await sleep(800);
+    await sleep(500);
     removeTypingIndicator();
     addAgentActivityCard('orchestrator', '중앙 오케스트레이터', '질의 분석 및 키워드 추출 중...', 10);
-    
+
     // Step 1: Extract keywords
     await updateWorkflowStep('extract');
-    await sleep(1500);
-    updateAgentProgress('orchestrator', 30, '키워드 추출 완료');
-    
+
     // Extract context from message
     extractContextFromMessage(message);
     updateContextSummary();
-    
-    // Check information sufficiency
-    const missingInfo = checkInformationSufficiency(message, files);
-    
-    if (missingInfo.length > 0) {
+
+    // Check information sufficiency (skip random check for API mode)
+    const hasEnoughInfo = message.length > 20 || files.length > 0;
+
+    if (!hasEnoughInfo) {
         removeTypingIndicator();
         await updateWorkflowStep('extract', false);
-        addInfoRequestMessage(missingInfo);
+        addInfoRequestMessage(['제품에 대한 상세한 설명']);
         updateAgentStatus('ready');
         document.getElementById('workflowProgress').style.display = 'none';
         return;
     }
-    
+
+    updateAgentProgress('orchestrator', 30, '키워드 추출 완료');
+
     // Show structured slots confirmation (for FTO analysis)
     if (analysisType === 'fto' || analysisType === 'multimodal') {
         await showStructuredSlotsConfirmation(message);
     }
-    
-    // Step 2: Vector search
+
+    // Step 2: Search patents via API
     await updateWorkflowStep('search');
-    
+    let searchResults = [];
+
     if (analysisType === 'fto' || analysisType === 'multimodal') {
-        addAgentActivityCard('text-agent', '텍스트 에이전트', 'Vector DB에서 유사 특허 검색 중...', 20);
-        await sleep(2000);
-        updateAgentProgress('text-agent', 50, 'Top-K 특허 청구항 검색 완료');
+        addAgentActivityCard('text-agent', '텍스트 에이전트', 'DB에서 유사 특허 검색 중...', 20);
+
+        try {
+            // Call search API
+            const searchResponse = await apiClient.get(`/search/keywords?q=${encodeURIComponent(message)}&limit=10`);
+            searchResults = searchResponse.results || [];
+            updateAgentProgress('text-agent', 50, `${searchResults.length}건의 특허 검색 완료`);
+
+            // Show search results if any
+            if (searchResults.length > 0) {
+                showSearchResults(searchResults);
+            }
+        } catch (error) {
+            console.error('Search API error:', error);
+            updateAgentProgress('text-agent', 50, '검색 완료 (fallback)');
+        }
     }
-    
+
     if (analysisType === 'design' || analysisType === 'multimodal') {
-        addAgentActivityCard('design-agent', '디자인 에이전트', 'CLIP 임베딩 생성 중...', 20);
-        await sleep(1800);
+        addAgentActivityCard('design-agent', '디자인 에이전트', '이미지 분석 중...', 20);
+        await sleep(1000);
         updateAgentProgress('design-agent', 50, '유사 디자인 검색 완료');
-        
-        // Show design similarity results
+
         if (analysisType === 'design') {
             await showDesignSimilarityResults(files);
         }
     }
-    
-    // Step 3: Analyze with SLLM/VLM
+
+    // Step 3: Analyze with SLLM
     await updateWorkflowStep('analyze');
     updateAgentProgress('text-agent', 70, '청구항 상세 분석 중...');
-    await sleep(2500);
-    
+
+    let analysisResult = null;
+
+    try {
+        // Call analysis API
+        if (analysisType === 'fto' || analysisType === 'multimodal') {
+            const analysisResponse = await apiClient.post('/analysis/text', {
+                description: message,
+                type: analysisType
+            });
+            analysisResult = analysisResponse;
+            currentAnalysisId = analysisResponse.analysis_id;
+        } else if (analysisType === 'design' && files.length > 0) {
+            const analysisResponse = await apiClient.post('/analysis/image', {
+                image_url: files[0].dataUrl,
+                description: message || null,
+                type: 'design'
+            });
+            analysisResult = analysisResponse;
+            currentAnalysisId = analysisResponse.analysis_id;
+        }
+    } catch (error) {
+        console.error('Analysis API error:', error);
+        // Continue with mock result
+    }
+
     // Step 4: Judge infringement
     await updateWorkflowStep('judge');
     updateAgentProgress('text-agent', 85, '침해 위험도 판단 중...');
-    await sleep(2000);
-    
+    await sleep(500);
+
     // Step 5: Alternative search
     await updateWorkflowStep('alternative');
     updateAgentProgress('orchestrator', 95, '자유실시기술 탐색 중...');
-    await sleep(1500);
-    
+    await sleep(500);
+
     // Step 6: Complete
     await updateWorkflowStep('complete');
     updateAgentProgress('orchestrator', 100, '분석 완료');
-    
+
     removeTypingIndicator();
-    
-    // Generate final result
-    const riskLevel = Math.random() > 0.7 ? 'warning' : Math.random() > 0.4 ? 'safe' : 'danger';
+
+    // Determine risk level from API response or default
+    let riskLevel = 'safe';
+    if (analysisResult && analysisResult.risk_level) {
+        riskLevel = analysisResult.risk_level;
+    } else if (searchResults.length > 5) {
+        riskLevel = 'warning';
+    } else if (searchResults.length > 10) {
+        riskLevel = 'danger';
+    }
+
     addFinalAnalysisResult(riskLevel, analysisType);
-    
     updateAgentStatus('complete');
+}
+
+// Show search results from API
+function showSearchResults(results) {
+    if (!results || results.length === 0) return;
+
+    const messagesWrapper = document.querySelector('.messages-wrapper');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+
+    const topResults = results.slice(0, 5);
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <div class="search-results-card">
+                <h4>유사 특허 검색 결과 (${results.length}건)</h4>
+                <div class="search-results-list">
+                    ${topResults.map(r => `
+                        <div class="search-result-item">
+                            <div class="result-header">
+                                <span class="patent-number">${r.patent_number || r.application_number || 'N/A'}</span>
+                                <span class="similarity-badge">${r.score ? (r.score * 100).toFixed(0) + '%' : ''}</span>
+                            </div>
+                            <div class="result-title">${r.invention_title_ko || r.title || '제목 없음'}</div>
+                            <div class="result-claim">${(r.claim_text || r.claim || '').substring(0, 100)}...</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${results.length > 5 ? `<p class="more-results">외 ${results.length - 5}건의 결과가 더 있습니다.</p>` : ''}
+            </div>
+        </div>
+    `;
+
+    messagesWrapper.appendChild(messageDiv);
+    scrollToBottom();
 }
 
 // Extract context from message

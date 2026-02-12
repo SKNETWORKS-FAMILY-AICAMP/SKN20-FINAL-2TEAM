@@ -9,11 +9,13 @@ from app.models.analysis import (
 )
 from app.models.patent import (
     DesignPatent,
-    DesignEmbedding,
     Patent,
     Claim,
-    ClaimEmbedding
+    PatentIPC,
+    ClaimElement
 )
+# TODO: 디자인/RAG 팀 연동 후 활성화
+# from app.models.patent import DesignEmbedding, ClaimEmbedding
 
 __all__ = [
     "User",
@@ -25,8 +27,8 @@ __all__ = [
     "ImageMatch",
     "ClaimMatch",
     "DesignPatent",
-    "DesignEmbedding",
     "Patent",
     "Claim",
-    "ClaimEmbedding",
+    "PatentIPC",
+    "ClaimElement",
 ]

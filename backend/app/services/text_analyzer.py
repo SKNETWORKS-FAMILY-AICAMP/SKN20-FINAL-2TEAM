@@ -3,7 +3,9 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 
 from app.models.analysis import Analysis, AnalysisKeyword, ClaimMatch, InputTypeEnum, RiskLevelEnum, MatchResultEnum
-from app.models.patent import Claim, ClaimEmbedding, Patent
+from app.models.patent import Claim, Patent
+# TODO: RAG 팀 연동 후 활성화
+# from app.models.patent import ClaimEmbedding
 from app.config import settings
 
 

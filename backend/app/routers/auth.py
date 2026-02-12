@@ -72,3 +72,51 @@ async def get_current_user_info(
 ):
     """현재 로그인한 사용자 정보"""
     return current_user
+
+
+@router.post("/check-email")
+async def check_email(data: dict, db: Session = Depends(get_db)):
+    """이메일 중복 확인"""
+    email = data.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이메일을 입력해주세요."
+        )
+
+    service = AuthService(db)
+    existing_user = service.get_user_by_email(email)
+
+    if existing_user:
+        return {
+            "available": False,
+            "reason": "already_exists",
+            "message": "이미 사용 중인 이메일입니다."
+        }
+
+    return {
+        "available": True,
+        "reason": None,
+        "message": "사용 가능한 이메일입니다."
+    }
+
+
+@router.post("/reset-password")
+async def reset_password(data: dict, db: Session = Depends(get_db)):
+    """비밀번호 재설정 요청"""
+    email = data.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이메일을 입력해주세요."
+        )
+
+    service = AuthService(db)
+    user = service.get_user_by_email(email)
+
+    # 보안상 사용자 존재 여부와 관계없이 동일한 응답 반환
+    # TODO: 실제 이메일 발송 로직 구현
+    return {
+        "success": True,
+        "message": "비밀번호 재설정 이메일이 발송되었습니다."
+    }

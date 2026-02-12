@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Integer, Boolean, DateTime, ForeignKey, Enum, JSON
+from sqlalchemy import Column, Integer, BigInteger, String, Text, Float, Boolean, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -74,7 +74,7 @@ class ImageMatch(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False)
-    design_patent_id = Column(Integer, ForeignKey("design_patents.id"), nullable=False)
+    design_patent_id = Column(BigInteger, ForeignKey("design_patents.id"), nullable=True)  # 디자인 연동 전까지 nullable
     rag_score = Column(Float)
     model_score = Column(Float)
     is_similar = Column(Boolean)
@@ -82,7 +82,8 @@ class ImageMatch(Base):
 
     # 관계
     analysis = relationship("Analysis", back_populates="image_matches")
-    design_patent = relationship("DesignPatent")
+    # TODO: 디자인 팀 연동 후 활성화
+    # design_patent = relationship("DesignPatent")
 
 
 class ClaimMatch(Base):
@@ -90,7 +91,7 @@ class ClaimMatch(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False)
-    claim_id = Column(Integer, ForeignKey("claims.id"), nullable=False)
+    claim_id = Column(BigInteger, ForeignKey("claims.id"), nullable=True)  # RAG 연동 전까지 nullable
     rag_score = Column(Float)
     rerank_score = Column(Float)
     match_result = Column(Enum(MatchResultEnum))

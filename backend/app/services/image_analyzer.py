@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from fastapi import UploadFile
 
 from app.models.analysis import Analysis, AnalysisImage, ImageMatch, InputTypeEnum, RiskLevelEnum
-from app.models.patent import DesignPatent, DesignEmbedding
+from app.models.patent import DesignPatent
+# TODO: 디자인 팀 연동 후 활성화
+# from app.models.patent import DesignEmbedding
 from app.config import settings
 
 
