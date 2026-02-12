@@ -12,8 +12,101 @@
 
     <!-- 기존 CSS -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
 
     <title>작동 원리 - FTOGuard</title>
+    
+    <style>
+        /* 파이프라인 플로우 스타일 */
+        .pipeline-flow {
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .pipeline-step {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .pipeline-step:nth-child(1) { animation-delay: 0.1s; }
+        .pipeline-step:nth-child(2) { animation-delay: 0.2s; }
+        .pipeline-step:nth-child(3) { animation-delay: 0.3s; }
+        .pipeline-step:nth-child(4) { animation-delay: 0.4s; }
+        .pipeline-step:nth-child(5) { animation-delay: 0.5s; }
+        .pipeline-step:nth-child(6) { animation-delay: 0.6s; }
+        .pipeline-step:nth-child(7) { animation-delay: 0.7s; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .step-connector {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, #3B82F6 0%, #8B5CF6 100%);
+            opacity: 0.2;
+            z-index: -1;
+        }
+        
+        .legal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+        
+        /* 비교 테이블 스타일 */
+        .comparison-table {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comparison-table th {
+            background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+            color: white;
+            padding: 1.5rem 1rem;
+            font-weight: 700;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900">
@@ -26,60 +119,691 @@
 
     <!-- Page Hero -->
     <header class="text-center mb-20">
-        <h1 class="text-4xl lg:text-[48px] font-extrabold leading-tight mb-6">
-            AI 파이프라인 프로세스
+        <div class="mb-6">
+            <span class="legal-badge">
+                <i class="fas fa-balance-scale"></i>
+                법리 기반 판단 시스템
+            </span>
+        </div>
+        <h1 class="text-4xl lg:text-[56px] font-extrabold leading-tight mb-6">
+            7단계 FTO 판단 파이프라인
         </h1>
-        <p class="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            FTOGuard가 전 세계 특허·디자인 데이터를 분석해
-            침해 리스크를 판단하는 과정을 단계별로 설명합니다.
+        <p class="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+            FTOGuard는 단순 유사도 검색이 아닌, <strong>특허 침해 판단의 법리</strong>를 
+            AI가 구조적으로 해석할 수 있도록 설계된 전문 시스템입니다.
         </p>
+        <div class="mt-6 flex flex-wrap justify-center gap-2">
+            <span class="tech-badge"><i class="fas fa-gavel mr-1"></i>All Elements Rule</span>
+            <span class="tech-badge"><i class="fas fa-balance-scale-right mr-1"></i>균등론</span>
+            <span class="tech-badge"><i class="fas fa-dna mr-1"></i>내재성</span>
+            <span class="tech-badge"><i class="fas fa-cogs mr-1"></i>제조방법 특허</span>
+        </div>
     </header>
 
-    <!-- Steps -->
-    <section class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <!-- ============ 7단계 파이프라인 ============ -->
+    <section class="mb-32 relative">
+        <div class="step-connector"></div>
+        
+        <div class="space-y-12">
+            
+            <!-- Step 1: Query Parsing -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-blue-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    01
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">Query Parsing & 구조화</h3>
+                                    <p class="text-blue-100 text-sm">사용자 입력을 법리 구조로 분해</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-magic text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                                    <i class="fas fa-cube text-blue-600"></i>
+                                    구성요소 추출
+                                </h4>
+                                <p class="text-sm text-slate-600 leading-relaxed mb-3">
+                                    제품 설명에서 핵심 구성요소를 계층 구조로 추출합니다.
+                                </p>
+                                <div class="bg-slate-50 p-4 rounded-xl text-xs font-mono">
+                                    <div class="text-slate-500 mb-1">입력: "스마트 보온 머그컵"</div>
+                                    <div class="text-blue-600">→ ["세라믹 본체", "내장 가열 소자", "온도 센서", "배터리"]</div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                                    <i class="fas fa-brain text-purple-600"></i>
+                                    AI 모델
+                                </h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                        GPT-4o (Few-shot Prompting)
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                        법리 기반 프롬프트 엔지니어링
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        자연어 → 구조화 데이터 변환
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl">
+                            <p class="text-sm text-blue-900">
+                                <strong>💡 핵심:</strong> 단순 키워드가 아닌 <strong>법리적 구성요소</strong>로 변환
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">01</div>
-            <h3 class="text-lg font-extrabold text-slate-900 mb-3">데이터 처리</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-                제품 설명과 도면을 고차원 시맨틱 임베딩으로 벡터화하여 분석을 위한 입력 데이터를 구성합니다.
-            </p>
-        </article>
+            <!-- Step 2: RDB 필터링 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-indigo-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    02
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">RDB 1차 필터링</h3>
+                                    <p class="text-indigo-100 text-sm">메타데이터 기반 후보군 추출</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-database text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">필터링 기준</h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                        <span><strong>IPC 분류:</strong> 국제특허분류 기반 필터</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                        <span><strong>성분/구성요소:</strong> PostgreSQL 배열 검색</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                        <span><strong>유효 기간:</strong> 등록일 기준 필터링</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">SQL 예시</h4>
+                                <div class="bg-slate-900 p-4 rounded-xl text-xs font-mono text-green-400 overflow-x-auto">
+                                    <pre>SELECT patent_id 
+FROM patents 
+WHERE ipc_code LIKE '%A61K%' 
+  AND components @> ARRAY['세라믹','온도센서']
+  AND status = '등록'
+LIMIT 1000;</pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-xl">
+                            <p class="text-sm text-indigo-900">
+                                <strong>⚡ 효과:</strong> 420만 건 → 약 1,000건으로 후보군 축소
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">02</div>
-            <h3 class="text-lg font-extrabold text-slate-900 mb-3">벡터 검색</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-                수백만 건의 특허 청구항·디자인 중 의미적으로 유사한 후보를 Vector DB에서 탐색합니다.
-            </p>
-        </article>
+            <!-- Step 3: Vector DB 검색 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-purple-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    03
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">Vector DB 유사도 검색</h3>
+                                    <p class="text-purple-100 text-sm">SBERT + CLIP 하이브리드 검색</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-project-diagram text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">텍스트 검색 (SBERT)</h4>
+                                <p class="text-sm text-slate-600 mb-3">
+                                    특허 청구항 텍스트를 384차원 벡터로 임베딩
+                                </p>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>모델</span>
+                                        <span class="font-mono text-blue-600">all-MiniLM-L6-v2</span>
+                                    </div>
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>차원</span>
+                                        <span class="font-mono text-blue-600">384-dim</span>
+                                    </div>
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>유사도</span>
+                                        <span class="font-mono text-blue-600">Cosine Similarity</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">이미지 검색 (CLIP)</h4>
+                                <p class="text-sm text-slate-600 mb-3">
+                                    디자인 공보 이미지를 512차원 벡터로 임베딩
+                                </p>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>모델</span>
+                                        <span class="font-mono text-purple-600">CLIP ViT-B/32</span>
+                                    </div>
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>차원</span>
+                                        <span class="font-mono text-purple-600">512-dim</span>
+                                    </div>
+                                    <div class="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                        <span>용도</span>
+                                        <span class="font-mono text-purple-600">디자인 유사도 (참고용)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 border-l-4 border-purple-600 p-4 rounded-r-xl">
+                            <p class="text-sm text-purple-900">
+                                <strong>🎯 결과:</strong> Top-100 유사 특허 추출 (Cosine Similarity > 0.7)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">03</div>
-            <h3 class="text-lg font-extrabold text-slate-900 mb-3">정밀 재정렬</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-                Cross-Encoder 기반 재정렬로 기술적 범위가 실제로 겹치는 후보를 선별합니다.
-            </p>
-        </article>
+            <!-- Step 4: 교집합 도출 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-pink-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-pink-600 to-pink-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    04
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">교집합 도출</h3>
+                                    <p class="text-pink-100 text-sm">정밀 후보군 추출</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-intersection text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="text-center mb-6">
+                            <div class="inline-flex items-center gap-4 flex-wrap justify-center">
+                                <div class="px-6 py-3 bg-indigo-100 text-indigo-900 rounded-xl font-bold">
+                                    RDB 필터 결과<br/>
+                                    <span class="text-2xl">~1,000건</span>
+                                </div>
+                                <i class="fas fa-times text-3xl text-pink-600"></i>
+                                <div class="px-6 py-3 bg-purple-100 text-purple-900 rounded-xl font-bold">
+                                    Vector DB 결과<br/>
+                                    <span class="text-2xl">Top-100</span>
+                                </div>
+                                <i class="fas fa-arrow-right text-3xl text-green-600"></i>
+                                <div class="px-6 py-3 bg-green-100 text-green-900 rounded-xl font-bold">
+                                    최종 후보<br/>
+                                    <span class="text-2xl">~50건</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-pink-50 border-l-4 border-pink-600 p-4 rounded-r-xl">
+                            <p class="text-sm text-pink-900">
+                                <strong>🔬 정밀도:</strong> 메타데이터 정확도 + 의미적 유사도 = 고품질 후보군
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <article class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 text-lg font-extrabold">04</div>
-            <h3 class="text-lg font-extrabold text-slate-900 mb-3">LLM 심층 판단</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">
-                도메인 특화 LLM이 제품 기능과 청구항 구성을 1:1로 비교하여 최종 침해 리스크를 판정합니다.
-            </p>
-        </article>
+            <!-- Step 5: 독립항 구성요소 분해 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-orange-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-orange-600 to-orange-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    05
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">독립항 구성요소 분해</h3>
+                                    <p class="text-orange-100 text-sm">청구항을 법리 구조로 파싱</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-layer-group text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">청구항 파싱</h4>
+                                <div class="bg-slate-50 p-4 rounded-xl text-sm">
+                                    <div class="text-slate-600 mb-2">청구항 1:</div>
+                                    <div class="text-slate-900 font-mono text-xs leading-relaxed">
+                                        "세라믹 재질의 본체;<br/>
+                                        상기 본체 내부에 배치된 가열 소자;<br/>
+                                        온도를 감지하는 센서;<br/>
+                                        전원을 공급하는 배터리를 포함하는<br/>
+                                        스마트 보온 용기"
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">구성요소 추출 결과</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
+                                        <i class="fas fa-cube text-blue-600"></i>
+                                        <span class="text-sm font-medium">세라믹 본체</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
+                                        <i class="fas fa-cube text-blue-600"></i>
+                                        <span class="text-sm font-medium">내부 가열 소자</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
+                                        <i class="fas fa-cube text-blue-600"></i>
+                                        <span class="text-sm font-medium">온도 센서</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
+                                        <i class="fas fa-cube text-blue-600"></i>
+                                        <span class="text-sm font-medium">배터리</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 border-l-4 border-orange-600 p-4 rounded-r-xl">
+                            <p class="text-sm text-orange-900">
+                                <strong>⚖️ 법리 적용:</strong> 독립항만 추출 (종속항은 해석 보조용)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Step 6: 법리 기반 판단 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-red-100 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-600 to-red-500 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    06
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">법리 기반 침해 판단</h3>
+                                    <p class="text-red-100 text-sm">4가지 법리 로직 적용</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-gavel text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- All Elements Rule -->
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fas fa-check-double"></i>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900">All Elements Rule</h4>
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed">
+                                    제품의 <strong>모든 구성요소</strong>가 특허 청구항에 대응되는지 확인
+                                </p>
+                                <div class="mt-3 text-xs text-blue-900 bg-blue-100 p-3 rounded-lg">
+                                    ✓ 모든 구성요소 충족 → 🔴 침해
+                                </div>
+                            </div>
+
+                            <!-- 균등론 -->
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fas fa-balance-scale-right"></i>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900">균등론</h4>
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed">
+                                    대체요소가 <strong>기능·작용·효과</strong>가 동일한지 판단
+                                </p>
+                                <div class="mt-3 text-xs text-purple-900 bg-purple-100 p-3 rounded-lg">
+                                    ✓ 균등물 사용 → 🟠 전문가 검토
+                                </div>
+                            </div>
+
+                            <!-- 내재성 -->
+                            <div class="bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-2xl border border-green-200">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fas fa-dna"></i>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900">내재성</h4>
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed">
+                                    명시되지 않은 성분이 <strong>내재적으로</strong> 포함되는지 판단
+                                </p>
+                                <div class="mt-3 text-xs text-green-900 bg-green-100 p-3 rounded-lg">
+                                    ✓ 동일 원료+추출법 → 🟠 전문가 검토
+                                </div>
+                            </div>
+
+                            <!-- 제조방법 특허 -->
+                            <div class="bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-2xl border border-orange-200">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900">제조방법 특허</h4>
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed">
+                                    성분 동일해도 <strong>제조방법</strong> 불명확 시 별도 판단
+                                </p>
+                                <div class="mt-3 text-xs text-orange-900 bg-orange-100 p-3 rounded-lg">
+                                    ✓ 정보 부족 → 🟡 애매
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: 신호등 분류 -->
+            <div class="pipeline-step">
+                <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-8 py-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-white text-2xl font-black">
+                                    07
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white">신호등 시스템 분류</h3>
+                                    <p class="text-slate-300 text-sm">4가지 판정 결과</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-traffic-light text-4xl text-white/30"></i>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <!-- 침해 -->
+                            <div class="border-2 border-red-500 rounded-2xl p-6 bg-red-50">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl">
+                                        🔴
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-red-900 text-lg">침해</h4>
+                                        <p class="text-xs text-red-700">All Elements Rule 충족</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-red-800">
+                                    모든 구성요소가 특허 청구항에 대응
+                                </p>
+                            </div>
+
+                            <!-- 비침해 -->
+                            <div class="border-2 border-green-500 rounded-2xl p-6 bg-green-50">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl">
+                                        🟢
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-green-900 text-lg">비침해</h4>
+                                        <p class="text-xs text-green-700">핵심 구성요소 결여</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-green-800">
+                                    필수 구성요소가 특허와 다름
+                                </p>
+                            </div>
+
+                            <!-- 애매 -->
+                            <div class="border-2 border-yellow-500 rounded-2xl p-6 bg-yellow-50">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-white text-2xl">
+                                        🟡
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-yellow-900 text-lg">애매</h4>
+                                        <p class="text-xs text-yellow-700">정보 부족</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-yellow-800">
+                                    제조방법 등 핵심 정보 불명확
+                                </p>
+                            </div>
+
+                            <!-- 전문가 검토 -->
+                            <div class="border-2 border-orange-500 rounded-2xl p-6 bg-orange-50">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl">
+                                        🟠
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-orange-900 text-lg">전문가 검토</h4>
+                                        <p class="text-xs text-orange-700">균등론·내재성 판단</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-orange-800">
+                                    법리적 해석이 필요한 경계 사례
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </section>
+
+    <!-- ============ 이미지 vs 텍스트 역할 분리 ============ -->
+    <section class="mb-32">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black text-slate-900 mb-4">
+                이미지 vs 텍스트 분석 역할 분리
+            </h2>
+            <p class="text-slate-600 max-w-2xl mx-auto">
+                평가위원 피드백을 반영하여, 이미지와 텍스트 분석의 역할을 명확히 구분합니다.
+            </p>
+        </div>
+
+        <div class="comparison-table">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th>분석 대상</th>
+                        <th>사용 모델</th>
+                        <th>목적</th>
+                        <th>FTO 판단 역할</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-image text-2xl text-purple-600"></i>
+                                <span class="font-bold">디자인 공보</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-mono text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded">
+                                CLIP (ViT-B/32)
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-sm text-slate-600">외관 유사도 검색</span>
+                        </td>
+                        <td>
+                            <span class="text-sm font-bold text-slate-500">참고용 (판단 근거 아님)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-file-alt text-2xl text-blue-600"></i>
+                                <span class="font-bold">특허 청구항</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-mono text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded">
+                                SBERT + GPT-4o
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-sm text-slate-600">법리 기반 FTO 판단</span>
+                        </td>
+                        <td>
+                            <span class="text-sm font-bold text-blue-600">최종 판단 근거 ✓</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-2xl">
+            <div class="flex items-start gap-4">
+                <i class="fas fa-exclamation-triangle text-2xl text-yellow-600 mt-1"></i>
+                <div>
+                    <h4 class="font-bold text-yellow-900 mb-2">중요 안내</h4>
+                    <p class="text-sm text-yellow-800 leading-relaxed">
+                        <strong>이미지 검색 결과만으로는 FTO 판단의 근거가 충분하지 않습니다.</strong><br/>
+                        특허 도면은 유사한 형태를 가질 수 있으나, 청구항의 기술적 범위나 핵심 구성요소는 
+                        <strong>텍스트에 의해 결정</strong>되는 경우가 많습니다. 따라서 최종 FTO 판단은 
+                        <strong>청구항 텍스트 기반 법리 분석</strong>으로 수행됩니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 데이터 보안 ============ -->
+    <section class="mb-32">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black text-slate-900 mb-4">
+                🔐 데이터 보안 및 프라이버시
+            </h2>
+            <p class="text-slate-600 max-w-2xl mx-auto">
+                민감한 제품 정보를 다루는 만큼, 철저한 보안 체계를 갖추고 있습니다.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Small LLM -->
+            <div class="bg-white p-8 rounded-2xl border-2 border-green-100 shadow-lg">
+                <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-6">
+                    <i class="fas fa-shield-alt text-2xl text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-3">Small LLM 사용</h3>
+                <ul class="text-sm text-slate-600 space-y-2">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-green-600 mt-1"></i>
+                        <span>DistilBERT Fine-tuned</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-green-600 mt-1"></i>
+                        <span>온프레미스 배포 가능</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-green-600 mt-1"></i>
+                        <span>외부 API 의존도 최소화</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 데이터 보호 -->
+            <div class="bg-white p-8 rounded-2xl border-2 border-blue-100 shadow-lg">
+                <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
+                    <i class="fas fa-lock text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-3">데이터 보호 정책</h3>
+                <ul class="text-sm text-slate-600 space-y-2">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-600 mt-1"></i>
+                        <span>세션 종료 시 즉시 삭제</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-600 mt-1"></i>
+                        <span>검색 이력 암호화 저장</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-600 mt-1"></i>
+                        <span>GPT-4o ZDR 모드 사용</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 기업용 배포 -->
+            <div class="bg-white p-8 rounded-2xl border-2 border-purple-100 shadow-lg">
+                <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-6">
+                    <i class="fas fa-server text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-3">기업용 배포</h3>
+                <ul class="text-sm text-slate-600 space-y-2">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-purple-600 mt-1"></i>
+                        <span>완전 오프라인 모드</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-purple-600 mt-1"></i>
+                        <span>내부 DB 연동 지원</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check text-purple-600 mt-1"></i>
+                        <span>데이터 외부 유출 없음</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12">
+        <h2 class="text-3xl font-black text-white mb-4">
+            FTO 분석을 직접 체험해보세요
+        </h2>
+        <p class="text-blue-100 mb-8 max-w-2xl mx-auto">
+            420만 건의 특허 데이터와 법리 기반 판단 시스템으로<br/>
+            제품 출시 전 특허 리스크를 정확하게 분석합니다.
+        </p>
+        <a href="analysis.html" class="inline-block px-8 py-4 bg-white text-blue-600 rounded-2xl font-bold hover:shadow-2xl transition-all transform hover:-translate-y-1">
+            무료로 시작하기 →
+        </a>
+    </section>
+
 </main>
 
 <!-- Footer -->
 <footer class="py-12 bg-white border-t border-slate-100">
     <div class="max-w-7xl mx-auto px-6 text-center">
         <p class="text-slate-400 text-sm">© 2026 FTOGuard. All rights reserved.</p>
+        <p class="text-slate-400 text-xs mt-2">법리 기반 특허·디자인 침해 리스크 판단 AI 시스템</p>
     </div>
 </footer>
 
+<script src="toast.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
