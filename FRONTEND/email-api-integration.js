@@ -1,8 +1,8 @@
 // Email Duplicate Check API Integration
 // auth.js에 추가하거나 교체
 
-// API endpoint
-const API_BASE_URL = 'http://localhost:8000'; // 개발 서버
+// API endpoint (Docker: 빈 문자열로 상대경로 사용, nginx가 프록시)
+const API_BASE_URL = ''; // Docker/로컬 모두 호환
 
 // Email validation with debounce
 let emailCheckTimeout;

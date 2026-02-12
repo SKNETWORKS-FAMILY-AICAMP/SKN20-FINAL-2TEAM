@@ -132,7 +132,8 @@ function requireAuth() {
 // API Helper
 // ==========================
 class APIClient {
-    constructor(baseURL = "http://localhost:8000/api") {
+    // Docker: /api (nginx 프록시), 로컬: http://localhost:8000/api
+    constructor(baseURL = "/api") {
         this.baseURL = baseURL;
     }
 

@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # MySQL 데이터베이스
   mysql:
     image: mysql:8.0
     container_name: bini-db
@@ -10,10 +11,43 @@ services:
       MYSQL_USER: bini
       MYSQL_PASSWORD: bini1234
     ports:
-      - "3306:3306"
+      - "3307:3306"  # 로컬 MySQL과 충돌 방지
     volumes:
       - mysql_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI 백엔드
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bini-backend
+    environment:
+      DATABASE_URL: mysql+pymysql://bini:bini1234@mysql:3306/bini
+      SECRET_KEY: your-secret-key-change-in-production
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 프론트엔드 (Nginx)
+  frontend:
+    build:
+      context: ./FRONTEND
+      dockerfile: Dockerfile
+    container_name: bini-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:
