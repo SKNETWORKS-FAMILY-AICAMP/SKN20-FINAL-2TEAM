@@ -1,34 +1,172 @@
-<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-  <div class="max-w-7xl mx-auto px-8 min-h-[76px] flex items-center justify-between">
-
+<nav class="fixed top-0 left-0 right-0 z-50 px-4 pt-3">
+  <div class="max-w-[1400px] mx-auto px-8 h-14 flex items-center bg-white/60 backdrop-blur-xl backdrop-saturate-150 rounded-full border border-white/20 shadow-lg shadow-black/5">
+    
     <!-- Logo -->
-    <a href="index.html" class="flex items-center space-x-3">
-      <div class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-        <i class="fas fa-microchip text-white text-xl"></i>
-      </div>
-      <span class="text-[22px] font-extrabold tracking-tight">
-        FTO<span class="text-blue-600">GUARD</span>
-      </span>
-    </a>
-
-    <!-- Nav -->
-    <div class="hidden lg:flex space-x-10 text-sm font-semibold text-slate-600">
-      <a href="index.html" data-nav="index.html" class="hover:text-blue-600 transition">홈</a>
-      <a href="how-it-works.html" data-nav="how-it-works.html" class="hover:text-blue-600 transition">작동 원리</a>
-      <a href="analysis.html" data-nav="analysis.html" class="hover:text-blue-600 transition">리스크 분석</a>
-      <a href="about.html" data-nav="about.html" class="hover:text-blue-600 transition">소개</a>
+    <div class="flex-1">
+      <a class="flex items-center gap-2" href="index.html">
+        <!-- SVG 로고 아이콘 -->
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FF8C5A;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path d="M24 8L12 13V25C12 33 17.5 40 24 44C30.5 40 36 33 36 25V13L24 8Z" fill="url(#shieldGradient)"/>
+          <path d="M19 26L22 29L29 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <!-- 텍스트 로고 -->
+        <span class="text-base font-bold tracking-tight">
+          <span class="text-black">FTO</span><span class="text-primary">Guard</span>
+        </span>
+      </a>
     </div>
 
-    <!-- Actions -->
-    <div class="flex items-center space-x-4">
+    <!-- Nav Links (Desktop) -->
+    <nav class="hidden md:flex items-center gap-8">
+      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group" 
+         href="index.html" 
+         data-nav="index.html">
+        홈
+        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+      </a>
+      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group" 
+         href="how-it-works.html" 
+         data-nav="how-it-works.html">
+        작동 원리
+        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+      </a>
+      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group" 
+         href="analysis.html" 
+         data-nav="analysis.html">
+        리스크 분석
+        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+      </a>
+      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group" 
+         href="about.html" 
+         data-nav="about.html">
+        소개
+        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+      </a>
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="flex-1 hidden md:flex justify-end items-center gap-3">
       <button id="loginBtn"
-        class="px-5 py-2.5 text-sm font-bold text-slate-700 hover:text-blue-600 transition">
+        class="text-sm font-medium text-neutral-600 hover:text-black transition-colors px-4 py-2">
         로그인
       </button>
       <button onclick="checkAuthAndRedirect('analysis.html')"
-        class="px-6 py-2.5 text-sm font-bold text-white bg-slate-900 hover:bg-blue-600 rounded-full shadow-xl transition-all">
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-full transition-all shadow-md hover:shadow-lg">
         분석 시작
       </button>
     </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 md:hidden" 
+            type="button" 
+            id="mobile-menu-button"
+            aria-haspopup="dialog" 
+            aria-expanded="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+        <line x1="4" x2="20" y1="12" y2="12"></line>
+        <line x1="4" x2="20" y1="6" y2="6"></line>
+        <line x1="4" x2="20" y1="18" y2="18"></line>
+      </svg>
+    </button>
+
   </div>
 </nav>
+
+<!-- Mobile Menu (Hidden by default) -->
+<div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onclick="closeMobileMenu()">
+  <div class="absolute top-20 right-4 left-4 bg-white rounded-2xl shadow-2xl border border-neutral-200 p-6" onclick="event.stopPropagation()">
+    <nav class="flex flex-col gap-4">
+      <a class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2" 
+         href="index.html">
+        홈
+      </a>
+      <a class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2" 
+         href="how-it-works.html">
+        작동 원리
+      </a>
+      <a class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2" 
+         href="analysis.html">
+        리스크 분석
+      </a>
+      <a class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2" 
+         href="about.html">
+        소개
+      </a>
+      <div class="border-t border-neutral-200 my-2"></div>
+      <button id="loginBtn-mobile"
+        class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2 text-left">
+        로그인
+      </button>
+      <button onclick="checkAuthAndRedirect('analysis.html')"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-full transition-all shadow-md">
+        분석 시작
+      </button>
+    </nav>
+  </div>
+</div>
+
+<style>
+  /* Pretendard 폰트 (비즈벨과 동일) */
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+  
+  * {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  :root {
+    --primary: #FF6B35;
+  }
+  
+  .text-primary { color: var(--primary); }
+  .bg-primary { background-color: var(--primary); }
+  .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+  .bg-primary\/10 { background-color: rgba(255, 107, 53, 0.1); }
+  
+  /* Active nav link */
+  nav a[data-nav].active {
+    color: #000;
+    font-weight: 600;
+  }
+  
+  nav a[data-nav].active .group-hover\:w-full {
+    width: 100%;
+  }
+</style>
+
+<script>
+  // Mobile Menu Toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (mobileMenuButton) {
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+  
+  function closeMobileMenu() {
+    if (mobileMenu) {
+      mobileMenu.classList.add('hidden');
+    }
+  }
+  
+  // Active link highlight
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('a[data-nav]');
+    
+    navLinks.forEach(link => {
+      if (link.getAttribute('data-nav') === currentPage) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>

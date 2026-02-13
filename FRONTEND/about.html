@@ -10,187 +10,277 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css">
-
     <title>소개 - FTOGuard</title>
+    
+    <style>
+        /* Pretendard 폰트 (비즈벨과 동일) */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
+        .break-keep { word-break: keep-all; }
+    </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900">
+<body>
 
-    <!-- ✅ 공통 헤더 -->
+    <!-- 공통 헤더 -->
     <div id="app-header"></div>
 
     <!-- Page Hero Section -->
-    <section class="relative bg-white pt-24 pb-20 overflow-hidden">
-        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50 rounded-full blur-[100px] opacity-60 -translate-y-1/2 translate-x-1/4"></div>
-        <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
-            <h1 class="text-5xl lg:text-6xl font-black text-slate-900 mb-6 tracking-tight">
-                아이디어가 <span class="text-blue-600">자산</span>이 되는 곳
+    <section class="relative bg-white pt-32 pb-16 md:pb-24 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent opacity-40"></div>
+        <div class="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
+        
+        <div class="max-w-[1200px] mx-auto px-6 relative z-10 text-center">
+            <!-- 비즈벨: text-2xl md:text-5xl -->
+            <h1 class="text-2xl md:text-5xl font-bold text-black mb-6 tracking-tight leading-tight break-keep">
+                아이디어가 <span class="text-primary">자산</span>이 되는 곳
             </h1>
-            <p class="text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed">
-                FTOGuard는 복잡한 특허 리스크 분석을 AI 기술로 단순화하여,<br/>
+            <!-- 비즈벨: text-base md:text-lg -->
+            <p class="text-base md:text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+                FTOGuard는 복잡한 특허 리스크 분석을 AI 기술로 단순화하여,<br class="hidden md:block"/>
                 누구나 법적 분쟁 걱정 없이 혁신에 집중할 수 있는 환경을 만듭니다.
             </p>
         </div>
     </section>
 
     <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-6 py-20">
+    <main class="max-w-[1200px] mx-auto px-6">
         
         <!-- 1. FTOGuard 소개 -->
-        <div class="grid lg:grid-cols-2 gap-16 items-center mb-32">
-            <div class="space-y-6">
-                <h2 class="text-3xl font-bold text-slate-900">실험적인 FTO 분석 도구</h2>
-                <div class="space-y-4 text-slate-600 leading-loose">
-                    <p>
-                        FTOGuard는 제품 기획 초기 단계에서 발생할 수 있는
-                        <strong>Freedom-to-Operate(FTO, 특허 침해 가능성)</strong>
-                        리스크를 누구나 손쉽게 점검할 수 있도록 돕는 차세대 AI 도구입니다.
-                    </p>
-                    <p>
-                        우리는 제품 설계가 완료된 후 리스크를 발견하여 발생하는 막대한 수정 비용과
-                        출시 지연 문제를 해결하고자 합니다.
-                        제품 또는 기술 아이디어를 입력하면 AI 에이전트가 잠재적 충돌 가능성을
-                        구조적으로 정리해 드립니다.
-                    </p>
+        <section class="py-16 md:py-24">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <!-- 비즈벨: text-xl md:text-3xl -->
+                    <h2 class="text-xl md:text-3xl font-semibold text-black">실험적인 FTO 분석 도구</h2>
+                    <!-- 비즈벨: text-sm -->
+                    <div class="space-y-4 text-sm text-neutral-600 leading-relaxed">
+                        <p>
+                            FTOGuard는 제품 기획 초기 단계에서 발생할 수 있는
+                            <strong class="text-black">Freedom-to-Operate(FTO, 특허 침해 가능성)</strong>
+                            리스크를 누구나 손쉽게 점검할 수 있도록 돕는 차세대 AI 도구입니다.
+                        </p>
+                        <p>
+                            우리는 제품 설계가 완료된 후 리스크를 발견하여 발생하는 막대한 수정 비용과
+                            출시 지연 문제를 해결하고자 합니다.
+                            제품 또는 기술 아이디어를 입력하면 AI 에이전트가 잠재적 충돌 가능성을
+                            구조적으로 정리해 드립니다.
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-200">
-                <i class="fas fa-quote-left text-4xl mb-6 text-blue-300"></i>
-                <p class="text-2xl font-bold leading-snug mb-8">
-                    "판단을 대신하는 것이 아니라,<br/>
-                    판단에 필요한 최적의 출발점을 제공합니다."
-                </p>
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold">FTOGuard Vision</p>
-                        <p class="text-sm text-blue-100">Next-Gen IP Solutions</p>
+                <div class="rounded-2xl bg-gradient-to-br from-primary to-orange-600 p-8 md:p-10 text-white shadow-xl">
+                    <i class="fas fa-quote-left text-3xl mb-6 text-white/60"></i>
+                    <!-- 비즈벨: text-lg md:text-2xl -->
+                    <p class="text-lg md:text-2xl font-bold leading-snug mb-8">
+                        "판단을 대신하는 것이 아니라,<br/>
+                        판단에 필요한 최적의 출발점을 제공합니다."
+                    </p>
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold">FTOGuard Vision</p>
+                            <p class="text-sm text-white/80">Next-Gen IP Solutions</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- 2. 제공 가치 -->
-        <div class="mb-32 text-center">
-            <h2 class="text-3xl font-bold text-slate-900 mb-16">FTOGuard가 제공하는 가치</h2>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-8 text-2xl">
+        <section class="py-16 md:py-24">
+            <div class="text-center mb-12">
+                <div class="text-sm font-semibold text-primary uppercase tracking-wide mb-4">Core Values</div>
+                <!-- 비즈벨: text-xl md:text-3xl -->
+                <h2 class="text-xl md:text-3xl font-semibold text-black">FTOGuard가 제공하는 가치</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all">
+                    <div class="w-12 h-12 bg-orange-50 text-primary rounded-xl flex items-center justify-center mb-6 text-xl">
                         <i class="fas fa-map-marked-alt"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">개발 방향 조정</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">
+                    <!-- 비즈벨: text-lg -->
+                    <h3 class="text-lg font-semibold text-black mb-3">개발 방향 조정</h3>
+                    <!-- 비즈벨: text-sm -->
+                    <p class="text-sm text-neutral-600 leading-relaxed">
                         초기 단계에서 리스크를 인지하여 불필요한 개발 리소스 낭비를 사전에 방지합니다.
                     </p>
                 </div>
 
-                <div class="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-8 text-2xl">
+                <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all">
+                    <div class="w-12 h-12 bg-orange-50 text-primary rounded-xl flex items-center justify-center mb-6 text-xl">
                         <i class="fas fa-brain"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">직관적 결과 제공</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">
+                    <h3 class="text-lg font-semibold text-black mb-3">직관적 결과 제공</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
                         복잡한 특허 문헌 대신 핵심 쟁점 위주의 정리된 리포트로 빠른 의사결정을 돕습니다.
                     </p>
                 </div>
 
-                <div class="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-8 text-2xl">
+                <div class="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm hover:shadow-lg transition-all">
+                    <div class="w-12 h-12 bg-orange-50 text-primary rounded-xl flex items-center justify-center mb-6 text-xl">
                         <i class="fas fa-comments-dollar"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">효율적 전문가 상담</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">
+                    <h3 class="text-lg font-semibold text-black mb-3">효율적 전문가 상담</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
                         변리사 등 법률 전문가와 상담 전 기초 자료를 정리하여 상담 효율성을 극대화합니다.
                     </p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- 3. 타겟 사용자 -->
-        <div class="bg-slate-900 rounded-[3rem] p-12 lg:p-20 text-white mb-32">
-            <h2 class="text-3xl font-bold mb-16 text-center text-blue-400">
-                이런 분들을 위해 설계되었습니다
-            </h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
-                <div class="space-y-4">
-                    <div class="text-blue-400 text-2xl"><i class="fas fa-rocket"></i></div>
-                    <h4 class="font-bold text-lg">스타트업</h4>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        출시 전 빠른 리스크 점검이 필요한 신사업 팀
-                    </p>
-                </div>
-                <div class="space-y-4">
-                    <div class="text-blue-400 text-2xl"><i class="fas fa-industry"></i></div>
-                    <h4 class="font-bold text-lg">중소기업</h4>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        초기 IP 검토 비용과 시간을 단축하고 싶은 제조사
-                    </p>
-                </div>
-                <div class="space-y-4">
-                    <div class="text-blue-400 text-2xl"><i class="fas fa-microscope"></i></div>
-                    <h4 class="font-bold text-lg">R&D 담당자</h4>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        기술 기획 단계에서 선행 기술 조사가 필요한 연구원
-                    </p>
-                </div>
-                <div class="space-y-4">
-                    <div class="text-blue-400 text-2xl"><i class="fas fa-gavel"></i></div>
-                    <h4 class="font-bold text-lg">변리사</h4>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        고객 상담 전 1차 분석 자료가 필요한 전문가
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 법적 고지 -->
-        <div class="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-2 h-full bg-red-500"></div>
-            <div class="flex items-start space-x-6">
-                <div class="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900 mb-4">법적 고지 및 한계</h2>
-                    <div class="text-slate-500 text-sm space-y-3 leading-relaxed">
-                        <p>
-                            FTOGuard는 정식 법률 자문이나 최종적인 특허 침해 판단을 대체하지 않습니다.
-                        </p>
-                        <p>
-                            중요한 비즈니스 결정 전에는 반드시
-                            <strong>변리사 또는 특허 전문 변호사</strong>와 상담하시기 바랍니다.
-                        </p>
+        <section class="py-16 md:py-24 bg-neutral-50 -mx-6 px-6">
+            <div class="max-w-[1200px] mx-auto">
+                <div class="bg-slate-900 rounded-3xl p-8 md:p-16 text-white relative overflow-hidden">
+                    <!-- 장식 요소 -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="relative z-10">
+                        <h2 class="text-xl md:text-3xl font-semibold mb-12 text-center">
+                            <span class="text-primary">이런 분들</span>을 위해 설계되었습니다
+                        </h2>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div class="space-y-4">
+                                <div class="text-primary text-2xl"><i class="fas fa-rocket"></i></div>
+                                <h4 class="font-semibold text-lg">스타트업</h4>
+                                <p class="text-neutral-400 text-sm leading-relaxed">
+                                    출시 전 빠른 리스크 점검이 필요한 신사업 팀
+                                </p>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="text-primary text-2xl"><i class="fas fa-industry"></i></div>
+                                <h4 class="font-semibold text-lg">중소기업</h4>
+                                <p class="text-neutral-400 text-sm leading-relaxed">
+                                    초기 IP 검토 비용과 시간을 단축하고 싶은 제조사
+                                </p>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="text-primary text-2xl"><i class="fas fa-microscope"></i></div>
+                                <h4 class="font-semibold text-lg">R&D 담당자</h4>
+                                <p class="text-neutral-400 text-sm leading-relaxed">
+                                    기술 기획 단계에서 선행 기술 조사가 필요한 연구원
+                                </p>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="text-primary text-2xl"><i class="fas fa-gavel"></i></div>
+                                <h4 class="font-semibold text-lg">변리사</h4>
+                                <p class="text-neutral-400 text-sm leading-relaxed">
+                                    고객 상담 전 1차 분석 자료가 필요한 전문가
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- 4. 법적 고지 -->
+        <section class="py-16 md:py-24">
+            <div class="bg-gradient-to-br from-orange-50 via-red-50 to-orange-50 p-8 md:p-12 rounded-3xl border-2 border-primary/30 shadow-xl relative overflow-hidden">
+                <!-- 장식 요소 -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl"></div>
+                
+                <div class="flex items-start gap-6 relative z-10">
+                    <div class="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl shadow-lg">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl md:text-2xl font-bold text-black mb-4 flex items-center gap-3">
+                            법적 고지 및 한계
+                            <span class="inline-flex items-center px-3 py-1 bg-primary/20 text-primary text-xs font-semibold rounded-full border border-primary/30">
+                                Important
+                            </span>
+                        </h2>
+                        <div class="text-sm md:text-base text-neutral-700 space-y-3 leading-relaxed">
+                            <p class="font-medium">
+                                FTOGuard는 정식 법률 자문이나 최종적인 특허 침해 판단을 <span class="text-primary font-bold">대체하지 않습니다.</span>
+                            </p>
+                            <p>
+                                중요한 비즈니스 결정 전에는 반드시
+                                <strong class="text-black bg-yellow-100 px-2 py-0.5 rounded">변리사 또는 특허 전문 변호사</strong>와 상담하시기 바랍니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- CTA -->
-        <div class="py-32 text-center">
-            <h2 class="text-4xl font-black text-slate-900 mb-8 leading-tight">
-                준비되셨나요?<br/>지금 바로 첫 스캔을 시작하세요
-            </h2>
-            <button onclick="checkAuthAndRedirect('analysis.html')"
-                class="px-10 py-5 bg-blue-600 text-white rounded-full font-bold text-lg shadow-2xl shadow-blue-200 hover:bg-blue-700 hover:scale-105 transition-all">
-                AI 리스크 진단 시작하기
-                <i class="fas fa-arrow-right ml-2 text-sm"></i>
-            </button>
-        </div>
+        <section class="py-16 md:py-24 bg-gradient-to-br from-primary/10 via-white to-white -mx-6 px-6">
+            <div class="max-w-2xl mx-auto text-center space-y-8">
+                <h2 class="text-2xl md:text-4xl font-bold text-black leading-tight break-keep">
+                    준비되셨나요?<br/>지금 바로 첫 스캔을 시작하세요
+                </h2>
+                <p class="text-sm md:text-base text-neutral-700">
+                    FTO 분석 한 번이면, 오늘 놓치고 있는 특허 리스크가 보입니다.
+                </p>
+                <button onclick="checkAuthAndRedirect('analysis.html')"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-10 py-4 rounded-full transition-all shadow-lg hover:shadow-xl hover:scale-105">
+                    AI 리스크 진단 시작하기
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </div>
+        </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="py-12 bg-white border-t border-gray-100">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <p class="text-slate-400 text-sm">© 2026 FTOGuard. All rights reserved.</p>
-        </div>
-    </footer>
+    <!-- 공통 푸터 -->
+    <div id="app-footer"></div>
 
-    <script src="script.js"></script>
+    <!-- Scripts -->
+    <script>
+        // Load header.html
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-header').innerHTML = data;
+                
+                // Re-execute scripts in loaded header
+                const scripts = document.getElementById('app-header').querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.error('Error loading header:', error));
+        
+        // Load footer.html
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-footer').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
+            
+        // checkAuthAndRedirect function (기존 기능 유지)
+        function checkAuthAndRedirect(page) {
+            window.location.href = page;
+        }
+    </script>
 </body>
 </html>

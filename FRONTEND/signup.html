@@ -57,32 +57,33 @@
             color: #6B7280;
         }
         
-        /* Password Requirements */
+        /* Password Requirements - Inline */
         .password-requirements {
             list-style: none;
-            margin-top: 12px;
-            space-y: 6px;
+            margin-top: 6px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
         }
-        
+
         .password-requirements li {
-            font-size: 13px;
+            font-size: 12px;
             color: #9CA3AF;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 0;
+            gap: 4px;
         }
-        
+
         .password-requirements li::before {
             content: '○';
             color: #D1D5DB;
-            font-size: 18px;
+            font-size: 14px;
         }
-        
+
         .password-requirements li.valid {
             color: #10B981;
         }
-        
+
         .password-requirements li.valid::before {
             content: '✓';
             color: #10B981;
