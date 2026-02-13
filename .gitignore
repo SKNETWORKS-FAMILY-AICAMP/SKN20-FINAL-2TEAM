@@ -5,3 +5,16 @@ bini/.env
 nul.env
 bini/outputs/gemma3-4b-it-lora/
 nul
+
+# Large files (DB dumps, RAG indexes)
+fto_du
+fto_dump.sql
+rag/index/
+*.sqlite3
+
+# Nested repo
+SKN20-FINAL-2TEAM/
+
+# Python cache
+__pycache__/
+*.pyc

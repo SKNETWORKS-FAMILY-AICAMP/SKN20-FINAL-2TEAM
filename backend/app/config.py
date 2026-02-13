@@ -5,7 +5,7 @@ import os
 
 class Settings(BaseSettings):
     # 데이터베이스 (MySQL)
-    DATABASE_URL: str = "mysql+pymysql://root:newpassword123@localhost:3306/bini"
+    DATABASE_URL: str = "mysql+pymysql://root:newpassword123@localhost:3306/fto"
 
     # JWT 설정
     SECRET_KEY: str = "your-secret-key-change-in-production"
