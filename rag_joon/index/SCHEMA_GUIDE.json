@@ -1,0 +1,73 @@
+{
+  "=== 이 파일은 설명서입니다 ===": "실제 데이터가 아닙니다. chunks.json과 claims_db.json의 각 필드가 무엇인지 설명합니다.",
+
+  "chunks.json": [
+    {
+      "chunk_id": "출원번호_claim_독립항번호 (예: 1020050059631_claim_1). 청크의 고유 식별자. ChromaDB와 BM25 인덱스에서 이 ID로 매핑됨",
+
+      "dense_text": "Dense 검색(KURE-v1 임베딩)용 텍스트. [발명]+[분야]+[요약]+[독립항]+[종속항]을 자연어 그대로 이어붙인 것. ChromaDB에 임베딩되어 의미적 유사도 검색에 사용됨. 법률 용어/상용구 제거 안 함",
+
+      "sparse_text": "Sparse 검색(BM25)용 텍스트. 같은 청구항에서 법률 상용구('에 있어서','를 특징으로 하는' 등)와 숫자를 제거한 뒤, kiwipiepy로 명사/외래어만 추출한 키워드 나열. BM25 인덱스(bm25.pkl)에 토크나이징되어 키워드 매칭에 사용됨",
+
+      "full_text": "sLLM 전달용/프론트 표시용 원본 텍스트. [청구항 N] 원문 그대로. 검색에는 사용 안 됨. 검색 결과를 사용자에게 보여주거나 sLLM에 넘길 때 사용",
+
+      "metadata": {
+        "apply_num": "출원번호 (하이픈 없는 숫자). 예: 1020050059631. Patent Collapse 시 같은 특허의 청크를 묶는 키. 검색 결과의 patent_id로도 사용됨",
+
+        "regit_num": "등록번호. 예: 10-0736901-0000. 평가 시 정답 매칭 키(test_dataset의 regit_num과 비교). KIPRIS 링크 생성용",
+
+        "register_status": "등록 상태. '등록' 또는 기타. filter.py에서 '등록'이 아닌 특허를 결과에서 제거할 때 사용 (config.REGISTERED_ONLY=True일 때)",
+
+        "invention_title": "발명 제목. 예: '헤스페리딘 유도체를 함유하는 한방 액제'. 검색 결과 표시용 + sLLM 컨텍스트",
+
+        "ipc": "IPC 분류코드 리스트. 예: ['A61K 31/7048', 'A61K 47/50']. A61K=의약, A61Q=화장품. 현재 데이터가 모두 같은 도메인이라 필터 효과 없음. 도메인 확장 시 활용 가능",
+
+        "abstract": "특허 초록(요약). HTML 태그 제거 후 저장. sLLM에 기술 분야 이해 보조용으로 전달. ※ claims_db.json에도 동일 내용 있음 (중복)",
+
+        "claim_pub": "출원 시점(first_version)의 전체 청구항 텍스트. 금반언 비교용 — 출원 때 있었다가 등록 때 삭제된 청구항을 sLLM이 확인할 수 있게 함. ※ claims_db.json의 first_claims와 동일 내용 (중복, 매우 김)",
+
+        "indep_claim_num": "이 청크의 독립항 번호. 예: 1. Patent Collapse 후 matched_claim_num으로 출력됨. '이 특허의 몇 번 청구항이 쿼리와 매칭됐는지' 정보",
+
+        "dep_claim_nums": "이 청크에 포함된 종속항 번호 리스트. 예: [2, 3, 4]. 독립항 1번에 딸린 종속항들. sLLM이 관련 종속항 범위를 파악할 때 사용"
+      }
+    }
+  ],
+
+  "claims_db.json": {
+    "=== 키 ===": "출원번호 (예: '1020050059631'). 특허 1개당 1개 엔트리",
+
+    "1020050059631": {
+      "metadata": {
+        "apply_num": "출원번호. chunks.json의 metadata.apply_num과 동일",
+        "regit_num": "등록번호. chunks.json의 metadata.regit_num과 동일",
+        "register_status": "등록 상태. filter.py의 is_registered()가 이 값을 확인",
+        "invention_title": "발명 제목",
+        "ipc": "IPC 코드 리스트",
+        "abstract": "특허 초록"
+      },
+
+      "last_claims": [
+        {
+          "claim_number": "청구항 번호 (정수). 예: 1",
+          "claim_type": "독립항(independent) 또는 종속항(dependent)",
+          "change_type": "변경 유형. '신규'/'수정'/'삭제'. '삭제'이면 금반언 대상",
+          "text": "등록 시점 청구항 원문. 검색 후 sLLM에 전달되는 실제 청구항 텍스트"
+        }
+      ],
+
+      "first_claims": [
+        {
+          "claim_number": "청구항 번호",
+          "claim_type": "독립항 또는 종속항",
+          "text": "출원 시점 청구항 원문. 금반언 비교용 — last_claims에서 삭제된 항이 여기에 있으면 '출원 때는 있었으나 등록 때 삭제됨'을 의미"
+        }
+      ],
+
+      "estoppel_claim_numbers": "금반언 대상 청구항 번호 리스트. 예: [3, 5]. last_claims에서 change_type='삭제'인 항들. 이 번호의 청구항은 침해 판단 근거로 사용 불가 (법적 원칙)"
+    }
+  },
+
+  "bm25.pkl": "BM25 인덱스 pickle 파일. {'bm25': BM25Okapi 객체, 'chunk_ids': ['청크ID1', '청크ID2', ...]}. sparse_text를 kiwipiepy로 토크나이징한 결과로 빌드됨. search/retriever.py의 sparse_search()가 로드하여 사용",
+
+  "chroma_db/": "ChromaDB 벡터 데이터베이스 폴더. dense_text를 KURE-v1(1024차원)으로 임베딩한 벡터 + chunk_id + metadata 저장. search/retriever.py의 dense_search()가 cosine 유사도로 검색"
+}
