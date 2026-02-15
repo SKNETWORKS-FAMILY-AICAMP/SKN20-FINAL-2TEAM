@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
 
     # 모델 설정
-    SLLM_MODEL_PATH: str = "../bini/outputs/gemma3-1b-it-lora"
+    SLLM_MODEL_PATH: str = "../SLLM_model/outputs/gemma3-1b-v2"
 
     # Hugging Face
     HF_TOKEN: str = ""
