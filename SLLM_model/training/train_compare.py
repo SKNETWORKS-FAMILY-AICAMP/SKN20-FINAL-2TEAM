@@ -285,27 +285,27 @@ def main():
     parser = argparse.ArgumentParser(description="Gemma3 1B vs Qwen2.5 1.5B 비교 학습")
     parser.add_argument("--model", choices=["gemma", "qwen", "both"], default="both",
                         help="학습할 모델 (gemma / qwen / both)")
-    parser.add_argument("--epochs", type=int, default=3, help="학습 에폭 수")
+    parser.add_argument("--epochs", type=int, default=5, help="학습 에폭 수")
     parser.add_argument("--batch_size", type=int, default=2, help="배치 사이즈")
-    parser.add_argument("--lr", type=float, default=2e-5, help="학습률")
+    parser.add_argument("--lr", type=float, default=3e-5, help="학습률")
     args = parser.parse_args()
 
     # LoRA 설정
     lora_cfg = {
         "r": 16,
         "lora_alpha": 32,
-        "lora_dropout": 0.05,
+        "lora_dropout": 0.1,
         "bias": "none",
         "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "up_proj", "down_proj", "gate_proj"],
         "max_seq_length": 4096,
         "num_train_epochs": args.epochs,
-        "per_device_train_batch_size": args.batch_size,
-        "gradient_accumulation_steps": 4,
+        "per_device_train_batch_size": 2,
+        "gradient_accumulation_steps": 1,
         "learning_rate": args.lr,
         "warmup_ratio": 0.05,
         "weight_decay": 0.01,
-        "logging_steps": 10,
-        "save_steps": 100,
+        "logging_steps": 5,
+        "save_steps": 50,
         "optim": "paged_adamw_8bit",
     }
 
