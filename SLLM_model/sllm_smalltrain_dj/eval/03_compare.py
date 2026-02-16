@@ -18,7 +18,20 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from loguru import logger
 from sklearn.metrics import classification_report
+
+# ─── 로깅 설정 ────────────────────────────────────────────
+LOG_DIR = Path(__file__).resolve().parents[2] / "logs"  # SLLM_model/logs/
+LOG_DIR.mkdir(exist_ok=True)
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+logger.add(
+    LOG_DIR / "eval_compare_{time:YYYY-MM-DD_HH-mm-ss}.log",
+    level="DEBUG",
+    rotation="100 MB",
+    encoding="utf-8",
+)
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import LABELS
@@ -141,12 +154,12 @@ def main():
     parser.add_argument("--output_dir", default="./output")
     args = parser.parse_args()
 
-    print(f"=== 모델 비교: {args.model_a_name} vs {args.model_b_name} ===\n")
+    logger.info(f"=== 모델 비교: {args.model_a_name} vs {args.model_b_name} ===")
 
     da = pd.read_excel(args.model_a)
     db = pd.read_excel(args.model_b)
-    print(f"  {args.model_a_name}: {len(da)}건")
-    print(f"  {args.model_b_name}: {len(db)}건")
+    logger.info(f"{args.model_a_name}: {len(da)}건")
+    logger.info(f"{args.model_b_name}: {len(db)}건")
 
     report = build_report(da, db, args.model_a_name, args.model_b_name)
 
@@ -156,8 +169,8 @@ def main():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
 
-    print(report)
-    print(f"\n  저장: {report_path}")
+    logger.info(f"\n{report}")
+    logger.success(f"비교 완료! 저장: {report_path}")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,20 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from loguru import logger
 from sklearn.metrics import classification_report
+
+# ─── 로깅 설정 ────────────────────────────────────────────
+LOG_DIR = Path(__file__).resolve().parents[2] / "logs"  # SLLM_model/logs/
+LOG_DIR.mkdir(exist_ok=True)
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+logger.add(
+    LOG_DIR / "eval_evaluate_{time:YYYY-MM-DD_HH-mm-ss}.log",
+    level="DEBUG",
+    rotation="100 MB",
+    encoding="utf-8",
+)
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (
@@ -65,38 +78,39 @@ def print_summary(detail: pd.DataFrame, df: pd.DataFrame):
     # 1) 라벨 정확도
     acc = (detail["일치여부"] == "O").sum() / total
     fail = (detail["예측라벨"] == "매핑실패").sum()
-    print(f"\n[라벨 정확도] {acc:.1%} (매핑실패: {fail}건)")
-    print(classification_report(
+    logger.info(f"[라벨 정확도] {acc:.1%} (매핑실패: {fail}건)")
+    cr = classification_report(
         detail["정답라벨"], detail["예측라벨"],
         labels=LABELS, zero_division=0,
-    ))
+    )
+    logger.info(f"\n{cr}")
 
     # 2) 구조
     sec_ok = (detail["섹션완성"] == "O").sum()
     tbl_ok = (detail["테이블파싱"] == "O").sum()
-    print(f"[구조] 섹션완성: {sec_ok}/{total} ({sec_ok/total:.1%}), 테이블파싱: {tbl_ok}/{total} ({tbl_ok/total:.1%})")
+    logger.info(f"[구조] 섹션완성: {sec_ok}/{total} ({sec_ok/total:.1%}), 테이블파싱: {tbl_ok}/{total} ({tbl_ok/total:.1%})")
 
     # 3) 행 수 일치
     valid = detail[detail["행수일치"] != "-"]
     if len(valid) > 0:
         match = (valid["행수일치"] == "O").sum()
-        print(f"[행수일치] {match}/{len(valid)} ({match/len(valid):.1%})")
+        logger.info(f"[행수일치] {match}/{len(valid)} ({match/len(valid):.1%})")
 
     # 4) 법리 일관성
     checkable = detail[detail["법리일관성"] != "-"]
     if len(checkable) > 0:
         logic_ok = (checkable["법리일관성"] == "O").sum()
         logic_fail = len(checkable) - logic_ok
-        print(f"[법리일관성] {logic_ok}/{len(checkable)} ({logic_ok/len(checkable):.1%})")
+        logger.info(f"[법리일관성] {logic_ok}/{len(checkable)} ({logic_ok/len(checkable):.1%})")
         if logic_fail > 0:
             fails = checkable[checkable["법리일관성"] != "O"]["법리일관성"]
             for reason, cnt in fails.value_counts().items():
-                print(f"  {reason}: {cnt}건")
+                logger.info(f"  {reason}: {cnt}건")
 
     # 참고: 금지문구
     fb_cnt = sum(1 for _, r in df.iterrows() if check_forbidden(r["pred_output"]))
     if fb_cnt > 0:
-        print(f"\n[참고] 금지문구 위반: {fb_cnt}건")
+        logger.warning(f"금지문구 위반: {fb_cnt}건")
 
 
 def main():
@@ -106,14 +120,14 @@ def main():
     parser.add_argument("--output_dir", default="./output")
     args = parser.parse_args()
 
-    print(f"=== 모델 평가: {args.model_name} ===")
+    logger.info(f"=== 모델 평가: {args.model_name} ===")
 
     df = pd.read_excel(args.input)
     if "pred_output" not in df.columns:
-        print("[X] pred_output 컬럼 없음. 01_infer.py를 먼저 실행하세요.")
+        logger.error("pred_output 컬럼 없음. 01_infer.py를 먼저 실행하세요.")
         sys.exit(1)
 
-    print(f"  입력: {args.input} ({len(df)}건)")
+    logger.info(f"입력: {args.input} ({len(df)}건)")
 
     detail = evaluate(df)
     print_summary(detail, df)
@@ -122,7 +136,7 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"eval_detail_{args.model_name}.xlsx"
     detail.to_excel(out_path, index=False)
-    print(f"\n  저장: {out_path}")
+    logger.success(f"평가 완료! 저장: {out_path}")
 
 
 if __name__ == "__main__":

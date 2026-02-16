@@ -14,11 +14,25 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 import torch
+from loguru import logger
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# ─── 로깅 설정 ────────────────────────────────────────────
+LOG_DIR = Path(__file__).resolve().parents[2] / "logs"  # SLLM_model/logs/
+LOG_DIR.mkdir(exist_ok=True)
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+logger.add(
+    LOG_DIR / "eval_infer_{time:YYYY-MM-DD_HH-mm-ss}.log",
+    level="DEBUG",
+    rotation="100 MB",
+    encoding="utf-8",
+)
 
 
 SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
@@ -88,8 +102,8 @@ def load_model(model_path: str):
         with open(adapter_config) as f:
             cfg = json.load(f)
         base = cfg["base_model_name_or_path"]
-        print(f"  Base: {base}")
-        print(f"  Adapter: {model_path}")
+        logger.info(f"Base: {base}")
+        logger.info(f"Adapter: {model_path}")
 
         tokenizer = AutoTokenizer.from_pretrained(base, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
@@ -98,7 +112,7 @@ def load_model(model_path: str):
         model = PeftModel.from_pretrained(model, model_path)
     else:
         # merged 모델
-        print(f"  Model: {model_path}")
+        logger.info(f"Model: {model_path}")
         tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         model = AutoModelForCausalLM.from_pretrained(
             model_path, torch_dtype=torch.float16, device_map="auto", trust_remote_code=True,
@@ -119,11 +133,11 @@ def main():
     parser.add_argument("--max_tokens", type=int, default=2048)
     args = parser.parse_args()
 
-    print(f"=== 모델 추론: {args.model_name} ===\n")
+    logger.info(f"=== 모델 추론: {args.model_name} ===")
 
     model, tokenizer = load_model(args.model_path)
     df = pd.read_excel(args.test_data)
-    print(f"  테스트: {len(df)}건\n")
+    logger.info(f"테스트: {len(df)}건")
 
     preds = []
     for i, row in df.iterrows():
@@ -148,7 +162,7 @@ def main():
         preds.append(tokenizer.decode(gen, skip_special_tokens=True))
 
         if (i + 1) % 50 == 0 or (i + 1) == len(df):
-            print(f"  [{i+1}/{len(df)}]")
+            logger.info(f"[{i+1}/{len(df)}]")
 
     # 저장
     out_dir = Path(args.output_dir)
@@ -156,7 +170,7 @@ def main():
     df["pred_output"] = preds
     out_path = out_dir / f"infer_{args.model_name}.xlsx"
     df.to_excel(out_path, index=False)
-    print(f"\n  저장: {out_path}")
+    logger.success(f"추론 완료! 저장: {out_path}")
 
 
 if __name__ == "__main__":
