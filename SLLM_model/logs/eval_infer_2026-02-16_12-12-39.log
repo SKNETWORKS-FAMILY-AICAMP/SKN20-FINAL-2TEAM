@@ -1,0 +1,2 @@
+2026-02-16 12:12:39.825 | INFO     | __main__:main:136 - === 모델 추론: gemma ===
+2026-02-16 12:12:39.829 | INFO     | __main__:load_model:115 - Model: ../../outputs/gemma3-1b-v2
