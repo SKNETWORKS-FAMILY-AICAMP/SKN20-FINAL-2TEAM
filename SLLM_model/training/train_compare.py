@@ -34,7 +34,7 @@ from peft import LoraConfig, get_peft_model
 
 # ─── 경로 ───────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parents[1]  # SLLM_model/
-DATA_DIR = Path("/workspace/patent-data/GEMINI/sllm_1st_test/data")
+DATA_DIR = BASE_DIR / "data" / "sllm_smalltrain"
 TRAIN_FILE = DATA_DIR / "sllm_train_2869.xlsx"
 
 # ─── 모델 설정 ──────────────────────────────────────────
