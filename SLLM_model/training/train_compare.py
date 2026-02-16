@@ -17,10 +17,12 @@
 
 import argparse
 import os
+import sys
 from pathlib import Path
 
 import pandas as pd
 import torch
+from loguru import logger
 from datasets import Dataset
 from transformers import (
     AutoModelForCausalLM,
@@ -31,6 +33,18 @@ from transformers import (
     default_data_collator,
 )
 from peft import LoraConfig, get_peft_model
+
+# ─── 로깅 설정 ────────────────────────────────────────────
+LOG_DIR = Path(__file__).resolve().parents[1] / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+logger.remove()  # 기본 핸들러 제거
+logger.add(sys.stderr, level="INFO")  # 터미널 출력
+logger.add(
+    LOG_DIR / "train_{time:YYYY-MM-DD_HH-mm-ss}.log",
+    level="DEBUG",
+    rotation="100 MB",
+    encoding="utf-8",
+)
 
 # ─── 경로 ───────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parents[1]  # SLLM_model/
@@ -107,7 +121,7 @@ def build_user_prompt(row: pd.Series) -> str:
 def load_sft_data() -> list[dict]:
     """xlsx → chat 형식 SFT 데이터 변환."""
     df = pd.read_excel(TRAIN_FILE)
-    print(f"학습 데이터: {len(df)}건")
+    logger.info(f"학습 데이터: {len(df)}건")
 
     samples = []
     for _, row in df.iterrows():
@@ -123,7 +137,7 @@ def load_sft_data() -> list[dict]:
             ]
         })
 
-    print(f"유효 샘플: {len(samples)}건")
+    logger.info(f"유효 샘플: {len(samples)}건")
     return samples
 
 
@@ -133,10 +147,11 @@ def train_model(model_key: str, lora_cfg: dict):
     model_id = model_info["model_id"]
     output_dir = model_info["output_dir"]
 
-    print(f"\n{'='*60}")
-    print(f"모델 학습 시작: {model_id}")
-    print(f"출력 경로: {output_dir}")
-    print(f"{'='*60}\n")
+    logger.info(f"{'='*60}")
+    logger.info(f"모델 학습 시작: {model_id}")
+    logger.info(f"출력 경로: {output_dir}")
+    logger.info(f"LoRA r={lora_cfg['r']}, alpha={lora_cfg['lora_alpha']}, lr={lora_cfg['learning_rate']}, epochs={lora_cfg['num_train_epochs']}")
+    logger.info(f"{'='*60}")
 
     # 토크나이저
     token = os.environ.get("HF_TOKEN", None)
@@ -269,14 +284,16 @@ def train_model(model_key: str, lora_cfg: dict):
         data_collator=default_data_collator,
     )
 
+    logger.info("학습 시작...")
     trainer.train()
     trainer.save_model(output_dir)
     tokenizer.save_pretrained(output_dir)
-    print(f"\n학습 완료! 저장 경로: {output_dir}")
+    logger.success(f"학습 완료! 저장 경로: {output_dir}")
 
     # 메모리 해제
     del model, trainer
     torch.cuda.empty_cache()
+    logger.info("GPU 메모리 해제 완료")
 
     return output_dir
 
@@ -316,11 +333,12 @@ def main():
         output_dir = train_model(model_key, lora_cfg)
         results[model_key] = output_dir
 
-    print(f"\n{'='*60}")
-    print("학습 완료 요약")
-    print(f"{'='*60}")
+    logger.info(f"{'='*60}")
+    logger.success("학습 완료 요약")
+    logger.info(f"{'='*60}")
     for k, v in results.items():
-        print(f"  {k}: {v}")
+        logger.info(f"  {k}: {v}")
+    logger.info(f"로그 저장 경로: {LOG_DIR}")
 
 
 if __name__ == "__main__":

@@ -9,3 +9,4 @@ pandas
 openpyxl
 huggingface_hub
 scikit-learn
+loguru
