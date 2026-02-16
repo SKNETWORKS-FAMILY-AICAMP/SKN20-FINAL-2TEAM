@@ -1,0 +1,8 @@
+2026-02-16 04:57:32.796 | INFO     | __main__:train_model:150 - ============================================================
+2026-02-16 04:57:32.796 | INFO     | __main__:train_model:151 - 모델 학습 시작: google/gemma-3-1b-it
+2026-02-16 04:57:32.796 | INFO     | __main__:train_model:152 - 출력 경로: /root/SKN20-FINAL-2TEAM/SLLM_model/outputs/gemma3-1b-v2
+2026-02-16 04:57:32.796 | INFO     | __main__:train_model:153 - LoRA r=16, alpha=32, lr=3e-05, epochs=5
+2026-02-16 04:57:32.797 | INFO     | __main__:train_model:154 - ============================================================
+2026-02-16 04:57:37.153 | INFO     | __main__:load_sft_data:124 - 학습 데이터: 2869건
+2026-02-16 04:57:37.638 | INFO     | __main__:load_sft_data:140 - 유효 샘플: 2869건
+2026-02-16 04:58:20.261 | INFO     | __main__:train_model:287 - 학습 시작...
