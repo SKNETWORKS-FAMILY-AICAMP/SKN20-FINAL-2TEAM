@@ -82,7 +82,7 @@ def check_forbidden(text: str) -> list[str]:
 
 
 # ============================================================
-# 법리 일관성 체크 (규칙 9, 10, 11)
+# 법리 일관성 체크 (규칙 9~14)
 # ============================================================
 
 def parse_correspondences(text: str) -> list[str]:
@@ -116,9 +116,12 @@ def parse_correspondences(text: str) -> list[str]:
 def check_logic_consistency(pred_label: str, pred_output: str) -> str:
     """법리 일관성 체크. 라벨과 대응분석표의 논리적 정합성 검증.
 
-    규칙 9:  침해 → "미대응"이 없어야 함
-    규칙 10: 비침해 → 전부 "대응"이면 안 됨
-    규칙 11: 침해_전문가 → "미대응(균등)" 또는 "미대응(내재성)"이 있어야 함
+    규칙 9:  침해 + 일반 미대응 → 비침해여야 함
+    규칙 10: 비침해 + 전부 대응 → 침해여야 함
+    규칙 11: 침해_전문가 + 균등/내재성 없음 → 근거 없음
+    규칙 12: 침해 + 균등/내재성 있음 → 침해_전문가여야 함
+    규칙 13: 침해_전문가 + 일반 미대응 있음 → 비침해여야 함
+    규칙 14: 비침해 + 균등/내재성만 (일반 미대응 없음) → 침해_전문가여야 함
 
     Returns:
         "O"  = 일관성 있음
@@ -132,22 +135,41 @@ def check_logic_consistency(pred_label: str, pred_output: str) -> str:
     if not corrs:
         return "-"
 
-    # 규칙 9: 침해인데 미대응 존재
+    # 규칙 9: 침해인데 일반 미대응 존재 → 비침해여야 함
     if pred_label == "침해":
-        has_mismatch = any("미대응" in c for c in corrs)
-        if has_mismatch:
-            return "X:R9:침해+미대응"
+        has_plain_mismatch = any(c.strip() == "미대응" for c in corrs)
+        if has_plain_mismatch:
+            return "X:R9:침해+일반미대응"
 
-    # 규칙 10: 비침해인데 전부 대응
+    # 규칙 10: 비침해인데 전부 대응 → 침해여야 함
     if pred_label == "비침해":
         all_match = all(c.strip() == "대응" for c in corrs)
         if all_match:
             return "X:R10:비침해+전부대응"
 
-    # 규칙 11: 침해_전문가인데 균등/내재성 없음
+    # 규칙 11: 침해_전문가인데 균등/내재성 없음 → 근거 없음
     if pred_label == "침해_전문가":
         has_special = any("균등" in c or "내재성" in c for c in corrs)
         if not has_special:
             return "X:R11:전문가+균등내재성없음"
+
+    # 규칙 12: 침해인데 균등/내재성 있음 → 침해_전문가여야 함
+    if pred_label == "침해":
+        has_special = any("균등" in c or "내재성" in c for c in corrs)
+        if has_special:
+            return "X:R12:침해+균등내재성존재"
+
+    # 규칙 13: 침해_전문가인데 일반 미대응 있음 → 비침해여야 함
+    if pred_label == "침해_전문가":
+        has_plain = any(c.strip() == "미대응" for c in corrs)
+        if has_plain:
+            return "X:R13:전문가+일반미대응"
+
+    # 규칙 14: 비침해인데 균등/내재성만 있음 (일반 미대응 없음) → 침해_전문가여야 함
+    if pred_label == "비침해":
+        has_plain = any(c.strip() == "미대응" for c in corrs)
+        has_special = any("균등" in c or "내재성" in c for c in corrs)
+        if has_special and not has_plain:
+            return "X:R14:비침해+균등내재성만"
 
     return "O"
