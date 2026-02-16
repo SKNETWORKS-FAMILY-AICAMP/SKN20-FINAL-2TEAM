@@ -29,6 +29,7 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
     default_data_collator,
 )
@@ -92,6 +93,20 @@ SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니
 - "전문가의 추가 검토가 권고됩니다."
 - "침해 여부 분석을 위해 보다 구체적인 실시 정보가 필요합니다."
 """
+
+
+class LoguruCallback(TrainerCallback):
+    """Trainer의 학습 metrics를 loguru 로그 파일에 저장하는 콜백."""
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        if logs is None:
+            return
+        step = state.global_step
+        msg_parts = [f"step={step}"]
+        for key in ["loss", "grad_norm", "learning_rate", "epoch"]:
+            if key in logs:
+                msg_parts.append(f"{key}={logs[key]:.6f}" if isinstance(logs[key], float) else f"{key}={logs[key]}")
+        logger.info(" | ".join(msg_parts))
 
 
 def build_user_prompt(row: pd.Series) -> str:
@@ -282,6 +297,7 @@ def train_model(model_key: str, lora_cfg: dict):
         args=training_args,
         train_dataset=tokenized_ds,
         data_collator=default_data_collator,
+        callbacks=[LoguruCallback()],
     )
 
     logger.info("학습 시작...")
