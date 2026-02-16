@@ -161,8 +161,7 @@ def main():
         gen = out[0][inputs["input_ids"].shape[1]:]
         preds.append(tokenizer.decode(gen, skip_special_tokens=True))
 
-        if (i + 1) % 50 == 0 or (i + 1) == len(df):
-            logger.info(f"[{i+1}/{len(df)}]")
+        logger.info(f"[{i+1}/{len(df)}] 추론 완료")
 
     # 저장
     out_dir = Path(args.output_dir)
