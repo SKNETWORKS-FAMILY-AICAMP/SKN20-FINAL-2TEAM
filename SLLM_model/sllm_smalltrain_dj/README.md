@@ -143,19 +143,21 @@ sllm_train_2869.xlsx                sllm_test_718.xlsx
 
 Gemma3 1B / Qwen2.5 1.5B를 `sllm_train_2869.xlsx`로 QLoRA 파인튜닝
 
-### Step 2: 모델 추론 (`eval/01_infer.py`)
+### Step 2: 모델 추론 (`eval/01_infer_vllm.py`)
 
-학습 완료된 모델로 테스트 718건 추론
+학습 완료된 모델로 테스트 718건 추론 (vLLM 배치 추론)
 
 ```bash
-cd data/sllm/eval/
+cd eval/
 
 # Gemma
-python 01_infer.py --model_path ./gemma-fto --model_name gemma --test_data ../sllm_test_718.xlsx
+python 01_infer_vllm.py --model_path ./gemma-fto --model_name gemma --test_data ../sllm_test_718.xlsx
 
 # Qwen
-python 01_infer.py --model_path ./qwen-fto --model_name qwen --test_data ../sllm_test_718.xlsx
+python 01_infer_vllm.py --model_path ./qwen-fto --model_name qwen --test_data ../sllm_test_718.xlsx
 ```
+
+> vLLM은 Linux 전용 (Colab / RunPod 등에서 실행). Windows에서는 `01_infer.py` (HuggingFace) 사용.
 
 출력: `output/infer_gemma.xlsx`, `output/infer_qwen.xlsx`
 (원본 테스트 데이터 + pred_output 컬럼 추가)
@@ -187,18 +189,7 @@ python 03_compare.py \
 | 1 | 라벨 정확도 | ◆결론◆에서 키워드로 라벨 추출 → 정답과 비교 (precision/recall/F1) |
 | 2 | 구조 완성도 | ◆구성 대비◆, ◆판단◆, ◆결론◆ 3섹션 존재 여부 |
 | 3 | 행 수 일치 | 정답 vs 예측의 구성대비표 행 수 비교 |
-| 4 | 법리 일관성 | 라벨 vs 대응분석표 논리 정합성 (규칙 9~14, 아래 참고) |
-
-### 법리 일관성 규칙 (규칙 9~14)
-
-| 규칙 | 조건 | 의미 |
-|------|------|------|
-| R9 | 침해 + 일반 미대응 존재 | 미대응이 있으면 침해가 아니라 비침해여야 함 |
-| R10 | 비침해 + 전부 대응 | 전부 대응이면 비침해가 아니라 침해여야 함 |
-| R11 | 침해_전문가 + 균등/내재성 없음 | 전문가 판단 근거가 없음 |
-| R12 | 침해 + 균등/내재성 존재 | 균등/내재성이 있으면 침해_전문가여야 함 |
-| R13 | 침해_전문가 + 일반 미대응 존재 | 일반 미대응이 있으면 비침해여야 함 |
-| R14 | 비침해 + 균등/내재성만 (일반 미대응 없음) | 침해_전문가여야 함 |
+| 4 | 법리 일관성 | 라벨 vs 대응분석표 논리 정합성 (침해+미대응=X, 비침해+전부대응=X, 전문가+균등내재성없음=X) |
 
 ### 라벨 매핑 규칙
 
@@ -211,100 +202,3 @@ python 03_compare.py \
 | 3 | "가능성이 낮" | 비침해 |
 | 4 | "가능성이 높" | 침해 |
 | - | 해당 없음 | 매핑실패 |
-
----
-
-## RunPod 평가 실행 가이드
-
-### 현재 상태
-
-- [x] Gemma 추론 (718건) - 진행중
-- [ ] Qwen 추론 (718건)
-- [ ] Gemma 평가
-- [ ] Qwen 평가
-- [ ] 두 모델 비교
-
-### 사전 준비 (RunPod SSH 접속 후)
-
-#### 1) Qwen 모델 다운로드
-
-```bash
-python
-```
-
-```python
-from huggingface_hub import snapshot_download
-snapshot_download('77eileen/qwen2.5-1.5b-patent-fto', local_dir='/workspace/SKN20-FINAL-2TEAM/SLLM_model/outputs/qwen2.5-1.5b-lora')
-```
-
-다운 끝나면 `exit()` 로 파이썬 나오기
-
-#### 2) git pull (최신 코드 반영)
-
-```bash
-cd /workspace/SKN20-FINAL-2TEAM && git pull
-```
-
-### 평가 실행
-
-eval 디렉토리로 이동:
-
-```bash
-cd /workspace/SKN20-FINAL-2TEAM/SLLM_model/sllm_smalltrain_dj/eval
-```
-
-#### Qwen 추론 (718건)
-
-```bash
-python 01_infer.py --model_path /workspace/SKN20-FINAL-2TEAM/SLLM_model/outputs/qwen2.5-1.5b-lora --model_name qwen --test_data /workspace/SKN20-FINAL-2TEAM/SLLM_model/data/sllm_smalltrain/sllm_test_718.xlsx
-```
-
-- 매 1건마다 로그 출력됨
-- 결과: `output/infer_qwen.xlsx`
-
-#### Gemma 평가
-
-```bash
-python 02_evaluate.py --input output/infer_gemma.xlsx --model_name gemma
-```
-
-- 결과: `output/eval_detail_gemma.xlsx`
-
-#### Qwen 평가
-
-```bash
-python 02_evaluate.py --input output/infer_qwen.xlsx --model_name qwen
-```
-
-- 결과: `output/eval_detail_qwen.xlsx`
-
-#### 두 모델 비교
-
-```bash
-python 03_compare.py --model_a output/eval_detail_gemma.xlsx --model_b output/eval_detail_qwen.xlsx
-```
-
-- 결과: `output/eval_summary.md`
-
-### 로그 저장 위치
-
-`SLLM_model/logs/` 폴더에 자동 저장
-
-| 스크립트 | 로그 파일 |
-|----------|----------|
-| 추론 | `eval_infer_*.log` |
-| 평가 | `eval_evaluate_*.log` |
-| 비교 | `eval_compare_*.log` |
-
-### 주의사항
-
-- 명령어는 반드시 **한줄로** 붙여넣기 (줄바꿈되면 에러남)
-- Qwen 추론 전에 반드시 `git pull` 필요
-- HuggingFace 로그인 안 되어 있으면: `python -c "from huggingface_hub import login; login()"`
-
-### HuggingFace 모델 저장소
-
-| 모델 | 저장소 |
-|------|--------|
-| Gemma3 1B | `77eileen/gemma3-1b-patent-fto` (private) |
-| Qwen2.5 1.5B | `77eileen/qwen2.5-1.5b-patent-fto` (private) |
