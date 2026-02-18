@@ -15,7 +15,7 @@ langgraph-checkpoint==3.0.1
 langgraph-prebuilt==1.0.5
 langgraph-sdk==0.3.1
 
-# === AI/ML 모델 ===
+# === 모델 ===
 openai>=1.0.0
 torch>=2.1.0
 # CLIP: OpenAI의 공식 GitHub 저장소에서 설치
