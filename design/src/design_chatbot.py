@@ -58,7 +58,7 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 output_parser = StrOutputParser()
 
-chroma_client = chromadb.PersistentClient(path="./chroma_db_v2")
+chroma_client = chromadb.PersistentClient(path="..\\chroma_db")
 image_collection = chroma_client.get_collection(name="design")
 
 

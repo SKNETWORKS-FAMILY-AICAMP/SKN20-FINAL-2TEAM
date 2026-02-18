@@ -201,8 +201,8 @@ if __name__ == "__main__":
     current_dir = Path(__file__).parent
     
     # xml\2025_2026 폴더 변환
-    input_folder = current_dir / "data/xml/2025_2026" #변경할 xml 폴더 경로
-    output_folder = current_dir / "data/json/2025_2026" #변경된 json 폴더 경로
+    input_folder = current_dir / "../data/xml/2025_2026" #변경할 xml 폴더 경로
+    output_folder = current_dir / "../data/json/2025_2026" #변경된 json 폴더 경로
     if input_folder.exists():
         print("=" * 50)
         print(f"{input_folder} 폴더 변환 시작 (이미지당 JSON 1개)")

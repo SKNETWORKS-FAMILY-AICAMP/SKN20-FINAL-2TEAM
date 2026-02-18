@@ -103,8 +103,8 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
 
 # ==================== 이미지 경로 변환 함수 ====================
 
-# utils.py 기준 절대 경로로 이미지 디렉토리 설정
-_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "images_v2")
+# utils.py 기준 상대 경로로 이미지 디렉토리 설정
+_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "images_v2")
 
 
 def design_id_to_local_image(design_id, images_dir=None):
@@ -114,7 +114,7 @@ def design_id_to_local_image(design_id, images_dir=None):
     Args:
         design_id: ChromaDB의 디자인 ID
                    예: "3020250000208-09-01-0-IMG-0"
-        images_dir: 이미지 디렉토리 경로 (기본값: design/data/images_v2)
+        images_dir: 이미지 디렉토리 경로 (기본값: ../data/images_v2)
 
     Returns:
         str: 로컬 이미지 파일 경로

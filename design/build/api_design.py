@@ -24,7 +24,7 @@ print(f"📊 {excel_file} 파일에서 {len(application_numbers)}개의 출원�
 base_url = "http://plus.kipris.or.kr/kipo-api/kipi/designInfoSearchService/getBibliographyDetailInfoSearch"
 
 # **중요** 연도수로 폴더명 지정하기! 
-os.makedirs("data/xml/2025_2026", exist_ok=True) # xml 저장할 폴더 생성
+os.makedirs("../data/xml/2025_2026", exist_ok=True) # xml 저장할 폴더 생성
 
 success_count = 0
 fail_count = 0
@@ -44,7 +44,7 @@ for idx, app_num in enumerate(application_numbers, 1):
         
         # XML 파일로 저장
         if r.status_code == 200:
-            file_path = f"data/xml/2025_2026/{app_num}.xml" #폴더명 데이터 맞춰서 변경
+            file_path = f"../data/xml/2025_2026/{app_num}.xml" #폴더명 데이터 맞춰서 변경
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(r.text)
             print(f"         ✅ 저장: {file_path}")

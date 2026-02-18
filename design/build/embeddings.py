@@ -35,11 +35,11 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
 # json 파일이 있는 폴더
-JSON_FOLDER = r"data/json/2025_2026"
+JSON_FOLDER = r"../data/json/2025_2026"
 # 이미지 저장할 폴더
-DOWNLOAD_DIR = r"data/images"
+DOWNLOAD_DIR = r"../data/images"
 # 벡터DB에 적재할 json(임베딩 벡터 포함 버전) 저장할 폴더
-EMBEDDING_OUTPUT = r"data/embeddings"
+EMBEDDING_OUTPUT = r"../data/embeddings"
 
 # 디렉토리 생성
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)

@@ -5,7 +5,7 @@ from chromadb import Client
 
 # ChromaDB 클라이언트 초기화
 # 저장 경로 지정(현재 디렉토리의 chroma_db 폴더)
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
+chroma_client = chromadb.PersistentClient(path="..\\chroma_db")
 
 
 #컬렉션이 이미 존재하면 불러오고, 없으면 새로 생성한다.
@@ -16,7 +16,7 @@ image_collection = chroma_client.get_or_create_collection(
 print("벡터 DB 컬렉션 이름: ", image_collection.name)
 
 # === embeddings 폴더 내 json 전체 로드 ===
-EMBEDDING_DIR = "./data/embeddings"
+EMBEDDING_DIR = "design\\data\\embeddings"
 
 print("벡터 DB에 저장 중")
 for filename in os.listdir(EMBEDDING_DIR):
