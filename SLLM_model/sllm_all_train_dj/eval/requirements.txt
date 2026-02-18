@@ -1,0 +1,8 @@
+pandas
+openpyxl
+loguru
+torch
+transformers
+peft
+scikit-learn
+vllm
