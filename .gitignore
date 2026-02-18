@@ -1,6 +1,3 @@
-fashion/.env
 .env
-.vscode/settings.json
-model/data/Sample
-data/
-chroma_db/
+design/data/
+design/chroma_db/
