@@ -110,43 +110,34 @@ TAVILY_API_KEY=tvly-...
 **Python 3.9+ 필요**
 
 ```bash
-# === LangChain 프레임워크 ===
+# === LangChain 프레임워크 (실제 사용) ===
 langchain==1.2.1
-langchain-chroma==1.1.0
-langchain-classic==1.0.1
 langchain-community==0.4.1
 langchain-core==1.2.6
-langchain-huggingface==1.2.0
 langchain-openai==1.1.6
-langchain-text-splitters==1.1.0
 langgraph==1.0.5
 langgraph-checkpoint==3.0.1
 langgraph-prebuilt==1.0.5
-langgraph-sdk==0.3.1
 
-# === 모델 ===
-openai>=1.0.0
+# === AI/ML 모델 ===
 torch>=2.1.0
-git+https://github.com/openai/CLIP.git  # CLIP 모델
-transformers>=4.30.0
 numpy>=1.24.0
+git+https://github.com/openai/CLIP.git
 
-# === 데이터베이스 & 검색 ===
+# === 데이터베이스 ===
 chromadb>=0.4.0
-tavily-python>=0.3.0
 
-# === 웹 & API ===
+# === 웹/API ===
 fastapi>=0.104.0
 uvicorn>=0.24.0
-
-# === 파일 처리 ===
-Pillow>=10.0.0
-openpyxl>=3.1.0
 requests>=2.31.0
 
-# === 기타 ===
+# === 이미지/파일 처리 ===
+Pillow>=10.0.0
+openpyxl>=3.1.0
+
+# === 유틸리티 ===
 python-dotenv>=1.0.0
-pathlib
 ```
 
 ### 설치
