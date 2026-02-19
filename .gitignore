@@ -22,3 +22,13 @@ __pycache__/
 # sLLM 체크포인트 (중간 학습 상태, 재학습 시에만 필요)
 SLLM_model/outputs/*/checkpoint-*/
 SLLM_model/outputs/*/.gitattributes
+
+
+#디자인 
+design/data/
+design/chroma_db/
+
+__pycache__/
+*.pyc
+design/src/temp_uploads/*
+.DS_Store
