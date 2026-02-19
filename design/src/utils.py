@@ -104,7 +104,7 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
 # ==================== 이미지 경로 변환 함수 ====================
 
 # utils.py 기준 상대 경로로 이미지 디렉토리 설정
-_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "images_v2")
+_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "images")
 
 
 def design_id_to_local_image(design_id, images_dir=None):
@@ -113,8 +113,8 @@ def design_id_to_local_image(design_id, images_dir=None):
 
     Args:
         design_id: ChromaDB의 디자인 ID
-                   예: "3020250000208-09-01-0-IMG-0"
-        images_dir: 이미지 디렉토리 경로 (기본값: ../data/images_v2)
+                   예: "3020100013707-api_xml-1-IMG-1"
+        images_dir: 이미지 디렉토리 경로 (기본값: ../data/images)
 
     Returns:
         str: 로컬 이미지 파일 경로
@@ -123,22 +123,51 @@ def design_id_to_local_image(design_id, images_dir=None):
     if images_dir is None:
         images_dir = _DEFAULT_IMAGES_DIR
 
-    # IMG 부분 제거
-    parts = design_id.split('-IMG-')
-    if len(parts) == 2:
-        prefix = parts[0]      # 3020250000208-09-01-0
-        image_num = parts[1]   # 0
-
-        # 3자리 숫자로 변환
-        image_num_padded = image_num.zfill(3)  # 000
-
-        # 파일명 생성
+    print(f"Processing design_id: {design_id}")  # 디버깅용
+    
+    # IMG 부분 제거하고 파일명 형식으로 변환
+    if '-IMG-' in design_id:
+        parts = design_id.split('-IMG-')
+        prefix = parts[0]      # 3020100013707-api_xml-1
+        image_num = parts[1]   # 1
+        
+        # 숫자를 3자리로 변환
+        image_num_padded = image_num.zfill(3)  # 001
         filename = f"{prefix}_{image_num_padded}.jpg"
         local_path = os.path.join(images_dir, filename)
-
-        return local_path if os.path.exists(local_path) else None
-
-    return None
+        
+        print(f"Trying filename: {filename}")  # 디버깅용
+        
+        if os.path.exists(local_path):
+            print(f"✅ Found: {filename}")
+            return local_path
+        
+        # 기본 패턴 실패시 다른 번호들 시도 (000, 001, 002)
+        for alt_num in ['000', '001', '002']:
+            alt_filename = f"{prefix}_{alt_num}.jpg"
+            alt_path = os.path.join(images_dir, alt_filename)
+            print(f"Trying alternative: {alt_filename}")  # 디버깅용
+            if os.path.exists(alt_path):
+                print(f"✅ Found alternative: {alt_filename}")
+                return alt_path
+        
+        print(f"❌ No file found for: {design_id}")
+        return None
+    
+    # IMG가 없는 경우 직접 매칭 시도
+    else:
+        # design_id가 이미 파일명 형식인 경우 처리
+        # 예: "3020250000208-api_xml-0" -> "3020250000208-api_xml-0_000.jpg" 
+        for alt_num in ['000', '001', '002']:
+            filename = f"{design_id}_{alt_num}.jpg"
+            local_path = os.path.join(images_dir, filename)
+            print(f"Trying direct match: {filename}")  # 디버깅용
+            if os.path.exists(local_path):
+                print(f"✅ Found direct match: {filename}")
+                return local_path
+        
+        print(f"❌ No direct match found for: {design_id}")
+        return None
 
 
 # ==================== 벡터 검색 및 필터링 함수 ====================

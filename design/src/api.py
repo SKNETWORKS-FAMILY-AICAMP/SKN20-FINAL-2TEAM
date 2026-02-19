@@ -23,7 +23,7 @@ import uvicorn
 from langgraph.types import Command
 
 # design_chatbot_v3에서 그래프와 유틸 가져오기
-from design_chatbot_v3 import graph, design_id_to_local_image
+from design_chatbot import graph, design_id_to_local_image
 
 
 # ==================== FastAPI 초기화 ====================
@@ -104,15 +104,37 @@ async def chat_image(
         for comp in result.get('comparison_results', []):
             # 이미지를 base64로 인코딩
             image_base64 = None
-            if comp.get('image_path') and os.path.exists(comp['image_path']):
+            image_path = comp.get('image_path')
+            
+            # 디버깅 로그 추가
+            print(f"Design ID: {comp.get('design_id')}")
+            print(f"Image Path: {image_path}")
+            print(f"File exists: {os.path.exists(image_path) if image_path else False}")
+            
+            if image_path and os.path.exists(image_path):
                 try:
-                    with open(comp['image_path'], 'rb') as f:
+                    with open(image_path, 'rb') as f:
                         image_base64 = base64.b64encode(f.read()).decode('utf-8')
-                except Exception:
-                    pass
+                    print(f"Successfully loaded image for {comp.get('design_id')}")
+                except Exception as e:
+                    print(f"Error loading image for {comp.get('design_id')}: {e}")
+            else:
+                print(f"Image not found for {comp.get('design_id')}")
+                # design_id_to_local_image 함수를 직접 테스트
+                if comp.get('design_id'):
+                    alternative_path = design_id_to_local_image(comp['design_id'])
+                    print(f"Alternative path: {alternative_path}")
+                    if alternative_path and os.path.exists(alternative_path):
+                        try:
+                            with open(alternative_path, 'rb') as f:
+                                image_base64 = base64.b64encode(f.read()).decode('utf-8')
+                            print(f"Successfully loaded image using alternative path")
+                        except Exception as e:
+                            print(f"Error loading alternative image: {e}")
 
             similar_designs.append({
                 "index": comp['index'],
+                "design_id": comp.get('design_id', ''),  # design_id도 추가
                 "application_number": comp['application_number'],
                 "article_name": comp['article_name'],
                 "admst_stat": comp['admst_stat'],

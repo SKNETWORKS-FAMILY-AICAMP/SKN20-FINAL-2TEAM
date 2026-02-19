@@ -50,7 +50,7 @@ from prompts import (
 )
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv() 
 
 
 # ==================== LLM & ChromaDB 초기화 ====================
