@@ -35,11 +35,13 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
 # json 파일이 있는 폴더
-JSON_FOLDER = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\json(21,909개)"
+JSON_FOLDER = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\json"
 # 이미지 저장할 폴더
-DOWNLOAD_DIR = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\images"
+DOWNLOAD_DIR = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\images_2"
 # 벡터DB에 적재할 json(임베딩 벡터 포함 버전) 저장할 폴더
 EMBEDDING_OUTPUT = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\embeddings"
+# 에러 기록 파일
+ERROR_LOG = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\data\error_log.txt"
 
 # 디렉토리 생성
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
@@ -69,9 +71,19 @@ for idx, filename in enumerate(list,1):
     image_name = data.get('image', {}).get('imageName', 'image.jpg')
     design_id = data.get('design_id', 'unknown')
 
+    # 이미 처리된 파일이면 skip (이어받기)
+    image_number_pre = data.get('image', {}).get('number', '1')
+    output_file_pre = os.path.join(EMBEDDING_OUTPUT, f"{design_id}-{image_number_pre}_embedding.json")
+    if os.path.exists(output_file_pre):
+        print(f"SKIP: 이미 처리됨 → {output_file_pre}")
+        continue
+
     if not image_path:
-        print("ERROR: imagePath를 찾을 수 없습니다.")
-        exit(1)
+        msg = f"[{filename}] imagePath를 찾을 수 없습니다."
+        print(f"ERROR: {msg}")
+        with open(ERROR_LOG, 'a', encoding='utf-8') as ef:
+            ef.write(msg + "\n")
+        continue
 
     print(f"이미지 경로: {image_path}")
     print(f"이미지 이름: {image_name}")
@@ -146,11 +158,17 @@ for idx, filename in enumerate(list,1):
         
         
     except requests.exceptions.RequestException as e:
-        print(f"ERROR: 이미지 다운로드 실패 - {e}")
-        exit(1)
+        msg = f"[{filename}] 이미지 다운로드 실패 - {e}"
+        print(f"ERROR: {msg}")
+        with open(ERROR_LOG, 'a', encoding='utf-8') as ef:
+            ef.write(msg + "\n")
+        continue
     except Exception as e:
-        print(f"ERROR: {e}")
-        exit(1)
+        msg = f"[{filename}] {type(e).__name__}: {e}"
+        print(f"ERROR: {msg}")
+        with open(ERROR_LOG, 'a', encoding='utf-8') as ef:
+            ef.write(msg + "\n")
+        continue
 
     print("작업 완료!")
     print(f"다운로드된 이미지: {DOWNLOAD_DIR}")
