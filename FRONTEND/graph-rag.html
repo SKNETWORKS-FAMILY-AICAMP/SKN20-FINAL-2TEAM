@@ -10,18 +10,33 @@
     <!-- D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="styles.css">
-    
     <!-- Toast System -->
     <link rel="stylesheet" href="toast.css">
     
     <title>Graph RAG 분석 - FTOGuard</title>
     
     <style>
+        /* Pretendard 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
         /* Graph Container */
         #graph-container {
-            background: #0f172a;
+            background: linear-gradient(to bottom, #FAFAFA, #F5F5F5);
             position: relative;
         }
         
@@ -29,15 +44,17 @@
         .node {
             cursor: pointer;
             transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
         
         .node:hover {
-            stroke-width: 3px;
+            stroke-width: 4px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
         }
         
         .node-user {
-            fill: #3B82F6;
-            stroke: #60A5FA;
+            fill: #FF6B35;
+            stroke: #FF8C5A;
         }
         
         .node-patent {
@@ -57,7 +74,7 @@
         
         /* Link Styles */
         .link {
-            stroke: #334155;
+            stroke: #D4D4D4;
             stroke-opacity: 0.6;
             stroke-width: 2px;
         }
@@ -66,22 +83,31 @@
             stroke: #EF4444;
             stroke-opacity: 0.8;
             stroke-width: 3px;
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
         }
         
         .link-medium-risk {
             stroke: #F59E0B;
-            stroke-opacity: 0.6;
+            stroke-opacity: 0.7;
+            stroke-width: 2.5px;
         }
         
         .link-low-risk {
             stroke: #10B981;
-            stroke-opacity: 0.4;
+            stroke-opacity: 0.5;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
         }
         
         /* Node Labels */
         .node-label {
-            fill: #94A3B8;
-            font-size: 12px;
+            fill: #525252;
+            font-size: 11px;
             font-weight: 600;
             pointer-events: none;
             text-anchor: middle;
@@ -92,15 +118,14 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 320px;
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid #334155;
+            width: 340px;
+            background: white;
+            border: 1px solid #E5E5E5;
             border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             transform: translateX(400px);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .detail-panel.active {
@@ -117,23 +142,30 @@
         }
         
         .zoom-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #94A3B8;
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            color: #737373;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
         
         .zoom-btn:hover {
-            background: #1e293b;
-            color: #60A5FA;
-            border-color: #60A5FA;
+            background: #FF6B35;
+            color: white;
+            border-color: #FF6B35;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .zoom-btn:active {
+            transform: translateY(0);
         }
         
         /* Legend */
@@ -141,20 +173,21 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid #334155;
+            background: white;
+            border: 1px solid #E5E5E5;
             border-radius: 12px;
-            padding: 16px;
-            backdrop-filter: blur(10px);
+            padding: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
         
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            color: #94A3B8;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #525252;
+            font-weight: 500;
         }
         
         .legend-item:last-child {
@@ -162,48 +195,70 @@
         }
         
         .legend-dot {
-            width: 12px;
-            height: 12px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            border: 2px solid;
+            border: 3px solid;
+            flex-shrink: 0;
+        }
+        
+        /* Stats Animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .stat-number {
+            animation: countUp 0.5s ease-out;
         }
     </style>
 </head>
 
-<body class="bg-slate-950">
+<body class="bg-neutral-50">
 
-    <!-- ✅ 공통 헤더 -->
+    <!-- 공통 헤더 -->
     <div id="app-header"></div>
 
     <!-- Main Content -->
-    <main class="min-h-screen pt-20">
-        <div class="max-w-7xl mx-auto px-6 py-8">
+    <main class="min-h-screen pt-24 pb-20">
+        <div class="max-w-7xl mx-auto px-6">
             
             <!-- Page Header -->
             <div class="mb-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-black text-white mb-2">Graph RAG 분석</h1>
-                        <p class="text-slate-400">특허 침해 관계 그래프 시각화</p>
+                        <h1 class="text-3xl font-bold text-black mb-2 flex items-center gap-3">
+                            <i class="fas fa-project-diagram text-primary"></i>
+                            Graph RAG 분석
+                        </h1>
+                        <p class="text-neutral-600">특허 침해 관계 그래프 시각화 및 네트워크 분석</p>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="resetGraph()" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition">
-                            <i class="fas fa-redo mr-2"></i>초기화
+                        <button 
+                            onclick="resetGraph()" 
+                            class="px-5 py-2.5 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary text-neutral-700 hover:text-primary rounded-xl font-semibold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2"
+                        >
+                            <i class="fas fa-redo"></i>
+                            초기화
                         </button>
-                        <button onclick="exportGraph()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition">
-                            <i class="fas fa-download mr-2"></i>내보내기
+                        <button 
+                            onclick="exportGraph()" 
+                            class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg inline-flex items-center gap-2"
+                        >
+                            <i class="fas fa-download"></i>
+                            내보내기
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Graph Container -->
-            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden" style="height: 700px; position: relative;">
+            <div class="bg-white border border-neutral-200 rounded-2xl shadow-sm overflow-hidden mb-6" style="height: 700px; position: relative;">
                 <svg id="graph-container" width="100%" height="100%"></svg>
                 
                 <!-- Legend -->
                 <div class="legend">
-                    <div class="text-white font-bold mb-3 text-sm">노드 유형</div>
+                    <div class="text-black font-bold mb-3 text-sm">노드 유형</div>
                     <div class="legend-item">
                         <div class="legend-dot node-user"></div>
                         <span>사용자 기술</span>
@@ -224,49 +279,92 @@
                 
                 <!-- Detail Panel -->
                 <div id="detail-panel" class="detail-panel">
-                    <button onclick="closeDetailPanel()" class="absolute top-3 right-3 text-slate-400 hover:text-white">
-                        <i class="fas fa-times"></i>
+                    <button onclick="closeDetailPanel()" class="absolute top-4 right-4 text-neutral-400 hover:text-primary transition-colors">
+                        <i class="fas fa-times text-lg"></i>
                     </button>
                     
                     <div id="detail-content">
-                        <div class="text-center text-slate-500 py-8">
-                            <i class="fas fa-mouse-pointer text-3xl mb-3"></i>
-                            <p class="text-sm">노드를 클릭하여<br/>상세 정보를 확인하세요</p>
+                        <div class="text-center text-neutral-400 py-12">
+                            <i class="fas fa-mouse-pointer text-4xl mb-4"></i>
+                            <p class="text-sm font-medium">노드를 클릭하여<br/>상세 정보를 확인하세요</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Zoom Controls -->
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()">
+                    <button class="zoom-btn" onclick="zoomIn()" title="확대">
                         <i class="fas fa-plus"></i>
                     </button>
-                    <button class="zoom-btn" onclick="zoomOut()">
+                    <button class="zoom-btn" onclick="zoomOut()" title="축소">
                         <i class="fas fa-minus"></i>
                     </button>
-                    <button class="zoom-btn" onclick="resetZoom()">
+                    <button class="zoom-btn" onclick="resetZoom()" title="전체 보기">
                         <i class="fas fa-expand"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <div class="text-slate-400 text-sm mb-2">총 노드</div>
-                    <div class="text-3xl font-black text-white" id="totalNodes">0</div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-neutral-600 text-sm font-semibold">총 노드</div>
+                        <div class="w-10 h-10 bg-neutral-50 rounded-lg flex items-center justify-center border border-neutral-200">
+                            <i class="fas fa-circle-nodes text-neutral-600"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-black stat-number" id="totalNodes">0</div>
                 </div>
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <div class="text-slate-400 text-sm mb-2">특허 수</div>
-                    <div class="text-3xl font-black text-red-400" id="patentCount">0</div>
+                
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-neutral-600 text-sm font-semibold">특허 수</div>
+                        <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center border border-red-200">
+                            <i class="fas fa-file-alt text-red-500"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-red-500 stat-number" id="patentCount">0</div>
                 </div>
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <div class="text-slate-400 text-sm mb-2">침해 포인트</div>
-                    <div class="text-3xl font-black text-yellow-400" id="infringementCount">0</div>
+                
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-neutral-600 text-sm font-semibold">침해 포인트</div>
+                        <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center border border-yellow-200">
+                            <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-yellow-500 stat-number" id="infringementCount">0</div>
                 </div>
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <div class="text-slate-400 text-sm mb-2">연결 수</div>
-                    <div class="text-3xl font-black text-blue-400" id="linkCount">0</div>
+                
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-neutral-600 text-sm font-semibold">연결 수</div>
+                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-200">
+                            <i class="fas fa-link text-blue-500"></i>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-blue-500 stat-number" id="linkCount">0</div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-info-circle text-xl text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-blue-900 mb-2">그래프 사용 팁</h3>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            <li>• 노드를 드래그하여 위치를 조정할 수 있습니다</li>
+                            <li>• 노드를 클릭하면 상세 정보를 확인할 수 있습니다</li>
+                            <li>• 마우스 휠로 확대/축소가 가능합니다</li>
+                            <li>• 점선 연결은 위험도가 높은 관계를 나타냅니다</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -275,6 +373,273 @@
 
     <script src="toast.js"></script>
     <script src="script.js"></script>
-    <script src="graph-rag.js"></script>
+    <script>
+        // D3.js Graph Implementation
+        let svg, g, simulation, zoom, currentTransform = d3.zoomIdentity;
+        
+        // Mock data
+        const mockData = {
+            nodes: [
+                { id: 'user-tech', type: 'user', label: '스마트 머그컵', description: '온도 조절 기능이 있는 스마트 머그컵' },
+                { id: 'patent-1', type: 'patent', label: 'KR-2021-0123456', description: '스마트 보온 용기 및 제어 방법' },
+                { id: 'patent-2', type: 'patent', label: 'KR-2020-0098765', description: '무선 충전 기능을 갖는 스마트 컵' },
+                { id: 'patent-3', type: 'patent', label: 'KR-2022-0045678', description: '세라믹 히팅 소자를 이용한 보온 기술' },
+                { id: 'component-1', type: 'component', label: '온도 센서', description: '실시간 온도 감지 센서' },
+                { id: 'component-2', type: 'component', label: '가열 소자', description: '세라믹 기반 가열 시스템' },
+                { id: 'component-3', type: 'component', label: '배터리', description: '리튬이온 배터리' },
+                { id: 'infringement-1', type: 'infringement', label: '침해 가능', description: '청구항 1과 유사성 발견' }
+            ],
+            links: [
+                { source: 'user-tech', target: 'component-1', type: 'low-risk' },
+                { source: 'user-tech', target: 'component-2', type: 'low-risk' },
+                { source: 'user-tech', target: 'component-3', type: 'low-risk' },
+                { source: 'component-1', target: 'patent-1', type: 'medium-risk' },
+                { source: 'component-2', target: 'patent-2', type: 'low-risk' },
+                { source: 'component-2', target: 'patent-3', type: 'low-risk' },
+                { source: 'patent-1', target: 'infringement-1', type: 'high-risk' }
+            ]
+        };
+        
+        function initGraph() {
+            const container = document.getElementById('graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // Clear existing
+            d3.select('#graph-container').selectAll('*').remove();
+            
+            svg = d3.select('#graph-container');
+            
+            // Zoom behavior
+            zoom = d3.zoom()
+                .scaleExtent([0.3, 3])
+                .on('zoom', (event) => {
+                    currentTransform = event.transform;
+                    g.attr('transform', event.transform);
+                });
+            
+            svg.call(zoom);
+            
+            g = svg.append('g');
+            
+            // Force simulation
+            simulation = d3.forceSimulation(mockData.nodes)
+                .force('link', d3.forceLink(mockData.links).id(d => d.id).distance(180))
+                .force('charge', d3.forceManyBody().strength(-400))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(40));
+            
+            // Links
+            const link = g.append('g')
+                .selectAll('line')
+                .data(mockData.links)
+                .enter()
+                .append('line')
+                .attr('class', d => `link link-${d.type}`);
+            
+            // Nodes
+            const node = g.append('g')
+                .selectAll('circle')
+                .data(mockData.nodes)
+                .enter()
+                .append('circle')
+                .attr('class', d => `node node-${d.type}`)
+                .attr('r', 24)
+                .attr('stroke-width', 3)
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('click', showNodeDetail)
+                .on('mouseenter', function() {
+                    d3.select(this).transition().duration(200).attr('r', 28);
+                })
+                .on('mouseleave', function() {
+                    d3.select(this).transition().duration(200).attr('r', 24);
+                });
+            
+            // Labels
+            const label = g.append('g')
+                .selectAll('text')
+                .data(mockData.nodes)
+                .enter()
+                .append('text')
+                .attr('class', 'node-label')
+                .attr('dy', 40)
+                .text(d => d.label);
+            
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+            
+            updateStats();
+        }
+        
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+        
+        function showNodeDetail(event, d) {
+            const panel = document.getElementById('detail-panel');
+            const content = document.getElementById('detail-content');
+            
+            const typeLabels = {
+                user: '사용자 기술',
+                patent: '특허',
+                component: '구성요소',
+                infringement: '침해 포인트'
+            };
+            
+            const typeColors = {
+                user: 'bg-primary/10 text-primary border-primary/20',
+                patent: 'bg-red-50 text-red-600 border-red-200',
+                component: 'bg-purple-50 text-purple-600 border-purple-200',
+                infringement: 'bg-yellow-50 text-yellow-600 border-yellow-200'
+            };
+            
+            const connections = mockData.links.filter(l => 
+                l.source.id === d.id || l.target.id === d.id
+            ).length;
+            
+            content.innerHTML = `
+                <div class="mb-4">
+                    <span class="inline-block px-3 py-1 rounded-lg text-xs font-semibold border ${typeColors[d.type]}">
+                        ${typeLabels[d.type]}
+                    </span>
+                </div>
+                <h3 class="text-lg font-bold text-black mb-2">${d.label}</h3>
+                <p class="text-sm text-neutral-600 mb-4">${d.description}</p>
+                <div class="space-y-3">
+                    <div class="bg-neutral-50 rounded-lg p-3 border border-neutral-200">
+                        <div class="text-xs text-neutral-600 mb-1">노드 ID</div>
+                        <div class="text-sm font-semibold text-black font-mono">${d.id}</div>
+                    </div>
+                    <div class="bg-neutral-50 rounded-lg p-3 border border-neutral-200">
+                        <div class="text-xs text-neutral-600 mb-1">연결 수</div>
+                        <div class="text-sm font-semibold text-black">${connections}개</div>
+                    </div>
+                    <div class="bg-neutral-50 rounded-lg p-3 border border-neutral-200">
+                        <div class="text-xs text-neutral-600 mb-1">위치</div>
+                        <div class="text-xs font-mono text-neutral-700">X: ${Math.round(d.x)}, Y: ${Math.round(d.y)}</div>
+                    </div>
+                </div>
+            `;
+            
+            panel.classList.add('active');
+        }
+        
+        function closeDetailPanel() {
+            document.getElementById('detail-panel').classList.remove('active');
+        }
+        
+        function updateStats() {
+            document.getElementById('totalNodes').textContent = mockData.nodes.length;
+            document.getElementById('patentCount').textContent = mockData.nodes.filter(n => n.type === 'patent').length;
+            document.getElementById('infringementCount').textContent = mockData.nodes.filter(n => n.type === 'infringement').length;
+            document.getElementById('linkCount').textContent = mockData.links.length;
+        }
+        
+        function zoomIn() {
+            svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+        }
+        
+        function zoomOut() {
+            svg.transition().duration(300).call(zoom.scaleBy, 0.7);
+        }
+        
+        function resetZoom() {
+            svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+        }
+        
+        function resetGraph() {
+            if (typeof Toast !== 'undefined') Toast.info('그래프를 초기화합니다...');
+            closeDetailPanel();
+            initGraph();
+            setTimeout(() => {
+                if (typeof Toast !== 'undefined') Toast.success('초기화 완료!');
+            }, 500);
+        }
+        
+        function exportGraph() {
+            if (typeof Toast !== 'undefined') {
+                Toast.info('그래프 내보내기 중...');
+                setTimeout(() => Toast.success('내보내기 완료!'), 1000);
+            }
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initGraph();
+        });
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            initGraph();
+        });
+        
+        // Load header with authenticated state
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-header').innerHTML = data;
+                
+                setTimeout(() => {
+                    const authButtons = document.querySelector('.auth-buttons');
+                    if (authButtons) {
+                        authButtons.innerHTML = `
+                            <a href="analysis.html" class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md">
+                                <i class="fas fa-chart-line mr-2"></i>분석 시작
+                            </a>
+                            <button onclick="logout()" class="px-5 py-2.5 border-2 border-neutral-200 hover:border-primary text-neutral-700 hover:text-primary rounded-xl text-sm font-bold transition-all">
+                                <i class="fas fa-sign-out-alt mr-2"></i>로그아웃
+                            </button>
+                        `;
+                    }
+                }, 100);
+                
+                const scripts = document.getElementById('app-header').querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) newScript.src = script.src;
+                    else newScript.textContent = script.textContent;
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.log('Header load skipped'));
+        
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }, 500);
+        }
+    </script>
 </body>
 </html>

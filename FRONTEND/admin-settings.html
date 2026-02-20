@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>시스템 설정 - FTOGuard Admin</title>
+    
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        :root { --primary: #FF6B35; }
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item:hover { background: #FFF5F0; color: var(--primary); }
+        .nav-item.active { background: #FFF5F0; color: var(--primary); border-left: 3px solid var(--primary); }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: #D4D4D4;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+
+<body class="bg-neutral-50">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-0 bottom-0 z-40">
+            <div class="p-6 border-b border-neutral-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-black">FTOGuard</h1>
+                        <p class="text-xs text-neutral-500">Admin Panel</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto p-4">
+                <div class="space-y-1">
+                    <a href="admin-dashboard.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-chart-line w-5"></i>대시보드
+                    </a>
+                    <a href="admin-users.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-users w-5"></i>사용자 관리
+                    </a>
+                    <a href="admin-analyses.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-file-alt w-5"></i>분석 이력
+                    </a>
+                    <a href="admin-patents.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-database w-5"></i>특허 DB
+                    </a>
+                    <a href="admin-settings.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold">
+                        <i class="fas fa-cog w-5"></i>시스템 설정
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="p-4 border-t border-neutral-200">
+                <div class="flex items-center gap-3 px-4 py-3 bg-neutral-50 rounded-lg">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">AD</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-black">관리자</p>
+                        <p class="text-xs text-neutral-500">admin@ftoguard.com</p>
+                    </div>
+                    <button onclick="logout()" class="text-neutral-400 hover:text-primary transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 overflow-y-auto">
+            
+            <header class="bg-white border-b border-neutral-200 sticky top-0 z-30">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-black">시스템 설정</h2>
+                            <p class="text-sm text-neutral-600 mt-1">FTOGuard 시스템 환경 설정 및 관리</p>
+                        </div>
+                        <button onclick="saveSettings()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md">
+                            <i class="fas fa-save mr-2"></i>설정 저장
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                
+                <!-- API Configuration -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-plug text-primary"></i>
+                        API 설정
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">KIPRIS API Key</label>
+                                <input type="password" value="••••••••••••••••" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">USPTO API Key</label>
+                                <input type="password" value="••••••••••••••••" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">EPO API Key</label>
+                                <input type="password" value="••••••••••••••••" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">OpenAI API Key</label>
+                                <input type="password" value="••••••••••••••••" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Features -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-toggle-on text-primary"></i>
+                        시스템 기능
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">사용자 가입 허용</p>
+                                <p class="text-xs text-neutral-600 mt-1">신규 사용자의 회원가입을 허용합니다</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">이메일 인증 필수</p>
+                                <p class="text-xs text-neutral-600 mt-1">회원가입 시 이메일 인증을 필수로 합니다</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">자동 DB 동기화</p>
+                                <p class="text-xs text-neutral-600 mt-1">특허 데이터베이스 자동 업데이트를 활성화합니다</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">분석 결과 캐싱</p>
+                                <p class="text-xs text-neutral-600 mt-1">동일 제품 재분석 시 캐시 사용</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-3">
+                            <div>
+                                <p class="text-sm font-semibold text-black">Graph RAG 기능</p>
+                                <p class="text-xs text-neutral-600 mt-1">그래프 기반 RAG 분석 활성화</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Limits -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-primary"></i>
+                        분석 제한 설정
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">Free 플랜 (월)</label>
+                            <input type="number" value="10" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">Pro 플랜 (월)</label>
+                            <input type="number" value="100" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">Enterprise 플랜 (월)</label>
+                            <input type="number" value="999" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Settings -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-envelope text-primary"></i>
+                        이메일 설정
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">SMTP 서버</label>
+                            <input type="text" value="smtp.gmail.com" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">포트</label>
+                            <input type="number" value="587" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">발신자 이메일</label>
+                            <input type="email" value="noreply@ftoguard.com" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-black mb-2">발신자 이름</label>
+                            <input type="text" value="FTOGuard" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                        보안 설정
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">2단계 인증 강제</p>
+                                <p class="text-xs text-neutral-600 mt-1">모든 사용자에게 2FA를 필수로 적용</p>
+                            </div>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">IP 제한</p>
+                                <p class="text-xs text-neutral-600 mt-1">특정 IP 주소에서만 접근 허용</p>
+                            </div>
+                            <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">세션 타임아웃 (분)</label>
+                                <input type="number" value="30" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">비밀번호 최소 길이</label>
+                                <input type="number" value="8" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backup Settings -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                    <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                        <i class="fas fa-database text-primary"></i>
+                        백업 설정
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-neutral-100">
+                            <div>
+                                <p class="text-sm font-semibold text-black">자동 백업</p>
+                                <p class="text-xs text-neutral-600 mt-1">데이터베이스 자동 백업 활성화</p>
+                            </div>
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">백업 주기</label>
+                                <select class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary">
+                                    <option>매일</option>
+                                    <option>매주</option>
+                                    <option>매월</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">백업 시간</label>
+                                <input type="time" value="02:00" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-black mb-2">보관 기간 (일)</label>
+                                <input type="number" value="30" class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            </div>
+                        </div>
+                        <div class="pt-2">
+                            <button onclick="manualBackup()" class="px-4 py-2 bg-white border border-neutral-200 hover:border-primary hover:text-primary rounded-lg text-sm font-semibold transition-all">
+                                <i class="fas fa-database mr-2"></i>수동 백업 실행
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="toast.js"></script>
+    <script>
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+        
+        function saveSettings() {
+            if (typeof Toast !== 'undefined') {
+                Toast.info('설정을 저장하는 중...');
+                setTimeout(() => Toast.success('설정이 저장되었습니다!'), 1000);
+            }
+        }
+        
+        function manualBackup() {
+            if (typeof Toast !== 'undefined') {
+                Toast.info('백업을 시작합니다...');
+                setTimeout(() => Toast.success('백업이 완료되었습니다!'), 2000);
+            }
+        }
+        
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => window.location.href = 'index.html', 500);
+        }
+    </script>
+</body>
+</html>

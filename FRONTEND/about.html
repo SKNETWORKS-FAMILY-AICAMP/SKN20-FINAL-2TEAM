@@ -83,22 +83,8 @@
                     </div>
                 </div>
 
-                <div class="rounded-2xl bg-gradient-to-br from-primary to-orange-600 p-8 md:p-10 text-white shadow-xl">
-                    <i class="fas fa-quote-left text-3xl mb-6 text-white/60"></i>
-                    <!-- 비즈벨: text-lg md:text-2xl -->
-                    <p class="text-lg md:text-2xl font-bold leading-snug mb-8">
-                        "판단을 대신하는 것이 아니라,<br/>
-                        판단에 필요한 최적의 출발점을 제공합니다."
-                    </p>
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div>
-                            <p class="font-bold">FTOGuard Vision</p>
-                            <p class="text-sm text-white/80">Next-Gen IP Solutions</p>
-                        </div>
-                    </div>
+                <div class="rounded-2xl bg-white border border-neutral-200 shadow-sm overflow-hidden">
+                    <img src="fto_risk_analysis.png" alt="FTO 리스크 분석 AI" class="w-full h-full object-cover">
                 </div>
             </div>
         </section>
@@ -147,7 +133,7 @@
         </section>
 
         <!-- 3. 타겟 사용자 -->
-        <section class="py-16 md:py-24 bg-neutral-50 -mx-6 px-6">
+        <section class="py-16 md:py-24 bg-white -mx-6 px-6">
             <div class="max-w-[1200px] mx-auto">
                 <div class="bg-slate-900 rounded-3xl p-8 md:p-16 text-white relative overflow-hidden">
                     <!-- 장식 요소 -->
@@ -244,43 +230,10 @@
 
     </main>
 
-    <!-- 공통 푸터 -->
+    <!-- ✅ 공통 Footer -->
     <div id="app-footer"></div>
 
-    <!-- Scripts -->
-    <script>
-        // Load header.html
-        fetch('header.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('app-header').innerHTML = data;
-                
-                // Re-execute scripts in loaded header
-                const scripts = document.getElementById('app-header').querySelectorAll('script');
-                scripts.forEach(script => {
-                    const newScript = document.createElement('script');
-                    if (script.src) {
-                        newScript.src = script.src;
-                    } else {
-                        newScript.textContent = script.textContent;
-                    }
-                    document.body.appendChild(newScript);
-                });
-            })
-            .catch(error => console.error('Error loading header:', error));
-        
-        // Load footer.html
-        fetch('footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('app-footer').innerHTML = data;
-            })
-            .catch(error => console.error('Error loading footer:', error));
-            
-        // checkAuthAndRedirect function (기존 기능 유지)
-        function checkAuthAndRedirect(page) {
-            window.location.href = page;
-        }
-    </script>
+    <!-- ✅ 공통 Script -->
+    <script src="script.js"></script>
 </body>
 </html>

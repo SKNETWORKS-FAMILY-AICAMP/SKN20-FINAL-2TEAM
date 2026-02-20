@@ -6,6 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate
+from app.config import settings
 from app.core.security import (
     verify_password,
     get_password_hash,
@@ -63,10 +64,16 @@ class AuthService:
 
     @staticmethod
     async def get_current_user_dependency(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=not settings.DEV_BYPASS_AUTH)),
         db: Session = Depends(get_db)
     ) -> User:
         """현재 로그인된 사용자 의존성"""
+        # 개발 모드: 토큰 없으면 더미 유저 반환
+        if settings.DEV_BYPASS_AUTH and (credentials is None):
+            dummy = User(id=0, email="dev@test.com", name="개발자")
+            dummy.id = 0
+            return dummy
+
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="인증 정보가 유효하지 않습니다.",

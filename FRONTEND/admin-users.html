@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>사용자 관리 - FTOGuard Admin</title>
+    
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        :root { --primary: #FF6B35; }
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item:hover { background: #FFF5F0; color: var(--primary); }
+        .nav-item.active { background: #FFF5F0; color: var(--primary); border-left: 3px solid var(--primary); }
+    </style>
+</head>
+
+<body class="bg-neutral-50">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-0 bottom-0 z-40">
+            <div class="p-6 border-b border-neutral-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-black">FTOGuard</h1>
+                        <p class="text-xs text-neutral-500">Admin Panel</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto p-4">
+                <div class="space-y-1">
+                    <a href="admin-dashboard.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-chart-line w-5"></i>대시보드
+                    </a>
+                    <a href="admin-users.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold">
+                        <i class="fas fa-users w-5"></i>사용자 관리
+                    </a>
+                    <a href="admin-analyses.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-file-alt w-5"></i>분석 이력
+                    </a>
+                    <a href="admin-patents.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-database w-5"></i>특허 DB
+                    </a>
+                    <a href="admin-settings.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-cog w-5"></i>시스템 설정
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="p-4 border-t border-neutral-200">
+                <div class="flex items-center gap-3 px-4 py-3 bg-neutral-50 rounded-lg">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">AD</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-black">관리자</p>
+                        <p class="text-xs text-neutral-500">admin@ftoguard.com</p>
+                    </div>
+                    <button onclick="logout()" class="text-neutral-400 hover:text-primary transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 overflow-y-auto">
+            
+            <header class="bg-white border-b border-neutral-200 sticky top-0 z-30">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-black">사용자 관리</h2>
+                            <p class="text-sm text-neutral-600 mt-1">전체 사용자 목록 및 계정 관리</p>
+                        </div>
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md">
+                            <i class="fas fa-user-plus mr-2"></i>신규 사용자 추가
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white border border-neutral-200 rounded-xl p-5">
+                        <p class="text-sm text-neutral-600 mb-1">전체 사용자</p>
+                        <p class="text-2xl font-bold text-black">1,247</p>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-5">
+                        <p class="text-sm text-neutral-600 mb-1">활성 사용자</p>
+                        <p class="text-2xl font-bold text-green-600">1,089</p>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-5">
+                        <p class="text-sm text-neutral-600 mb-1">정지된 계정</p>
+                        <p class="text-2xl font-bold text-red-600">12</p>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-5">
+                        <p class="text-sm text-neutral-600 mb-1">신규 가입 (이번달)</p>
+                        <p class="text-2xl font-bold text-blue-600">156</p>
+                    </div>
+                </div>
+
+                <!-- Filter & Search -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="relative">
+                            <input type="text" placeholder="이메일 또는 이름 검색..." class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400"></i>
+                        </div>
+                        <select class="px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary">
+                            <option>모든 상태</option>
+                            <option>활성</option>
+                            <option>정지</option>
+                            <option>대기</option>
+                        </select>
+                        <select class="px-4 py-2 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-primary">
+                            <option>모든 등급</option>
+                            <option>무료</option>
+                            <option>Pro</option>
+                            <option>Enterprise</option>
+                        </select>
+                        <button class="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-sm font-semibold transition-all">
+                            <i class="fas fa-filter mr-2"></i>필터 초기화
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-neutral-50 border-b border-neutral-200">
+                                <tr>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">
+                                        <input type="checkbox" class="rounded border-neutral-300">
+                                    </th>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">사용자</th>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">등급</th>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">분석 수</th>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">가입일</th>
+                                    <th class="text-left py-4 px-6 text-xs font-bold text-neutral-600 uppercase">상태</th>
+                                    <th class="text-right py-4 px-6 text-xs font-bold text-neutral-600 uppercase">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Rows will be inserted by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="border-t border-neutral-200 px-6 py-4 flex items-center justify-between">
+                        <p class="text-sm text-neutral-600">1-10 / 1,247명 표시 중</p>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 border border-neutral-200 rounded-lg text-sm font-semibold text-neutral-400 cursor-not-allowed">이전</button>
+                            <button class="px-3 py-1 bg-primary text-white rounded-lg text-sm font-semibold">1</button>
+                            <button class="px-3 py-1 border border-neutral-200 hover:border-primary rounded-lg text-sm font-semibold text-neutral-700">2</button>
+                            <button class="px-3 py-1 border border-neutral-200 hover:border-primary rounded-lg text-sm font-semibold text-neutral-700">3</button>
+                            <button class="px-3 py-1 border border-neutral-200 hover:border-primary rounded-lg text-sm font-semibold text-neutral-700">다음</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="toast.js"></script>
+    <script>
+        function renderUsers() {
+            const users = [
+                { id: 1, name: '김철수', email: 'kim@example.com', plan: 'Pro', analyses: 45, joined: '2024.01.15', status: 'active' },
+                { id: 2, name: '이영희', email: 'lee@example.com', plan: 'Free', analyses: 12, joined: '2024.02.03', status: 'active' },
+                { id: 3, name: '박민수', email: 'park@example.com', plan: 'Enterprise', analyses: 128, joined: '2023.11.20', status: 'active' },
+                { id: 4, name: '최지은', email: 'choi@example.com', plan: 'Pro', analyses: 67, joined: '2024.01.28', status: 'suspended' },
+                { id: 5, name: '정수현', email: 'jung@example.com', plan: 'Free', analyses: 8, joined: '2024.02.10', status: 'active' },
+                { id: 6, name: '강민호', email: 'kang@example.com', plan: 'Pro', analyses: 34, joined: '2024.01.05', status: 'active' },
+                { id: 7, name: '윤서아', email: 'yoon@example.com', plan: 'Free', analyses: 5, joined: '2024.02.12', status: 'pending' },
+                { id: 8, name: '임태윤', email: 'lim@example.com', plan: 'Enterprise', analyses: 203, joined: '2023.10.15', status: 'active' },
+                { id: 9, name: '한지우', email: 'han@example.com', plan: 'Pro', analyses: 89, joined: '2023.12.10', status: 'active' },
+                { id: 10, name: '송민재', email: 'song@example.com', plan: 'Free', analyses: 15, joined: '2024.02.08', status: 'active' }
+            ];
+            
+            const planColors = {
+                Free: 'bg-neutral-100 text-neutral-700 border-neutral-200',
+                Pro: 'bg-primary/10 text-primary border-primary/20',
+                Enterprise: 'bg-purple-50 text-purple-600 border-purple-200'
+            };
+            
+            const statusLabels = { active: '활성', suspended: '정지', pending: '대기' };
+            const statusColors = {
+                active: 'bg-green-50 text-green-600 border-green-200',
+                suspended: 'bg-red-50 text-red-600 border-red-200',
+                pending: 'bg-yellow-50 text-yellow-600 border-yellow-200'
+            };
+            
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => `
+                <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                    <td class="py-4 px-6">
+                        <input type="checkbox" class="rounded border-neutral-300">
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">${u.name[0]}</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-black">${u.name}</p>
+                                <p class="text-xs text-neutral-500">${u.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2 py-1 rounded-md text-xs font-semibold border ${planColors[u.plan]}">
+                            ${u.plan}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="text-sm font-semibold text-black">${u.analyses}회</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="text-sm text-neutral-600">${u.joined}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-block px-2 py-1 rounded-md text-xs font-semibold border ${statusColors[u.status]}">
+                            ${statusLabels[u.status]}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <button class="text-primary hover:text-primary/80 text-sm font-semibold mr-3">상세</button>
+                        <button class="text-neutral-500 hover:text-neutral-700 text-sm font-semibold">편집</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => window.location.href = 'index.html', 500);
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            renderUsers();
+        });
+    </script>
+</body>
+</html>

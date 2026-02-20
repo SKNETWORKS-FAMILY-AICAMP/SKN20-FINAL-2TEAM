@@ -1,4 +1,9 @@
 // ==========================
+// 개발 모드 설정 (배포 시 false로 변경!)
+// ==========================
+const DEV_BYPASS_AUTH = false;
+
+// ==========================
 // Auth State Management
 // ==========================
 class AuthManager {
@@ -45,34 +50,52 @@ class AuthManager {
 const authManager = new AuthManager();
 
 // ==========================
-// Header Include + Init
+// Header + Footer Include + Init
 // ==========================
 document.addEventListener("DOMContentLoaded", () => {
+
+    // --------------------------
+    // HEADER 로딩
+    // --------------------------
     const headerContainer = document.getElementById("app-header");
 
     if (headerContainer) {
         fetch("header.html")
             .then(res => {
-                if (!res.ok) {
-                    throw new Error("header.html 로드 실패");
-                }
+                if (!res.ok) throw new Error("header.html 로드 실패");
                 return res.text();
             })
             .then(html => {
                 headerContainer.innerHTML = html;
 
-                // ▶ Active nav 처리
+                // 헤더 삽입 후 실행
                 setActiveNav();
-
-                // ▶ Auth UI 반영 (헤더 로드 후!)
                 updateAuthUI();
             })
             .catch(err => {
                 console.error("공통 헤더 로딩 오류:", err);
             });
     } else {
-        // 헤더 없는 페이지도 대비
         updateAuthUI();
+    }
+
+    // --------------------------
+    // FOOTER 로딩 (추가된 부분)
+    // --------------------------
+    const footerContainer = document.getElementById("app-footer");
+
+    if (footerContainer) {
+        fetch("footer.html")
+            .then(res => {
+                if (!res.ok) throw new Error("footer.html 로드 실패");
+                return res.text();
+            })
+            .then(html => {
+                footerContainer.innerHTML = html;
+            })
+            .catch(err => {
+                console.error("공통 푸터 로딩 오류:", err);
+            });
     }
 
     requireAuth();
@@ -82,11 +105,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // Active Nav 처리
 // ==========================
 function setActiveNav() {
-    const current = location.pathname.split("/").pop() || "index.html";
-    
+    const currentPage = location.pathname.split("/").pop() || "index.html";
+
     document.querySelectorAll("[data-nav]").forEach(link => {
-        if (link.getAttribute("data-nav") === current) {
-            link.classList.add("text-blue-600");
+        const target = link.getAttribute("data-nav") || link.getAttribute("href");
+
+        link.classList.remove("text-primary", "font-semibold");
+
+        if (target === currentPage) {
+            link.classList.add("text-primary", "font-semibold");
         }
     });
 }
@@ -96,10 +123,8 @@ function setActiveNav() {
 // ==========================
 function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
-
     if (!loginBtn) return;
 
-    // 만료된 토큰 자동 정리
     if (authManager.token && !authManager.isTokenValid()) {
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
@@ -120,7 +145,15 @@ function updateAuthUI() {
 // Auth Guard
 // ==========================
 function requireAuth() {
-    const protectedPages = ["analysis.html", "chat.html", "results.html", "history.html"];
+    if (DEV_BYPASS_AUTH) return;
+
+    const protectedPages = [
+        "analysis.html",
+        "chat.html",
+        "results.html",
+        "history.html"
+    ];
+
     const currentPage = location.pathname.split("/").pop();
 
     if (protectedPages.includes(currentPage) && !authManager.isAuthenticated()) {
@@ -132,7 +165,6 @@ function requireAuth() {
 // API Helper
 // ==========================
 class APIClient {
-    // Docker: /api (nginx 프록시), 로컬: http://localhost:8000/api
     constructor(baseURL = "/api") {
         this.baseURL = baseURL;
     }
@@ -149,7 +181,7 @@ class APIClient {
             },
         });
 
-        if (res.status === 401) authManager.logout();
+        if (res.status === 401 && !DEV_BYPASS_AUTH) authManager.logout();
         if (!res.ok) throw new Error("API Error");
 
         return res.json();
@@ -173,6 +205,11 @@ const apiClient = new APIClient();
 // Public helpers
 // ==========================
 function checkAuthAndRedirect(page) {
+    if (DEV_BYPASS_AUTH) {
+        window.location.href = page;
+        return;
+    }
+
     authManager.isAuthenticated()
         ? (window.location.href = page)
         : (window.location.href = "login.html");

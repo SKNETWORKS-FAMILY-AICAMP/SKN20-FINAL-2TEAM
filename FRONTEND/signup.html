@@ -19,6 +19,27 @@
     <title>회원가입 - FTOGuard</title>
     
     <style>
+        /* Pretendard 폰트 (비즈벨과 동일) */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        .focus\:ring-primary:focus { 
+            --tw-ring-color: rgba(255, 107, 53, 0.5);
+        }
+        
         /* Password Strength Bar */
         .strength-bar {
             width: 100%;
@@ -129,27 +150,6 @@
             color: #4B5563;
         }
         
-        /* Auth Divider */
-        .auth-divider {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin: 24px 0;
-        }
-        
-        .auth-divider::before,
-        .auth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #E5E7EB;
-        }
-        
-        .auth-divider span {
-            color: #9CA3AF;
-            font-size: 14px;
-        }
-        
         /* Social Button */
         .btn-social {
             width: 100%;
@@ -160,10 +160,11 @@
             font-weight: 600;
             display: flex;
             align-items: center;
-            justify-center: center;
+            justify-content: center;
             gap: 12px;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 14px;
         }
         
         .btn-social:hover {
@@ -173,61 +174,63 @@
     </style>
 </head>
 
-<body class="bg-slate-50">
+<body class="bg-neutral-50">
 
-    <!-- ✅ 공통 헤더 -->
+    <!-- 공통 헤더 -->
     <div id="app-header"></div>
 
     <!-- Main Content -->
     <main class="min-h-screen flex items-center justify-center p-6 pt-32 pb-20">
         <div class="w-full max-w-md">
-            <div class="text-center mb-10">
-                <h1 class="text-3xl font-extrabold text-slate-800 mb-2">회원가입</h1>
-                <p class="text-slate-500 font-medium">FTOGuard 계정을 만들어보세요</p>
+            <!-- 제목 -->
+            <div class="text-center mb-8">
+                <h1 class="text-2xl md:text-3xl font-bold text-black mb-2">회원가입</h1>
+                <p class="text-sm text-neutral-600">FTOGuard 계정을 만들어보세요</p>
             </div>
 
-            <div class="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
-                <form id="signupForm" class="space-y-6">
+            <!-- 회원가입 폼 -->
+            <div class="bg-white p-8 md:p-10 rounded-3xl border border-neutral-200 shadow-lg">
+                <form id="signupForm" class="space-y-5">
                     <!-- 이름 -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">이름</label>
+                        <label class="block text-xs font-semibold text-neutral-700 uppercase mb-2">이름</label>
                         <input 
                             type="text" 
                             id="signupName" 
-                            class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                            class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm" 
                             placeholder="홍길동"
                             required
                             autocomplete="name"
                         />
                     </div>
 
-                    <!-- ✅ 이메일 - 수정됨 -->
+                    <!-- 이메일 -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">이메일</label>
+                        <label class="block text-xs font-semibold text-neutral-700 uppercase mb-2">이메일</label>
                         <div class="relative">
                             <input 
                                 type="email" 
                                 id="signupEmail" 
-                                class="w-full px-5 py-4 pr-12 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                                class="w-full px-4 py-3 pr-12 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm" 
                                 placeholder="example@email.com"
                                 required
                                 autocomplete="email"
                             />
-                            <!-- ✅ 새로 추가 - 아이콘 영역 -->
+                            <!-- 아이콘 영역 -->
                             <span id="emailIcon" class="absolute right-4 top-1/2 transform -translate-y-1/2"></span>
                         </div>
-                        <!-- ✅ 새로 추가 - 피드백 영역 -->
+                        <!-- 피드백 영역 -->
                         <div id="emailFeedback" class="text-sm mt-1"></div>
                     </div>
 
                     <!-- 비밀번호 -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">비밀번호</label>
+                        <label class="block text-xs font-semibold text-neutral-700 uppercase mb-2">비밀번호</label>
                         <div class="password-input-wrapper">
                             <input 
                                 type="password" 
                                 id="signupPassword" 
-                                class="w-full px-5 py-4 pr-12 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                                class="w-full px-4 py-3 pr-12 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm" 
                                 placeholder="8자 이상 입력하세요"
                                 required
                                 autocomplete="new-password"
@@ -253,12 +256,12 @@
 
                     <!-- 비밀번호 확인 -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">비밀번호 확인</label>
+                        <label class="block text-xs font-semibold text-neutral-700 uppercase mb-2">비밀번호 확인</label>
                         <div class="password-input-wrapper">
                             <input 
                                 type="password" 
                                 id="confirmPassword" 
-                                class="w-full px-5 py-4 pr-12 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                                class="w-full px-4 py-3 pr-12 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm" 
                                 placeholder="비밀번호를 다시 입력하세요"
                                 required
                                 autocomplete="new-password"
@@ -272,11 +275,11 @@
 
                     <!-- 약관 동의 -->
                     <div>
-                        <label class="flex items-start space-x-3 cursor-pointer">
-                            <input type="checkbox" id="agreeTerms" required class="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
-                            <span class="text-sm text-slate-600">
-                                <a href="#" class="text-blue-600 font-bold hover:underline">이용약관</a> 및 
-                                <a href="#" class="text-blue-600 font-bold hover:underline">개인정보처리방침</a>에 동의합니다
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="agreeTerms" required class="mt-1 w-4 h-4 accent-primary border-neutral-300 rounded focus:ring-primary">
+                            <span class="text-sm text-neutral-600">
+                                <a href="terms.html" class="text-primary font-semibold hover:underline">이용약관</a> 및 
+                                <a href="privacy.html" class="text-primary font-semibold hover:underline">개인정보처리방침</a>에 동의합니다
                             </span>
                         </label>
                     </div>
@@ -284,7 +287,7 @@
                     <!-- 제출 버튼 -->
                     <button 
                         type="submit" 
-                        class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed" 
+                        class="w-full py-3.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg disabled:bg-neutral-300 disabled:cursor-not-allowed text-sm" 
                         id="signupBtn" 
                         disabled
                     >
@@ -293,8 +296,13 @@
                 </form>
 
                 <!-- 구분선 -->
-                <div class="auth-divider">
-                    <span>또는</span>
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-neutral-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs">
+                        <span class="px-3 bg-white text-neutral-500 uppercase font-medium">또는</span>
+                    </div>
                 </div>
 
                 <!-- 소셜 로그인 -->
@@ -309,24 +317,42 @@
                 </button>
 
                 <!-- 로그인 링크 -->
-                <div class="mt-8 text-center">
-                    <p class="text-sm text-slate-500">
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-neutral-600">
                         이미 계정이 있으신가요? 
-                        <a href="login.html" class="text-blue-600 font-bold hover:underline">로그인</a>
+                        <a href="login.html" class="text-primary font-semibold hover:underline">로그인</a>
                     </p>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- Scripts -->
     <script src="toast.js"></script>
     <script src="script.js"></script>
     <script src="auth.js"></script>
-    
-    <!-- ✅ 새로 추가 - 이메일 중복 체크 -->
     <script src="email-api-integration.js"></script>
     
     <script>
+        // Load header.html
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-header').innerHTML = data;
+                
+                const scripts = document.getElementById('app-header').querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.error('Error loading header:', error));
+        
         // Password toggle functionality
         document.getElementById('toggleSignupPassword').addEventListener('click', function() {
             const input = document.getElementById('signupPassword');

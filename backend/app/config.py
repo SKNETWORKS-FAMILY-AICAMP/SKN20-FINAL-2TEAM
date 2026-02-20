@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # 모델 설정
     SLLM_MODEL_PATH: str = "../SLLM_model/outputs/gemma3-1b-v2"
 
+    # 개발 모드 (배포 시 False로 변경!)
+    DEV_BYPASS_AUTH: bool = True
+
     # Hugging Face
     HF_TOKEN: str = ""
 

@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 채팅 - FTOGuard</title>
     
-    <!-- Immediate Auth Check - Before any rendering -->
+    <!-- Immediate Auth Check - Before any rendering (DEV_BYPASS_AUTH=true이면 건너뜀) -->
     <script>
         (function() {
+            // 개발 모드: 인증 건너뜀
+            const DEV_BYPASS = true; // 배포 시 false로 변경!
+            if (DEV_BYPASS) return;
             const token = localStorage.getItem('authToken');
             if (!token) { window.location.replace('login.html'); return; }
             try {

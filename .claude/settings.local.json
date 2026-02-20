@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(where:*)",
+      "Bash(\"C:\\\\Users\\\\sally\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install:*)",
+      "Bash(\"C:\\\\Users\\\\sally\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install pymysql sqlalchemy pydantic-settings fastapi python-jose[cryptography] bcrypt)"
+    ]
+  }
+}

@@ -175,7 +175,7 @@ if (loginForm) {
         
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
+        const rememberMe = document.getElementById('rememberMe')?.checked ?? false;
         
         try {
             const submitBtn = loginForm.querySelector('button[type="submit"]');

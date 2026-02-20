@@ -200,9 +200,11 @@
         <!-- Right Image -->
         <div class="relative">
             <div class="relative rounded-2xl border border-white/70 bg-white/90 shadow-[0_18px_40px_rgba(15,23,42,0.15)] backdrop-blur overflow-hidden">
-                <div class="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-                    <span class="text-slate-400 font-medium">FTO Analysis Dashboard</span>
-                </div>
+                <img
+                    src="fto-analysis-welcome.png"
+                    alt="FTO 리스크 분석 AI - 글로벌 DB 검색, 법리 기반 분석, 회피 설계 제안"
+                    class="w-full h-full object-cover rounded-2xl"
+                />
             </div>
             <div class="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/30 blur-2xl"></div>
         </div>
@@ -318,7 +320,7 @@
 </section>
 
 <!-- Solution Features -->
-<section class="py-16 md:py-24 bg-neutral-50">
+<section class="py-16 md:py-24 bg-white">
     <div class="max-w-[1200px] mx-auto px-6">
         <div class="text-center space-y-4 mb-12">
             <div class="text-sm font-semibold text-primary uppercase tracking-wide">FTOGuard의 해결책</div>
@@ -447,7 +449,7 @@
 </section>
 
 <!-- How It Works Section (사용 흐름) -->
-<section class="py-16 md:py-24 bg-neutral-50">
+<section class="py-16 md:py-24 bg-white">
     <div class="max-w-[1200px] mx-auto px-6">
         <div class="text-center space-y-4 mb-12">
             <div class="text-sm font-semibold text-primary uppercase tracking-wide">사용 흐름</div>
@@ -624,67 +626,8 @@
 <div id="app-footer"></div>
 
 <!-- Scripts -->
-<script>
-  // Load header.html
-  fetch('header.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('app-header').innerHTML = data;
-      
-      // Re-execute scripts in loaded header
-      const scripts = document.getElementById('app-header').querySelectorAll('script');
-      scripts.forEach(script => {
-        const newScript = document.createElement('script');
-        if (script.src) {
-          newScript.src = script.src;
-        } else {
-          newScript.textContent = script.textContent;
-        }
-        document.body.appendChild(newScript);
-      });
-    })
-    .catch(error => console.error('Error loading header:', error));
-  
-  // Load footer.html
-  fetch('footer.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('app-footer').innerHTML = data;
-    })
-    .catch(error => console.error('Error loading footer:', error));
-    
-  // checkAuthAndRedirect function (기존 기능 유지)
-  function checkAuthAndRedirect(page) {
-    // 실제 인증 체크 로직은 script.js에 있을 것으로 예상
-    window.location.href = page;
-  }
-  
-  // FAQ toggle function (새로 추가)
-  function toggleFAQ(button) {
-    const content = button.nextElementSibling;
-    const icon = button.querySelector('svg');
-    
-    // 현재 FAQ가 열려있는지 확인
-    const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
-    
-    // 모든 FAQ 닫기
-    document.querySelectorAll('.rounded-2xl .overflow-hidden.transition-all').forEach(item => {
-      item.style.maxHeight = '0px';
-      item.style.opacity = '0';
-    });
-    
-    document.querySelectorAll('.rounded-2xl button svg').forEach(svg => {
-      svg.style.transform = 'rotate(0deg)';
-    });
-    
-    // 클릭한 FAQ가 닫혀있었다면 열기
-    if (!isOpen) {
-      content.style.maxHeight = content.scrollHeight + 'px';
-      content.style.opacity = '1';
-      icon.style.transform = 'rotate(180deg)';
-    }
-  }
-</script>
+<script src="script.js"></script>
+
 
 </body>
 </html>

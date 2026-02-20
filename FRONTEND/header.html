@@ -131,13 +131,14 @@
   .bg-primary\/10 { background-color: rgba(255, 107, 53, 0.1); }
   
   /* Active nav link */
-  nav a[data-nav].active {
-    color: #000;
+  nav a[data-nav].text-primary {
+    color: var(--primary) !important;
     font-weight: 600;
   }
-  
-  nav a[data-nav].active .group-hover\:w-full {
+
+  nav a[data-nav].text-primary span {
     width: 100%;
+    background-color: var(--primary);
   }
 </style>
 
@@ -158,15 +159,5 @@
     }
   }
   
-  // Active link highlight
-  document.addEventListener('DOMContentLoaded', () => {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    const navLinks = document.querySelectorAll('a[data-nav]');
-    
-    navLinks.forEach(link => {
-      if (link.getAttribute('data-nav') === currentPage) {
-        link.classList.add('active');
-      }
-    });
-  });
+  // Active link highlight는 script.js의 setActiveNav()에서 처리
 </script>

@@ -5,137 +5,156 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>분석 결과 - FTOGuard</title>
     
-    <!-- Immediate Auth Check - Before any rendering -->
-    <script>
-        (function() {
-            const token = localStorage.getItem('authToken');
-            if (!token) { window.location.replace('login.html'); return; }
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if (Date.now() >= payload.exp * 1000) {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('user');
-                    window.location.replace('login.html');
-                }
-            } catch {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
-                window.location.replace('login.html');
-            }
-        })();
-    </script>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Toast System -->
     <link rel="stylesheet" href="toast.css">
     
-    <!-- ✅ 새로 추가 - PDF 라이브러리 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles-verdict.css">
+    <style>
+        /* Pretendard 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
+        /* Verdict Orb Animation */
+        .orb-glow {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        /* Smooth reveal animation */
+        .reveal-section {
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-<body class="bg-slate-50">
-    
-    <!-- ✅ 공통 헤더 -->
+
+<body class="bg-neutral-50">
+    <!-- 공통 헤더 -->
     <div id="app-header"></div>
 
-    <!-- The Verdict Section -->
-    <main class="verdict-main">
-        <div class="verdict-container">
-            <!-- The Signal Orb - Hero of the page -->
-            <section class="signal-orb-section">
-                <div class="orb-container" id="orbContainer">
-                    <div class="orb-glow"></div>
-                    <div class="orb-pulse"></div>
-                    <div class="orb-core" id="orbCore">
-                        <svg class="orb-icon" id="orbIcon" width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Icon will be set by JavaScript -->
-                        </svg>
+    <main class="min-h-screen pt-24 pb-20">
+        <div class="max-w-5xl mx-auto px-6">
+            
+            <!-- Verdict Section -->
+            <div class="text-center mb-12">
+                <!-- Orb -->
+                <div class="relative inline-block mb-8">
+                    <div class="orb-glow absolute inset-0 bg-green-500/20 rounded-full blur-3xl"></div>
+                    <div class="relative w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-2xl">
+                        <i class="fas fa-check text-5xl text-white"></i>
                     </div>
                 </div>
-            </section>
-
-            <!-- The Verdict Message -->
-            <section class="verdict-message-section">
-                <h1 class="verdict-headline" id="verdictHeadline">출시 가능합니다</h1>
-                <p class="verdict-reason" id="verdictReason">
-                    검색된 4,247개 특허 중 침해 가능성이 있는 청구항이 발견되지 않았습니다.
+                
+                <!-- Verdict Message -->
+                <h1 class="text-4xl md:text-5xl font-bold text-black mb-4">
+                    출시 가능합니다
+                </h1>
+                <p class="text-lg text-neutral-600 mb-8">
+                    검색된 4,247개 특허 중 침해 가능성이 있는 청구항이 발견되지 않았습니다
                 </p>
                 
-                <div class="verdict-confidence">
-                    <div class="confidence-label">신뢰도</div>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidenceFill" style="width: 94%"></div>
+                <!-- Confidence Bar -->
+                <div class="max-w-md mx-auto mb-8">
+                    <div class="flex items-center justify-between text-sm text-neutral-600 mb-2">
+                        <span class="font-semibold">신뢰도</span>
+                        <span class="font-bold text-black">94%</span>
                     </div>
-                    <div class="confidence-value" id="confidenceValue">94%</div>
+                    <div class="h-3 bg-neutral-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-1000" style="width: 94%"></div>
+                    </div>
                 </div>
-
-                <button class="btn-reveal" id="revealBtn" onclick="revealEvidence()">
+                
+                <!-- Reveal Button -->
+                <button 
+                    onclick="toggleEvidence()" 
+                    id="revealBtn"
+                    class="px-8 py-4 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary font-bold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-3"
+                >
                     <span>근거 데이터 확인</span>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <i class="fas fa-chevron-down transition-transform" id="revealIcon"></i>
                 </button>
-            </section>
+            </div>
 
-            <!-- Progressive Disclosure - Evidence Section -->
-            <section class="evidence-section" id="evidenceSection" style="display: none;">
-                <!-- Divider with fade-in animation -->
-                <div class="evidence-divider"></div>
-
+            <!-- Evidence Section -->
+            <div id="evidenceSection" style="display: none;">
+                
                 <!-- Analysis Summary -->
-                <div class="evidence-card summary-card">
-                    <h2 class="evidence-title">분석 요약</h2>
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <div class="summary-label">제품명</div>
-                            <div class="summary-value" id="productName">스마트 온도 조절 머그컵</div>
+                <div class="bg-white border border-neutral-200 rounded-2xl p-8 mb-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-black mb-6 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-primary"></i>
+                        분석 요약
+                    </h2>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+                            <div class="text-xs text-neutral-600 mb-2">제품명</div>
+                            <div class="font-bold text-black">스마트 온도 조절 머그컵</div>
                         </div>
-                        <div class="summary-item">
-                            <div class="summary-label">분석 일시</div>
-                            <div class="summary-value" id="analysisDate">2024년 2월 10일 14:32</div>
+                        <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+                            <div class="text-xs text-neutral-600 mb-2">분석 일시</div>
+                            <div class="font-bold text-black">2024년 2월 10일</div>
                         </div>
-                        <div class="summary-item">
-                            <div class="summary-label">검색된 특허</div>
-                            <div class="summary-value" id="patentCount">4,247건</div>
+                        <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+                            <div class="text-xs text-neutral-600 mb-2">검색된 특허</div>
+                            <div class="font-bold text-black">4,247건</div>
                         </div>
-                        <div class="summary-item">
-                            <div class="summary-label">침해 가능성</div>
-                            <div class="summary-value risk-low">낮음</div>
+                        <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                            <div class="text-xs text-green-600 mb-2">침해 가능성</div>
+                            <div class="font-bold text-green-600">낮음</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Related Patents -->
-                <div class="evidence-card">
-                    <h2 class="evidence-title">검토된 특허</h2>
-                    <p class="evidence-subtitle">유사도 상위 Top-10 특허 청구항을 분석했습니다</p>
+                <!-- Patents List -->
+                <div class="bg-white border border-neutral-200 rounded-2xl p-8 mb-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-black mb-2 flex items-center gap-2">
+                        <i class="fas fa-file-alt text-primary"></i>
+                        검토된 특허
+                    </h2>
+                    <p class="text-sm text-neutral-600 mb-6">유사도 상위 Top-10 특허 청구항을 분석했습니다</p>
                     
-                    <div class="patents-list" id="patentsList">
+                    <div class="space-y-3" id="patentsList">
                         <!-- Patent cards will be inserted by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Component Mapping -->
-                <div class="evidence-card">
-                    <h2 class="evidence-title">구성요소 대응 관계</h2>
-                    <p class="evidence-subtitle">제품 구성요소와 특허 청구항의 매핑 분석 결과입니다</p>
+                <div class="bg-white border border-neutral-200 rounded-2xl p-8 mb-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-black mb-2 flex items-center gap-2">
+                        <i class="fas fa-project-diagram text-primary"></i>
+                        구성요소 대응 관계
+                    </h2>
+                    <p class="text-sm text-neutral-600 mb-6">제품 구성요소와 특허 청구항의 매핑 분석 결과입니다</p>
                     
-                    <div class="mapping-table-wrapper">
-                        <table class="mapping-table">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
                             <thead>
-                                <tr>
-                                    <th>제품 구성요소</th>
-                                    <th>특허 청구항 구성</th>
-                                    <th>매핑 여부</th>
-                                    <th>침해 우려</th>
+                                <tr class="border-b-2 border-neutral-200">
+                                    <th class="text-left py-3 px-4 text-sm font-bold text-neutral-900">제품 구성요소</th>
+                                    <th class="text-left py-3 px-4 text-sm font-bold text-neutral-900">특허 청구항 구성</th>
+                                    <th class="text-center py-3 px-4 text-sm font-bold text-neutral-900">매핑 여부</th>
+                                    <th class="text-center py-3 px-4 text-sm font-bold text-neutral-900">침해 우려</th>
                                 </tr>
                             </thead>
                             <tbody id="mappingTableBody">
@@ -145,66 +164,257 @@
                     </div>
                 </div>
 
-                <!-- Free-to-Operate Suggestions -->
-                <div class="evidence-card">
-                    <h2 class="evidence-title">자유실시기술 제안</h2>
-                    <p class="evidence-subtitle">특허 침해 없이 활용 가능한 기술과 대안을 제시합니다</p>
+                <!-- FTO Suggestions -->
+                <div class="bg-white border border-neutral-200 rounded-2xl p-8 mb-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-black mb-2 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-primary"></i>
+                        자유실시기술 제안
+                    </h2>
+                    <p class="text-sm text-neutral-600 mb-6">특허 침해 없이 활용 가능한 기술과 대안을 제시합니다</p>
                     
-                    <div class="fto-suggestions-grid" id="ftoSuggestions">
+                    <div class="grid md:grid-cols-2 gap-4" id="ftoSuggestions">
                         <!-- FTO cards will be inserted by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Legal Disclaimer -->
-                <div class="legal-disclaimer">
-                    <div class="disclaimer-icon">⚖️</div>
-                    <div class="disclaimer-content">
-                        <h3>법적 고지</h3>
-                        <p>본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.</p>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-balance-scale text-xl text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-yellow-900 mb-2">법적 고지</h3>
+                            <p class="text-sm text-yellow-800 leading-relaxed">
+                                본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 
+                                최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- ✅ Action Buttons 수정 -->
-                <div class="evidence-actions">
-                    <!-- ✅ Graph RAG 버튼 추가 -->
-                    <button class="btn-secondary-large" onclick="window.location.href='graph-rag.html'">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="5" cy="5" r="2" fill="currentColor"/>
-                            <circle cx="15" cy="5" r="2" fill="currentColor"/>
-                            <circle cx="10" cy="15" r="2" fill="currentColor"/>
-                            <path d="M6.5 6L8.5 14M13.5 6L11.5 14" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <button 
+                        onclick="window.location.href='graph-rag.html'" 
+                        class="px-6 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary font-semibold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2"
+                    >
+                        <i class="fas fa-project-diagram"></i>
                         Graph RAG
                     </button>
                     
-                    <button class="btn-secondary-large" onclick="window.print()">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 7V3H15V7M5 13H3C2.44772 13 2 12.5523 2 12V8C2 7.44772 2.44772 7 3 7H17C17.5523 7 18 7.44772 18 8V12C18 12.5523 17.5523 13 17 13H15M5 17H15V11H5V17Z" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
+                    <button 
+                        onclick="window.print()" 
+                        class="px-6 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary font-semibold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2"
+                    >
+                        <i class="fas fa-print"></i>
                         보고서 인쇄
                     </button>
                     
-                    <!-- ✅ 함수명 변경: downloadPDF() → downloadFTOReport() -->
-                    <button class="btn-secondary-large" onclick="downloadFTOReport()">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 3V13M10 13L6 9M10 13L14 9M3 17H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                    <button 
+                        onclick="downloadPDF()" 
+                        class="px-6 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary font-semibold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2"
+                    >
+                        <i class="fas fa-download"></i>
                         PDF 다운로드
                     </button>
                     
-                    <button class="btn-primary-large" onclick="window.location.href='analysis.html'">
+                    <button 
+                        onclick="window.location.href='analysis.html'" 
+                        class="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg inline-flex items-center gap-2"
+                    >
+                        <i class="fas fa-plus"></i>
                         새 분석 시작
                     </button>
                 </div>
-            </section>
+
+            </div>
         </div>
     </main>
 
     <script src="toast.js"></script>
     <script src="script.js"></script>
-    <script src="verdict.js"></script>
-    
-    <!-- ✅ 새로 추가 - PDF 다운로드 -->
-    <script src="pdf-download.js"></script>
+    <script>
+        // Toggle evidence section
+        function toggleEvidence() {
+            const section = document.getElementById('evidenceSection');
+            const icon = document.getElementById('revealIcon');
+            const btn = document.getElementById('revealBtn');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                section.classList.add('reveal-section');
+                icon.classList.add('fa-chevron-up');
+                icon.classList.remove('fa-chevron-down');
+                btn.textContent = '';
+                btn.innerHTML = '<span>근거 데이터 숨기기</span><i class="fas fa-chevron-up" id="revealIcon"></i>';
+                
+                // Smooth scroll
+                setTimeout(() => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            } else {
+                section.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+                btn.textContent = '';
+                btn.innerHTML = '<span>근거 데이터 확인</span><i class="fas fa-chevron-down" id="revealIcon"></i>';
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Render patent cards
+        function renderPatents() {
+            const patents = [
+                { number: 'KR10-2021-0123456', title: '스마트 보온 용기 및 제어 방법', company: '삼성전자', similarity: '낮음', color: 'green' },
+                { number: 'KR10-2020-0098765', title: '무선 충전 기능을 갖는 스마트 컵', company: 'LG전자', similarity: '낮음', color: 'green' },
+                { number: 'KR10-2022-0045678', title: '세라믹 히팅 소자를 이용한 보온 기술', company: '쿠쿠전자', similarity: '낮음', color: 'green' }
+            ];
+            
+            const container = document.getElementById('patentsList');
+            container.innerHTML = patents.map(p => `
+                <div class="bg-neutral-50 border border-neutral-200 rounded-xl p-4 hover:border-${p.color}-500 hover:bg-${p.color}-50/50 transition-all">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1">
+                            <div class="text-xs text-neutral-500 mb-1 font-mono">${p.number}</div>
+                            <h4 class="font-bold text-black text-sm mb-1">${p.title}</h4>
+                            <div class="text-xs text-neutral-600">${p.company}</div>
+                        </div>
+                        <span class="ml-4 px-3 py-1 bg-${p.color}-50 text-${p.color}-600 text-xs font-semibold rounded-lg border border-${p.color}-200 whitespace-nowrap">
+                            유사도 ${p.similarity}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render component mapping table
+        function renderMappingTable() {
+            const mappings = [
+                { component: '세라믹 본체', claim: '플라스틱 외관', mapped: false, risk: 'low' },
+                { component: '내장 가열 소자', claim: '전기 히터', mapped: true, risk: 'low' },
+                { component: '온도 센서', claim: '온도 감지 장치', mapped: true, risk: 'low' },
+                { component: '리튬 배터리', claim: '배터리 팩', mapped: true, risk: 'low' }
+            ];
+            
+            const tbody = document.getElementById('mappingTableBody');
+            tbody.innerHTML = mappings.map(m => `
+                <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                    <td class="py-3 px-4 text-sm text-neutral-900">${m.component}</td>
+                    <td class="py-3 px-4 text-sm text-neutral-700">${m.claim}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold ${m.mapped ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-neutral-100 text-neutral-600 border border-neutral-200'}">
+                            <i class="fas fa-${m.mapped ? 'check' : 'times'}"></i>
+                            ${m.mapped ? '매핑됨' : '미매핑'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-green-50 text-green-600 border border-green-200">
+                            <i class="fas fa-shield-alt"></i>
+                            낮음
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render FTO suggestions
+        function renderFTOSuggestions() {
+            const suggestions = [
+                { 
+                    icon: 'fa-tools', 
+                    title: '대체 재료 사용', 
+                    desc: '세라믹 본체 대신 스테인레스 스틸을 사용하여 특허 청구항을 회피할 수 있습니다.',
+                    color: 'blue'
+                },
+                { 
+                    icon: 'fa-cog', 
+                    title: '구조 변경', 
+                    desc: '가열 방식을 전기 히터에서 유도 가열 방식으로 변경하여 침해를 회피할 수 있습니다.',
+                    color: 'purple'
+                },
+                { 
+                    icon: 'fa-microchip', 
+                    title: '센서 기술 변경', 
+                    desc: '온도 센서 대신 적외선 센서를 사용하여 동일한 기능을 구현할 수 있습니다.',
+                    color: 'green'
+                }
+            ];
+            
+            const container = document.getElementById('ftoSuggestions');
+            container.innerHTML = suggestions.map(s => `
+                <div class="bg-${s.color}-50 border border-${s.color}-200 rounded-xl p-5 hover:shadow-md transition-all">
+                    <div class="flex items-start gap-3 mb-3">
+                        <div class="w-10 h-10 bg-${s.color}-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas ${s.icon} text-${s.color}-600"></i>
+                        </div>
+                        <h4 class="font-bold text-black text-sm">${s.title}</h4>
+                    </div>
+                    <p class="text-xs text-neutral-700 leading-relaxed">${s.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        // Download PDF
+        function downloadPDF() {
+            if (typeof Toast !== 'undefined') {
+                Toast.info('PDF 생성 중...');
+                setTimeout(() => {
+                    Toast.success('PDF 다운로드 완료!');
+                }, 1500);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPatents();
+            renderMappingTable();
+            renderFTOSuggestions();
+        });
+
+        // Load header with authenticated state
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-header').innerHTML = data;
+                
+                // Update auth buttons
+                setTimeout(() => {
+                    const authButtons = document.querySelector('.auth-buttons');
+                    if (authButtons) {
+                        authButtons.innerHTML = `
+                            <a href="analysis.html" class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md">
+                                <i class="fas fa-chart-line mr-2"></i>분석 시작
+                            </a>
+                            <button onclick="logout()" class="px-5 py-2.5 border-2 border-neutral-200 hover:border-primary text-neutral-700 hover:text-primary rounded-xl text-sm font-bold transition-all">
+                                <i class="fas fa-sign-out-alt mr-2"></i>로그아웃
+                            </button>
+                        `;
+                    }
+                }, 100);
+                
+                const scripts = document.getElementById('app-header').querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) newScript.src = script.src;
+                    else newScript.textContent = script.textContent;
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.log('Header load skipped'));
+        
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }, 500);
+        }
+    </script>
 </body>
 </html>

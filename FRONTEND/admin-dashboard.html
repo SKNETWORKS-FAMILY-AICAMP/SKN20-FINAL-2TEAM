@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>관리자 대시보드 - FTOGuard</title>
+    
+    <style>
+        /* Pretendard 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            transition: transform 0.3s ease;
+        }
+        
+        .admin-sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        
+        /* Nav Item */
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background: #FFF5F0;
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+            background: #FFF5F0;
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+    </style>
+</head>
+
+<body class="bg-neutral-50">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="admin-sidebar w-64 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-0 bottom-0 z-40">
+            <!-- Logo -->
+            <div class="p-6 border-b border-neutral-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-black">FTOGuard</h1>
+                        <p class="text-xs text-neutral-500">Admin Panel</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto p-4">
+                <div class="space-y-1">
+                    <a href="admin-dashboard.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold">
+                        <i class="fas fa-chart-line w-5"></i>
+                        대시보드
+                    </a>
+                    <a href="admin-users.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-users w-5"></i>
+                        사용자 관리
+                    </a>
+                    <a href="admin-analyses.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-file-alt w-5"></i>
+                        분석 이력
+                    </a>
+                    <a href="admin-patents.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-database w-5"></i>
+                        특허 DB
+                    </a>
+                    <a href="admin-settings.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-neutral-700">
+                        <i class="fas fa-cog w-5"></i>
+                        시스템 설정
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- Admin Info -->
+            <div class="p-4 border-t border-neutral-200">
+                <div class="flex items-center gap-3 px-4 py-3 bg-neutral-50 rounded-lg">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">AD</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-black">관리자</p>
+                        <p class="text-xs text-neutral-500">admin@ftoguard.com</p>
+                    </div>
+                    <button onclick="logout()" class="text-neutral-400 hover:text-primary transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-64 overflow-y-auto">
+            
+            <!-- Header -->
+            <header class="bg-white border-b border-neutral-200 sticky top-0 z-30">
+                <div class="px-8 py-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-black">대시보드</h2>
+                            <p class="text-sm text-neutral-600 mt-1">FTOGuard 시스템 현황 모니터링</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-semibold text-neutral-700 hover:border-primary hover:text-primary transition-all">
+                                <i class="fas fa-sync-alt mr-2"></i>새로고침
+                            </button>
+                            <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md">
+                                <i class="fas fa-download mr-2"></i>리포트 생성
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-8">
+                
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Total Users -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-neutral-600 mb-1">총 사용자</p>
+                                <p class="text-3xl font-bold text-black">1,247</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-200">
+                                <i class="fas fa-users text-xl text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="text-green-600 font-semibold">↗ 12.5%</span>
+                            <span class="text-neutral-500">지난달 대비</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Analyses -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-neutral-600 mb-1">총 분석 수</p>
+                                <p class="text-3xl font-bold text-black">8,934</p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                                <i class="fas fa-chart-bar text-xl text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="text-green-600 font-semibold">↗ 8.2%</span>
+                            <span class="text-neutral-500">지난주 대비</span>
+                        </div>
+                    </div>
+
+                    <!-- Today Analyses -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-neutral-600 mb-1">오늘 분석</p>
+                                <p class="text-3xl font-bold text-black">142</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-200">
+                                <i class="fas fa-calendar-day text-xl text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="text-green-600 font-semibold">↗ 15.3%</span>
+                            <span class="text-neutral-500">어제 대비</span>
+                        </div>
+                    </div>
+
+                    <!-- Server Status -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-neutral-600 mb-1">서버 상태</p>
+                                <p class="text-3xl font-bold text-green-600">정상</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-200">
+                                <i class="fas fa-server text-xl text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="text-green-600 font-semibold">99.9%</span>
+                            <span class="text-neutral-500">가동률</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Analysis Trend Chart -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-primary"></i>
+                            월별 분석 추이
+                        </h3>
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Type Distribution -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-primary"></i>
+                            분석 유형별 분포
+                        </h3>
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Analyses Table -->
+                <div class="bg-white border border-neutral-200 rounded-xl p-6 mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-black flex items-center gap-2">
+                            <i class="fas fa-clock text-primary"></i>
+                            최근 분석 이력
+                        </h3>
+                        <a href="admin-analyses.html" class="text-sm text-primary font-semibold hover:underline">
+                            전체 보기 →
+                        </a>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b-2 border-neutral-200">
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">분석 ID</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">사용자</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">제품명</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">유형</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">위험도</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold text-neutral-600 uppercase">시간</th>
+                                    <th class="text-right py-3 px-4 text-xs font-bold text-neutral-600 uppercase">상세</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentAnalysesTable">
+                                <!-- Rows will be inserted by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- API Status -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                        <h3 class="text-sm font-bold text-black mb-4 flex items-center gap-2">
+                            <i class="fas fa-plug text-green-600"></i>
+                            API 상태
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">KIPRIS API</span>
+                                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-md border border-green-200">정상</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">USPTO API</span>
+                                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-md border border-green-200">정상</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">EPO API</span>
+                                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-md border border-green-200">정상</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database Status -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                        <h3 class="text-sm font-bold text-black mb-4 flex items-center gap-2">
+                            <i class="fas fa-database text-blue-600"></i>
+                            데이터베이스
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">특허 DB</span>
+                                <span class="text-sm font-semibold text-black">4,247,893건</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">마지막 업데이트</span>
+                                <span class="text-sm font-semibold text-black">2시간 전</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-neutral-700">동기화 상태</span>
+                                <span class="px-2 py-1 bg-green-50 text-green-600 text-xs font-semibold rounded-md border border-green-200">정상</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Resources -->
+                    <div class="bg-white border border-neutral-200 rounded-xl p-6">
+                        <h3 class="text-sm font-bold text-black mb-4 flex items-center gap-2">
+                            <i class="fas fa-server text-purple-600"></i>
+                            시스템 리소스
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-neutral-700">CPU</span>
+                                    <span class="text-sm font-semibold text-black">42%</span>
+                                </div>
+                                <div class="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500" style="width: 42%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-neutral-700">메모리</span>
+                                    <span class="text-sm font-semibold text-black">68%</span>
+                                </div>
+                                <div class="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-purple-500" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-neutral-700">스토리지</span>
+                                    <span class="text-sm font-semibold text-black">54%</span>
+                                </div>
+                                <div class="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500" style="width: 54%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="toast.js"></script>
+    <script>
+        // Render recent analyses table
+        function renderRecentAnalyses() {
+            const analyses = [
+                { id: 'A-2024-0847', user: 'user@example.com', product: '스마트 머그컵', type: 'FTO', risk: 'safe', time: '5분 전' },
+                { id: 'A-2024-0846', user: 'test@example.com', product: '무선 충전 패드', type: 'Design', risk: 'warning', time: '12분 전' },
+                { id: 'A-2024-0845', user: 'demo@example.com', product: '접이식 스마트폰', type: 'Multi', risk: 'safe', time: '25분 전' },
+                { id: 'A-2024-0844', user: 'user2@example.com', product: '세라믹 히터', type: 'FTO', risk: 'danger', time: '1시간 전' },
+                { id: 'A-2024-0843', user: 'test2@example.com', product: 'LED 조명', type: 'Design', risk: 'safe', time: '2시간 전' }
+            ];
+            
+            const typeLabels = { FTO: 'FTO 분석', Design: '디자인', Multi: '멀티모달' };
+            const typeColors = { 
+                FTO: 'bg-primary/10 text-primary border-primary/20',
+                Design: 'bg-purple-50 text-purple-600 border-purple-200',
+                Multi: 'bg-blue-50 text-blue-600 border-blue-200'
+            };
+            const riskColors = {
+                safe: 'bg-green-50 text-green-600 border-green-200',
+                warning: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+                danger: 'bg-red-50 text-red-600 border-red-200'
+            };
+            const riskLabels = { safe: '안전', warning: '주의', danger: '위험' };
+            
+            const tbody = document.getElementById('recentAnalysesTable');
+            tbody.innerHTML = analyses.map(a => `
+                <tr class="border-b border-neutral-100 hover:bg-neutral-50">
+                    <td class="py-3 px-4">
+                        <span class="text-sm font-mono font-semibold text-black">${a.id}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-sm text-neutral-700">${a.user}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-sm font-semibold text-black">${a.product}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-block px-2 py-1 rounded-md text-xs font-semibold border ${typeColors[a.type]}">
+                            ${typeLabels[a.type]}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="inline-block px-2 py-1 rounded-md text-xs font-semibold border ${riskColors[a.risk]}">
+                            ${riskLabels[a.risk]}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-sm text-neutral-600">${a.time}</span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <button class="text-primary hover:text-primary/80 text-sm font-semibold">
+                            상세보기 →
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월'],
+                    datasets: [{
+                        label: '분석 수',
+                        data: [450, 520, 680, 750, 890, 1020, 1150, 1280],
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#FF6B35',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            display: false 
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F5F5F5'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Type Chart
+            const typeCtx = document.getElementById('typeChart').getContext('2d');
+            new Chart(typeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['FTO 분석', '디자인 유사도', '멀티모달'],
+                    datasets: [{
+                        data: [4200, 2800, 1934],
+                        backgroundColor: ['#FF6B35', '#8B5CF6', '#3B82F6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRecentAnalyses();
+            initCharts();
+        });
+    </script>
+</body>
+</html>

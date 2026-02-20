@@ -2,7 +2,9 @@
 // Part 1: Initialization & Core Functions
 
 // IMMEDIATE AUTH CHECK - Before any page rendering
+// DEV_BYPASS_AUTH=true이면 건너뜀
 (function() {
+    if (typeof DEV_BYPASS_AUTH !== 'undefined' && DEV_BYPASS_AUTH) return;
     const protectedPages = ['analysis.html', 'chat.html', 'results.html'];
     const currentPage = window.location.pathname.split('/').pop();
 

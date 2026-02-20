@@ -19,16 +19,18 @@
     <title>작동 원리 - FTOGuard</title>
     
     <style>
-        /* Tailwind Config */
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+        /* Pretendard 폰트 (비즈벨과 동일) */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         
         :root {
             --primary: #FF6B35;
             --primary-light: #FFE5DC;
-        }
-        
-        * {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
         }
 
         /* 애니메이션 */
@@ -272,7 +274,7 @@
     </section>
 
     <!-- ============ 7단계 프로세스 ============ -->
-    <section class="py-16 md:py-24 bg-slate-50">
+    <section class="py-16 md:py-24 bg-white">
         <div class="max-w-[1200px] mx-auto px-6">
             <div class="mb-12">
                 <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
@@ -549,7 +551,7 @@
     </section>
 
     <!-- ============ 데이터 보안 ============ -->
-    <section class="py-16 md:py-24 bg-slate-50">
+    <section class="py-16 md:py-24 bg-white">
         <div class="max-w-[1200px] mx-auto px-6">
             <div class="mb-12">
                 <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
@@ -617,18 +619,32 @@
 
 </main>
 
-<!-- Footer -->
-<footer class="py-12 bg-white border-t border-slate-100">
-    <div class="max-w-[1200px] mx-auto px-6 text-center">
-        <p class="text-slate-400 text-sm">© 2026 FTOGuard. All rights reserved.</p>
-        <p class="text-slate-400 text-xs mt-2">법리 기반 특허·디자인 침해 리스크 판단 AI 시스템</p>
-    </div>
-</footer>
+<div id="app-footer"></div>
+
 
 <script src="toast.js"></script>
 <script src="script.js"></script>
 
 <script>
+// Load header.html
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('app-header').innerHTML = data;
+        
+        // Re-execute scripts in loaded header
+        const scripts = document.getElementById('app-header').querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+                newScript.src = script.src;
+            } else {
+                newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript);
+        });
+    })
+    .catch(error => console.error('Error loading header:', error));
+
 // 스크롤 애니메이션
 const observerOptions = {
     threshold: 0.1,
