@@ -22,3 +22,5 @@ __pycache__/
 # sLLM 체크포인트 (중간 학습 상태, 재학습 시에만 필요)
 SLLM_model/outputs/*/checkpoint-*/
 SLLM_model/outputs/*/.gitattributes
+SLLM_model/outputs/*/training_args.bin
+SLLM_model/outputs/*/adapter_model.safetensors
