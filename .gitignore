@@ -19,11 +19,8 @@ SKN20-FINAL-2TEAM/
 __pycache__/
 *.pyc
 
-# sLLM 체크포인트 (중간 학습 상태, 재학습 시에만 필요)
-SLLM_model/outputs/*/checkpoint-*/
-SLLM_model/outputs/*/.gitattributes
-SLLM_model/outputs/*/training_args.bin
-SLLM_model/outputs/*/adapter_model.safetensors
+# sLLM 모델 outputs (HuggingFace에 업로드)
+SLLM_model/outputs/
 
 # 디자인 
 design/data/
