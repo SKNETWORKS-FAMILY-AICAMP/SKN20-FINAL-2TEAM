@@ -16,7 +16,27 @@
 import os
 import json
 import base64
+from pathlib import Path
 from typing import TypedDict, List, Dict, Any
+
+# ==================== 경로 설정 ====================
+# design/src/design_chatbot.py 기준 상위 폴더(= design/)
+BASE_DIR      = Path(__file__).resolve().parent.parent
+
+# design/chroma_db  ← chromadb.PersistentClient(path=...)에 사용
+CHROMA_DB     = str(BASE_DIR / "chroma_db")
+
+# design/data/images  ← utils.py design_id_to_local_image 기본 경로
+IMAGES_DIR    = str(BASE_DIR / "data" / "images")
+
+# design2/data/images_v2  ← design2/src/utils.py IMAGES_DIR (신규 버전 이미지)
+IMAGES_DIR_V2 = str(BASE_DIR.parent / "design2" / "data" / "images_v2")
+
+# design2/src/api.py의 임시 업로드 폴더
+UPLOAD_DIR    = str(BASE_DIR.parent / "design2" / "src" / "temp_uploads")
+
+# 벡터DB 유사 디자인 검색 결과 개수
+N_RESULTS     = 15
 
 # LangChain & LangGraph
 from langchain_openai import ChatOpenAI
@@ -50,7 +70,7 @@ from prompts import (
 )
 
 from dotenv import load_dotenv
-load_dotenv() 
+load_dotenv()
 
 
 # ==================== LLM & ChromaDB 초기화 ====================
@@ -58,7 +78,7 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 output_parser = StrOutputParser()
 
-chroma_client = chromadb.PersistentClient(path="..\\chroma_db")
+chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
 image_collection = chroma_client.get_collection(name="design")
 
 
@@ -86,6 +106,9 @@ class GraphState(TypedDict):
 
     # 텍스트 관련 필드
     general_answer: str              # 일반 질문 답변
+
+    # 멀티턴: 대화 히스토리
+    messages: List[Dict]             # [{"role": "user"|"assistant", "content": "..."}]
 
 
 # ==================== Tool 정의 ====================
@@ -116,7 +139,7 @@ def search_design_db(query: str) -> str:
         return "임베딩 생성 실패"
 
     # 벡터DB 검색
-    results = search_and_filter_similar_designs(image_collection, embedding, n_results=5)
+    results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
 
     # 결과 정리
     output = f"'{query}' 검색 결과 (번역: '{translated}'):\n\n"
@@ -186,7 +209,7 @@ def image_search_node(state: GraphState) -> GraphState:
 
     # CLIP 임베딩 → 벡터DB 검색
     embedding = get_image_embedding(state['image_path'])
-    results = search_and_filter_similar_designs(image_collection, embedding, n_results=10)
+    results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
     state['search_results'] = results #검색 원본 저장
 
     # 원본 결과를 사용자에게 보여줄 포맷으로 정리 (인덱스, 디자인id, 거리, 출원번호, 상품명, 등록상태, 이미지 경로)
@@ -309,48 +332,55 @@ def generate_report_node(state: GraphState) -> GraphState:
 # ===== 텍스트 경로: 일반 질문 (LLM + Tools) =====
 
 def general_question_node(state: GraphState) -> GraphState:
-    """LLM이 필요에 따라 web_search, search_design_db Tool을 사용하여 답변"""
+    """LLM이 필요에 따라 web_search, search_design_db Tool을 사용하여 답변 (멀티턴 지원)"""
 
     print("[일반질문] 답변 생성 중...")
 
-    # 어떤 tool이 필요한지 판단하기 위해 llm에게 전달하는 프롬포트 (system에 tool 사용 지침 포함)
+    # 이전 대화 히스토리 가져오기
+    history = state.get('messages') or []
+    turn = len(history) // 2 + 1
+    print(f"  현재 {turn}턴 (히스토리 {len(history)}개 메시지)")
+
+    # system + 히스토리 + 현재 질문 순서로 구성
     messages = [
         {"role": "system", "content": (
             "당신은 디자인 특허 전문 어시스턴트입니다.\n"
             "- 디자인 검색이 필요하면 search_design_db 도구를 사용하세요.\n"
             "- 최신 정보, 웹 검색이 필요하면 web_search 도구를 사용하세요.\n"
+            "- 이전 대화 내용을 참고하여 일관성 있게 답변하세요.\n"
             "- 답변은 친절하고 정확하게."
-        )},
+        )}
+    ] + history + [
         {"role": "user", "content": state['text_query']}
     ]
 
-    # llm이 질문을 보고 tool을 쓸지 말지 스스로 판단 -> tool_calls(도구 호출 요청) 포함된 response 반환
+    # llm이 질문을 보고 tool을 쓸지 말지 스스로 판단
     response = llm_with_tools.invoke(messages)
 
     if response.tool_calls:
-        # Tool 호출 있는 경우
-
         for tc in response.tool_calls:
             print(f"  Tool 호출: {tc['name']}({tc['args']})")
 
-        #toolNode가 LLM이 요청한 Tool(web_search 또는 search_design_db)을 대신 실행
-        tool_node = ToolNode(tools) # ToolNode 생성
-        tool_results = tool_node.invoke({"messages": [response]}) # Tool 실행
+        tool_node = ToolNode(tools)
+        tool_results = tool_node.invoke({"messages": [response]})
 
         messages.append(response)
-
         for msg in tool_results['messages']:
-            #messages에 tool 실행결과 포함
             messages.append(msg)
 
-        # 최종 응답 생성
         final = llm.invoke(messages)
-        state['general_answer'] = final.content
-
+        answer = final.content
     else:
-        # Tool 없이 직접 답변
-        state['general_answer'] = response.content
+        answer = response.content
 
+    # 대화 히스토리 업데이트 (user + assistant 추가)
+    updated_history = history + [
+        {"role": "user", "content": state['text_query']},
+        {"role": "assistant", "content": answer},
+    ]
+
+    state['messages'] = updated_history
+    state['general_answer'] = answer
     print("  답변 완료")
     return state
 
@@ -430,6 +460,7 @@ def run_chatbot(image_path=None, text_query=None, user_query="이 제품과 유�
         "detailed_comparison": "",
         "final_report": "",
         "general_answer": "",
+        "messages": [],
     }
 
     config = {"configurable": {"thread_id": "session-1"}}

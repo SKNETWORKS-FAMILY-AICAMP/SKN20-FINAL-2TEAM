@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>디자인 유사성 분석 챗봇</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-image {
+            max-width: 300px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .design-card {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .design-card img {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .design-card h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .design-card p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-box:focus {
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-btn {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .file-btn:hover {
+            background: #5568d3;
+        }
+
+        .send-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-name {
+            display: inline-block;
+            margin-left: 10px;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 50px 20px;
+        }
+
+        .welcome-message h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .welcome-message ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .welcome-message li {
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .details-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .details-content {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .details-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🎨 디자인 유사성 분석 챗봇</h1>
+            <p>냥냥 검색식 일일히 조합해보지 말고 빠르게 FTO 판단 후보를 찾아보세요 여기서 빨리 찾고 칼퇴하세요! 냥냥</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h2>안녕하세요! 👋</h2>
+                <p>디자인 유사성 분석 챗봇입니다.</p>
+                <ul>
+                    <li>✨ 유사한 디자인 자동 검색</li>
+                    <li>🔍 형상 분석 및 비교</li>
+                    <li>📊 상세한 유사도 평가</li>
+                    <li>💡 AI 기반 인사이트 제공</li>
+                </ul>
+                <p style="margin-top: 20px;">아래에서 이미지를 업로드하고 분석을 시작해보세요!</p>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #667eea;">분석 중입니다... (약 10-30초 소요)</p>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-row">
+                <input type="text" id="queryInput" class="input-box"
+                       placeholder="텍스트로 질문하거나, 이미지 분석 시 쿼리로 사용됩니다">
+            </div>
+            <div class="input-row">
+                <div class="file-input-wrapper">
+                    <button class="file-btn">📁 이미지 선택</button>
+                    <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg">
+                </div>
+                <span class="file-name" id="fileName"></span>
+                <button class="send-btn" id="sendBtn" disabled>🔍 분석 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 설정 ====================
+        const API_BASE = 'http://localhost:8000';
+
+        // ==================== DOM ====================
+        const chatMessages = document.getElementById('chatMessages');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const sendBtn = document.getElementById('sendBtn');
+        const queryInput = document.getElementById('queryInput');
+        const loading = document.getElementById('loading');
+        const fileBtn = document.querySelector('.file-btn');
+
+        // ==================== 상태 ====================
+        let selectedFile = null;
+        let currentThreadId = null;        // 이미지 분석 2단계용 thread_id
+        let conversationThreadId = null;   // 텍스트 채팅 멀티턴용 thread_id
+        let imageContextThreadId = null;   // 이미지 분석 완료 후 후속 질문용 thread_id
+
+        // ==================== 초기화 ====================
+        updateSendButton();
+
+        // ==================== 이벤트 ====================
+
+        fileBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0] || null;
+            fileName.textContent = selectedFile ? selectedFile.name : '';
+            updateSendButton();
+        });
+
+        queryInput.addEventListener('input', () => updateSendButton());
+
+        sendBtn.addEventListener('click', async () => {
+            if (selectedFile) {
+                await handleImageAnalysis();
+            } else if (queryInput.value.trim()) {
+                await handleTextChat();
+            }
+        });
+
+        queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendBtn.disabled) sendBtn.click();
+        });
+
+        // ==================== 버튼 상태 ====================
+
+        function updateSendButton() {
+            if (selectedFile) {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '🔍 분석 시작';
+            } else if (queryInput.value.trim()) {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '💬 전송';
+            } else {
+                sendBtn.disabled = true;
+                sendBtn.textContent = '🔍 분석 시작';
+            }
+        }
+
+        // ==================== 1단계: 이미지 업로드 → 유사 디자인 10개 ====================
+
+        async function handleImageAnalysis() {
+            const query = queryInput.value.trim() || '이 제품과 유사한 디자인을 추천해줘';
+
+            // 새 이미지 분석 시 이전 컨텍스트 초기화
+            imageContextThreadId = null;
+            conversationThreadId = null;
+            hideImageContextBanner();
+
+            addUserMessage(selectedFile, query);
+            setLoading(true);
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);   // API 필드명: image
+            formData.append('user_query', query);     // API 필드명: user_query
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success) {
+                    currentThreadId = result.thread_id;
+                    addImageAnalysisResult(result);
+                } else {
+                    addErrorMessage('분석 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error(error);
+                addErrorMessage(`오류: ${error.message}`);
+            } finally {
+                setLoading(false);
+                fileInput.value = '';
+                fileName.textContent = '';
+                selectedFile = null;
+                updateSendButton();
+                scrollToBottom();
+            }
+        }
+
+        // ==================== 2단계: 디자인 선택 → 상세비교 + 리포트 ====================
+
+        async function selectDesign(index) {
+            if (!currentThreadId) return;
+
+            addUserSelectMessage(index);
+            document.querySelectorAll('.select-design-btn').forEach(btn => btn.disabled = true);
+            setLoading(true);
+
+            const formData = new FormData();
+            formData.append('thread_id', currentThreadId);
+            formData.append('selected_index', index);
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/select`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success) {
+                    addDetailedReport(result);
+                } else {
+                    addErrorMessage('상세 비교 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error(error);
+                addErrorMessage(`오류: ${error.message}`);
+            } finally {
+                setLoading(false);
+                imageContextThreadId = currentThreadId; // 후속 질문을 위해 보관
+                currentThreadId = null;
+                updateSendButton();
+                showImageContextBanner();
+                scrollToBottom();
+            }
+        }
+
+        // ==================== 텍스트 채팅 (멀티턴) ====================
+
+        async function handleTextChat() {
+            const text = queryInput.value.trim();
+            if (!text) return;
+
+            addUserTextMessage(text);
+            queryInput.value = '';
+            updateSendButton();
+            setLoading(true);
+
+            const formData = new FormData();
+            formData.append('text_query', text);
+            if (conversationThreadId) {
+                formData.append('thread_id', conversationThreadId);
+            }
+            if (imageContextThreadId) {
+                formData.append('image_thread_id', imageContextThreadId);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/text`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success) {
+                    conversationThreadId = result.thread_id;
+                    addTextChatResult(result);
+                } else {
+                    addErrorMessage('답변 중 오류가 발생했습니다.');
+                }
+            } catch (error) {
+                console.error(error);
+                addErrorMessage(`오류: ${error.message}`);
+            } finally {
+                setLoading(false);
+                scrollToBottom();
+            }
+        }
+
+        // ==================== 메시지 렌더링 ====================
+
+        // 사용자: 이미지 + 쿼리
+        function addUserMessage(file, query) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'message-image';
+            contentDiv.appendChild(img);
+
+            const queryP = document.createElement('p');
+            queryP.innerHTML = `<strong>질문:</strong> ${escapeHtml(query)}`;
+            queryP.style.marginTop = '10px';
+            contentDiv.appendChild(queryP);
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 사용자: 텍스트 메시지
+        function addUserTextMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 사용자: 디자인 선택 메시지
+        function addUserSelectMessage(index) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = `#${index} 디자인 상세 비교 요청`;
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 봇: 1단계 결과 - 유사 디자인 목록 + 선택 버튼
+        function addImageAnalysisResult(result) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            let html = `<h3 style="color: #667eea; margin-bottom: 10px;">💡 분석 결과</h3>`;
+
+            if (result.input_analysis) {
+                html += `
+                    <h4 style="color: #667eea;">🎯 입력 디자인 분석</h4>
+                    <p style="background: #f0f0f0; padding: 10px; border-radius: 8px; margin: 8px 0 15px;">${escapeHtml(result.input_analysis)}</p>
+                `;
+            }
+
+            if (result.similar_designs && result.similar_designs.length > 0) {
+                html += `
+                    <h4 style="color: #667eea; margin-bottom: 5px;">🔍 유사 디자인 ${result.similar_designs.length}개 발견</h4>
+                    <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">상세 비교할 디자인을 선택하세요:</p>
+                `;
+                contentDiv.innerHTML = html;
+
+                result.similar_designs.forEach((design) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'design-card';
+
+                    let cardHtml = `<h4>#${design.index} - ${escapeHtml(design.application_number)}</h4>`;
+
+                    if (design.image_base64) {
+                        cardHtml += `<img src="data:image/jpeg;base64,${design.image_base64}" alt="유사 디자인">`;
+                    }
+
+                    cardHtml += `
+                        <p><strong>상품명:</strong> ${escapeHtml(design.article_name)}</p>
+                        <p><strong>상태:</strong> ${escapeHtml(design.admst_stat)}</p>
+                        ${design.last_disposition_date ? `<p><strong>최종처분일:</strong> ${escapeHtml(design.last_disposition_date)}</p>` : ''}
+                        <p><strong>유사도 거리:</strong> ${design.distance.toFixed(4)}</p>
+                        <button class="select-design-btn details-btn"
+                                onclick="selectDesign(${design.index})"
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-top: 8px; padding: 8px 18px;">
+                            ✅ 이 디자인 상세 비교
+                        </button>
+                    `;
+
+                    cardDiv.innerHTML = cardHtml;
+                    contentDiv.appendChild(cardDiv);
+                });
+            } else {
+                contentDiv.innerHTML = html + '<p>유사한 디자인을 찾지 못했습니다.</p>';
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 봇: 2단계 결과 - 상세비교 + 최종 리포트
+        function addDetailedReport(result) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            let html = `<h3 style="color: #667eea; margin-bottom: 10px;">📊 상세 비교 결과</h3>`;
+
+            if (result.detailed_comparison) {
+                html += `<div style="background: #f0f0f0; padding: 12px; border-radius: 8px; margin-bottom: 15px; white-space: pre-wrap; font-size: 0.9rem;">${escapeHtml(result.detailed_comparison)}</div>`;
+            }
+
+            if (result.final_report) {
+                html += `<h3 style="color: #667eea; margin: 15px 0 10px;">📋 최종 리포트</h3>`;
+                html += `<div style="background: #fff8e1; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; white-space: pre-wrap;">${escapeHtml(result.final_report)}</div>`;
+            }
+
+            contentDiv.innerHTML = html;
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 봇: 텍스트 채팅 답변
+        function addTextChatResult(result) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            // 텍스트 답변
+            contentDiv.innerHTML = `<p>${escapeHtml(result.answer).replace(/\n/g, '<br>')}</p>`;
+
+            // DB 검색 결과 도면 이미지
+            if (result.search_images && result.search_images.length > 0) {
+                const imagesDiv = document.createElement('div');
+                imagesDiv.style.marginTop = '15px';
+                imagesDiv.innerHTML = `<h4 style="color: #667eea; margin-bottom: 10px;">📷 관련 도면 (${result.search_images.length}개)</h4>`;
+
+                result.search_images.forEach(img => {
+                    const card = document.createElement('div');
+                    card.className = 'design-card';
+                    card.innerHTML = `
+                        <h4>${escapeHtml(img.application_number)}</h4>
+                        <img src="data:image/jpeg;base64,${img.image_base64}" alt="${escapeHtml(img.application_number)}">
+                        ${img.last_disposition_date ? `<p><strong>최종처분일:</strong> ${escapeHtml(img.last_disposition_date)}</p>` : ''}
+                    `;
+                    imagesDiv.appendChild(card);
+                });
+
+                contentDiv.appendChild(imagesDiv);
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // 봇: 에러 메시지
+        function addErrorMessage(error) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = `<p style="color: red;">❌ ${escapeHtml(error)}</p>`;
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // ==================== 이미지 컨텍스트 배너 ====================
+
+        function showImageContextBanner() {
+            let banner = document.getElementById('imageContextBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'imageContextBanner';
+                banner.style.cssText = `
+                    background: linear-gradient(135deg, #667eea22, #764ba222);
+                    border: 1px solid #667eea55;
+                    border-radius: 10px;
+                    padding: 8px 15px;
+                    margin-bottom: 8px;
+                    font-size: 0.85rem;
+                    color: #667eea;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                `;
+                banner.innerHTML = `
+                    💬 이미지 분석 결과를 기억하고 있어요. 분석 결과에 대해 추가 질문하세요!
+                    <button onclick="clearImageContext()" style="
+                        margin-left: auto; background: none; border: 1px solid #667eea;
+                        color: #667eea; border-radius: 10px; padding: 2px 8px; cursor: pointer; font-size: 0.8rem;
+                    ">✕ 초기화</button>
+                `;
+                const inputArea = document.querySelector('.chat-input-area');
+                inputArea.insertBefore(banner, inputArea.firstChild);
+            }
+            banner.style.display = 'flex';
+        }
+
+        function hideImageContextBanner() {
+            const banner = document.getElementById('imageContextBanner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function clearImageContext() {
+            imageContextThreadId = null;
+            conversationThreadId = null;
+            hideImageContextBanner();
+        }
+
+        // ==================== 유틸 ====================
+
+        function setLoading(active) {
+            loading.classList.toggle('active', active);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return String(str ?? '');
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // 상세 정보 토글 (레거시 호환)
+        function toggleDetails(id) {
+            document.getElementById(id)?.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

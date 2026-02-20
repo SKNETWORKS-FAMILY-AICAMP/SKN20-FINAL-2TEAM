@@ -18,6 +18,12 @@ import torch
 from pathlib import Path
 from PIL import Image
 
+# ==================== 경로 설정 ====================
+# design/src/utils.py 기준 상위 폴더(= design/)
+BASE_DIR   = Path(__file__).resolve().parent.parent
+
+# design/data/images  ← design_id_to_local_image 기본 이미지 디렉토리
+IMAGES_DIR = str(BASE_DIR / "data" / "images")
 
 # ==================== 전역 변수 ====================
 # CLIP 모델 로드 (ViT-B/32)
@@ -103,40 +109,28 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
 
 # ==================== 이미지 경로 변환 함수 ====================
 
-# utils.py 기준 상대 경로로 이미지 디렉토리 설정
-_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "images")
-
-
 def design_id_to_local_image(design_id, images_dir=None):
     """
     ChromaDB design_id를 로컬 이미지 경로로 변환
 
-    Args:
-        design_id: ChromaDB의 디자인 ID
-                   예: "3020250000208-09-01-0-IMG-0"
-        images_dir: 이미지 디렉토리 경로 (기본값: ../data/images)
+    DB ID 형식:   {출원번호}-api_xml-{img_num}            예: '3020120015713-api_xml-1'
+                  {출원번호}-api_xml-{img_num}-IMG-{n}    예: '3020120015713-api_xml-1-IMG-1'
+    파일명 형식:  {출원번호}-api_xml-{img_num}_{frame}.JPG 예: '3020120015713-api_xml-1_001.JPG'
 
-    Returns:
-        str: 로컬 이미지 파일 경로
-        None: 파일이 존재하지 않을 경우
+    prefix({출원번호}-api_xml-{img_num})로 시작하는 파일을 images_dir에서 탐색.
     """
     if images_dir is None:
-        images_dir = _DEFAULT_IMAGES_DIR
+        images_dir = IMAGES_DIR
 
-    # IMG 부분 제거
-    parts = design_id.split('-IMG-')
-    if len(parts) == 2:
-        prefix = parts[0]      # 3020250000208-09-01-0
-        image_num = parts[1]   # 0
+    # '-IMG-' 이후 부분은 무시하고 prefix만 추출
+    # '3020120015713-api_xml-1-IMG-1' → '3020120015713-api_xml-1'
+    # '3020120015713-api_xml-1'       → '3020120015713-api_xml-1'
+    prefix = design_id.split('-IMG-')[0]
 
-        # 3자리 숫자로 변환
-        image_num_padded = image_num.zfill(3)  # 000
-
-        # 파일명 생성
-        filename = f"{prefix}_{image_num_padded}.jpg"
-        local_path = os.path.join(images_dir, filename)
-
-        return local_path if os.path.exists(local_path) else None
+    # images_dir에서 '{prefix}_'로 시작하는 파일 탐색
+    for fname in os.listdir(images_dir):
+        if fname.startswith(prefix + '_'):
+            return os.path.join(images_dir, fname)
 
     return None
 

@@ -12,30 +12,10 @@ output: 도면의 형상 관찰 결과 (JSON)
 input: 입력 이미지 URL + 비교 이미지 URL
 output: 비교 분석 결과 유사점, 비유사점 (JSON)
 
-3. TEXT_SEARCH_COMBINED_ANALYSIS_PROMPT: 텍스트 검색용 통합 프롬프트
-input: 사용자 검색어 + 이미지 URL
-output: 형상 요약 + 부합도 판단 (JSON)
+3. REPORT_PROMPT: 최종 리포트 생성 프롬프트
+input: 입력 디자인 분석 + 선택한 디자인 상세 비교 + 선택한 디자인 정보
+output: 비교 분석 리포트 
 
-
-4. IMAGE_FINAL_RESPONSE_PROMPT: 이미지 입력 시 최종 응답 생성
-
-input: 사용자 쿼리 + context_info (분석 정보)
-output: 최종 답변 텍스트
-
-5. TEXT_FINAL_RESPONSE_PROMPT: 텍스트 입력 시 최종 응답 생성
-
-input: 사용자 쿼리 + context_info (분석 정보)
-output: 최종 답변 텍스트
-
-6. IMAGE_VALIDATION_PROMPT: 이미지 입력 시 답변 검증
-
-input: 사용자 쿼리 + 생성된 답변
-output: score(1~10) + feedback (JSON)
-
-7. TEXT_VALIDATION_PROMPT: 텍스트 입력 시 답변 검증 
-
-input: 사용자 쿼리 + 생성된 답변
-output: score(1~10) + feedback (JSON)
 
 """
 
@@ -171,6 +151,17 @@ IMAGE_COMPARISON_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
+
+
+
+
+
+
+
+
+
+
+'''
 
 # ==================== 텍스트 검색용 프롬프트 ====================
 
@@ -338,3 +329,4 @@ TEXT_FINAL_RESPONSE_PROMPT = ChatPromptTemplate.from_messages([
     """),
     ("user", "{user_query}")
 ])
+'''
