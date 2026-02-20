@@ -1,0 +1,12 @@
+.env
+design/data/
+design/chroma_db/
+
+data/
+chroma_db/
+.env
+__pycache__/
+*.pyc
+design/src/temp_uploads/*
+.DS_Store
+design2/
