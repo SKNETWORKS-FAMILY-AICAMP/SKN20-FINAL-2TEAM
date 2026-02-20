@@ -35,6 +35,9 @@ IMAGES_DIR_V2 = str(BASE_DIR.parent / "design2" / "data" / "images_v2")
 # design2/src/api.py의 임시 업로드 폴더
 UPLOAD_DIR    = str(BASE_DIR.parent / "design2" / "src" / "temp_uploads")
 
+# 벡터DB 유사 디자인 검색 결과 개수
+N_RESULTS     = 15
+
 # LangChain & LangGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
@@ -136,7 +139,7 @@ def search_design_db(query: str) -> str:
         return "임베딩 생성 실패"
 
     # 벡터DB 검색
-    results = search_and_filter_similar_designs(image_collection, embedding, n_results=5)
+    results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
 
     # 결과 정리
     output = f"'{query}' 검색 결과 (번역: '{translated}'):\n\n"
@@ -206,7 +209,7 @@ def image_search_node(state: GraphState) -> GraphState:
 
     # CLIP 임베딩 → 벡터DB 검색
     embedding = get_image_embedding(state['image_path'])
-    results = search_and_filter_similar_designs(image_collection, embedding, n_results=10)
+    results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
     state['search_results'] = results #검색 원본 저장
 
     # 원본 결과를 사용자에게 보여줄 포맷으로 정리 (인덱스, 디자인id, 거리, 출원번호, 상품명, 등록상태, 이미지 경로)
