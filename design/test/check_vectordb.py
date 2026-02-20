@@ -5,7 +5,7 @@ def check_collections():
     """벡터 DB의 모든 컬렉션 이름을 확인하는 함수"""
     try:
         # ChromaDB 클라이언트 초기화 (기존 DB 경로와 동일하게 설정)
-        chroma_client = chromadb.PersistentClient(path="C:\\Users\\playdata2\\Desktop\\SKN_AI_20\\SKN20-FINAL-2TEAM(vb1)\\design\\chroma_db")
+        chroma_client = chromadb.PersistentClient(path=r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\chroma_db")
         
         # 모든 컬렉션 목록 가져오기
         collections = chroma_client.list_collections()
@@ -45,7 +45,7 @@ def check_collections():
 def get_collection_details(collection_name):
     """특정 컬렉션의 상세 정보를 확인하는 함수"""
     try:
-        chroma_client = chromadb.PersistentClient(path="C:\\Users\\playdata2\\Desktop\\SKN_AI_20\\SKN20-FINAL-2TEAM(vb1)\\design\\chroma_db")
+        chroma_client = chromadb.PersistentClient(path=r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM\design\chroma_db")
         
         # 특정 컬렉션 가져오기
         collection = chroma_client.get_collection(name=collection_name)
