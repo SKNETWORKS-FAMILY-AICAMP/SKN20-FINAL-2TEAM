@@ -1,9 +1,12 @@
 import os
 import pandas as pd
 from datetime import datetime
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # xlsx 파일에서 출원번호 읽기
-excel_file = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/rawdata/1981-2026.xlsx"
+excel_file = str(PROJECT_ROOT / "data/rawdata/1981-2026.xlsx")
 df = pd.read_excel(excel_file, engine='openpyxl')
 
 # 출원번호 추출
@@ -13,7 +16,7 @@ xlsx_numbers_set = set(application_numbers)
 print(f"📊 xlsx 파일의 출원번호 개수: {len(xlsx_numbers_set)}")
 
 # 저장된 xml 파일명 읽기
-xml_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/api_xml"
+xml_dir = str(PROJECT_ROOT / "data/api_xml")
 xml_files = [f.replace('.xml', '') for f in os.listdir(xml_dir) if f.endswith('.xml')]
 xml_numbers_set = set(xml_files)
 
@@ -26,7 +29,7 @@ print(f"❌ 누락된 출원번호: {len(missing_numbers)}개")
 
 # 누락된 출원번호를 txt 파일로 저장
 if missing_numbers:
-    log_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/error_출원번호"
+    log_dir = str(PROJECT_ROOT / "data/error_Flow/error_출원번호")
     os.makedirs(log_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

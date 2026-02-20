@@ -35,23 +35,25 @@ import clip
 from PIL import Image
 from pathlib import Path
 from datetime import datetime
+
+PROJECT_ROOT         = Path(__file__).resolve().parent.parent
 from collections import defaultdict
 
 # ─────────────────────────────────────────────
 # 0. 경로 설정
 # ─────────────────────────────────────────────
-FINETUNED_MODEL_PATH = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/clip_finetuned/clip_finetuned_best.pt"
+FINETUNED_MODEL_PATH = str(PROJECT_ROOT / "train/checkpoints/best_model.pt")
 
 # 원본 임베딩 소스 (메타데이터 참조용)
-ORIGINAL_EMB_DIR     = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/embeddings_reject_v2"
-IMAGE_DIR            = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/images_reject_v2"
+ORIGINAL_EMB_DIR     = str(PROJECT_ROOT / "data/evaldata/embeddings_reject_v2")
+IMAGE_DIR            = str(PROJECT_ROOT / "data/evaldata/images_reject_v2")
 
 # 새로운 출력 경로
-NEW_EMB_DIR          = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/embeddings_reject_finetuned"
-NEW_CHROMA_PATH      = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/chroma_db_finetuned"
+NEW_EMB_DIR          = str(PROJECT_ROOT / "data/evaldata/embeddings_reject_finetuned")
+NEW_CHROMA_PATH      = str(PROJECT_ROOT / "data/evaldata/chroma_db_finetuned")
 COLLECTION_NAME      = "design"
 CLIP_MODEL_NAME      = "ViT-B/32"
-ERROR_LOG            = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/inference_error_log.txt"
+ERROR_LOG            = str(PROJECT_ROOT / "data/evaldata/inference_error_log.txt")
 
 Path(NEW_EMB_DIR).mkdir(parents=True, exist_ok=True)
 

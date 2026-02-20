@@ -198,11 +198,11 @@ def convert_folder_per_image(source_folder_path, output_folder_path, locarno_cod
 
 if __name__ == "__main__":
     # 현재 디렉토리 경로
-    current_dir = Path(__file__).parent
-    
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
     # xml -> json 파일 변환
-    input_folder = current_dir.parent / "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/reject" #변경할 xml 폴더 경로
-    output_folder = current_dir.parent / "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/json_reject" #변경된 json 폴더 경로
+    input_folder = PROJECT_ROOT / "data/evaldata/reject"   #변경할 xml 폴더 경로
+    output_folder = PROJECT_ROOT / "data/evaldata/json_reject"  #변경된 json 폴더 경로
     if input_folder.exists():
         print("=" * 50)
         print(f"{input_folder} 폴더 변환 시작 (이미지당 JSON 1개)")

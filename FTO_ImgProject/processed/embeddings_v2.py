@@ -2,6 +2,8 @@ import json
 import requests
 import os
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 from PIL import Image
 from io import BytesIO
 import torch
@@ -120,10 +122,10 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
 # 경로 설정
-JSON_FOLDER = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/json"
-DOWNLOAD_DIR = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/images_v2"
-EMBEDDING_OUTPUT = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/embeddings_v2"
-ERROR_LOG = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/error_Flow/5.embedding_failed_v2.txt"
+JSON_FOLDER = str(PROJECT_ROOT / "data/json")
+DOWNLOAD_DIR = str(PROJECT_ROOT / "data/sketch/images_v2")
+EMBEDDING_OUTPUT = str(PROJECT_ROOT / "data/sketch/embeddings_v2")
+ERROR_LOG = str(PROJECT_ROOT / "data/error_Flow/5.embedding_failed_v2.txt")
 
 # 디렉토리 생성
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)

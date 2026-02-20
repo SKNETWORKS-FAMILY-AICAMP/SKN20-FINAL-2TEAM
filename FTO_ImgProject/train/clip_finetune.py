@@ -47,17 +47,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from pathlib import Path
 from PIL import Image
 import clip
 from datetime import datetime
 
+PROJECT_ROOT  = Path(__file__).resolve().parent.parent
+
 # ─────────────────────────────────────────────
 # 0. 설정
 # ─────────────────────────────────────────────
-TRIPLET_CSV   = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/processed/data/triplets.csv" # triplets.csv — 41,792행
+TRIPLET_CSV   = str(PROJECT_ROOT / "train/traindata/triplets.csv")  # triplets.csv — 41,792행
 # hard negative: 20,318개  ← 같은 화장품용기인데 다른 디자인 → 모델이 세밀하게 학습
 # easy negative: 21,474개  ← 아예 다른 물품명 → 기본 분리 학습
-OUTPUT_DIR    = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/train/clip_finetuned"
+OUTPUT_DIR    = str(PROJECT_ROOT / "train/checkpoints")
 CLIP_MODEL    = "ViT-B/32"
 
 EPOCHS        = 30

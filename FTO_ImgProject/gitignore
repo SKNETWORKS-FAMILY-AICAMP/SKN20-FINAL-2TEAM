@@ -1,0 +1,97 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment variables
+.env
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Data and results
+# 대용량/파일량 많은 폴더 및 파일 무시
+data/api_xml/
+data/photo/
+data/rawdata/
+data/sketch/
+data/json/
+data/evaldata/chroma_db_train/
+data/evaldata/chroma_db_train_v2/
+data/evaldata/chroma_db_v2/
+data/evaldata/embeddings_reject/
+data/evaldata/embeddings_reject_v2/
+data/evaldata/images_reject/
+data/evaldata/images_reject_v2/
+data/evaldata/json_reject/
+data/evaldata/reject/
+data/evaldata/reject_error/
+# 대용량 엑셀 파일 무시
+data/evaldata/dataset_combined_final.xlsx
+data/evaldata/dataset_images_reject.xlsx
+data/evaldata/dataset_images_reject_v2.xlsx
+data/photo/
+data/evaldata/
+data/sketch/
+data/json/
+data/processed/
+data/error_Flow/
+
+# Model checkpoints
+train/checkpoints/
+
+# Processed sketch images
+design/processedSketch/
+
+# 기타
+*.bak
+*~
+# 환경 변수
+.env
+
+# 데이터/임시/결과 폴더
+**/embeddings/
+**/images/
+**/json/
+**/sketches/
+**/xml/
+**/jpg/
+**/split_output/
+**/chroma_db_v1/
+**/chroma_db_v2/
+**/retry_embeddings/
+**/retry_images/
+**/error_Flow/
+**/rawdata/
+**/embeddings_v1/
+**/embeddings_v2/
+
+# 대용량/중간 파일
+*.npz
+*.csv
+*.txt
+
+# 파이썬/시스템 파일
+__pycache__/
+*.pyc
+.DS_Store
+
+# VSCode 설정
+.vscode/

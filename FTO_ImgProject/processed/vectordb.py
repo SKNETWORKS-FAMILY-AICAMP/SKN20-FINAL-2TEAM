@@ -2,22 +2,25 @@ import os
 import json
 import chromadb
 from datetime import datetime
+from pathlib import Path
 import torch.nn.functional as F
 import torch
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # ─────────────────────────────────────────────
 # 0. 경로 설정
 # ─────────────────────────────────────────────
-CHROMA_DB_PATH = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/chroma_db_train_v2"
+CHROMA_DB_PATH = str(PROJECT_ROOT / "data/evaldata/chroma_db_train_v2")
 COLLECTION_NAME = "design"
 
-IMAGE_DIR = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/images_reject_v2"
+IMAGE_DIR = str(PROJECT_ROOT / "data/evaldata/images_reject_v2")
 
 EMBEDDING_DIRS = [
-    "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/embeddings_reject_v2",
+    str(PROJECT_ROOT / "data/evaldata/embeddings_reject_v2"),
 ]
 
-error_log_path = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/imgEmbedding_vectorDB_v2.txt"
+error_log_path = str(PROJECT_ROOT / "data/evaldata/imgEmbedding_vectorDB_v2.txt")
 
 # ─────────────────────────────────────────────
 # 1. 로컬 이미지 경로 자동 매핑 딕셔너리 구축

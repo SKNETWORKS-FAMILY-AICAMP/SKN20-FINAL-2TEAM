@@ -2,7 +2,10 @@ import os, time, requests, json
 from dotenv import load_dotenv
 from datetime import datetime
 from openpyxl import load_workbook
+from pathlib import Path
 import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # 파일의 스타일시트(XML)에 잘못된 색상 값이 포함되어 있어 openpyxl읽을 수 있게 pandas 이용.
 
@@ -11,7 +14,7 @@ API_KEY = os.getenv("KIPRISPLUS_API_KEY")
 assert API_KEY, "KIPRISPLUS_API_KEY 없음 (.env 확인)"
 
 # 출원번호 들어있는 엑셀 파일 로드
-excel_file = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/거절출원번호_유사이미지있음.xlsx"
+excel_file = str(PROJECT_ROOT / "data/evaldata/거절출원번호_유사이미지있음.xlsx")
 
 # pandas로 엑셀 파일 읽기
 df = pd.read_excel(excel_file, engine='openpyxl')
@@ -26,8 +29,8 @@ print(f"📊 {excel_file} 파일에서 {len(application_numbers)}개의 출원�
 base_url = "http://plus.kipris.or.kr/kipo-api/kipi/designInfoSearchService/getBibliographyDetailInfoSearch"
 
 # 폴더 생성
-output_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/reject"
-log_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/reject_error"
+output_dir = str(PROJECT_ROOT / "data/evaldata/reject")
+log_dir = str(PROJECT_ROOT / "data/evaldata/reject_error")
 os.makedirs(output_dir, exist_ok=True)
 os.makedirs(log_dir, exist_ok=True)
 

@@ -15,6 +15,8 @@ import torch.nn.functional as F
 import chromadb
 import clip
 from pathlib import Path
+
+PROJECT_ROOT     = Path(__file__).resolve().parent.parent
 from typing import Optional
 from PIL import Image
 from rank_bm25 import BM25Okapi   # pip install rank-bm25
@@ -23,10 +25,10 @@ from rank_bm25 import BM25Okapi   # pip install rank-bm25
 # 0. 설정
 # ─────────────────────────────────────────────
 # ── 원본 CLIP 설정 ──
-CHROMA_DB_PATH   = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/chroma_db_v2"
+CHROMA_DB_PATH   = str(PROJECT_ROOT / "data/sketch/chroma_db_v2")
 # ── 파인튜닝 완료 후 아래 두 줄 주석 해제 + 위 CHROMA_DB_PATH 주석 처리 ──
-# CHROMA_DB_PATH   = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/chroma_db_finetuned"
-# FINETUNED_MODEL_PATH = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/clip_finetuned/clip_finetuned_best.pt"
+# CHROMA_DB_PATH   = str(PROJECT_ROOT / "data/evaldata/chroma_db_finetuned")
+# FINETUNED_MODEL_PATH = str(PROJECT_ROOT / "train/checkpoints/best_model.pt")
 FINETUNED_MODEL_PATH = None   # None = 원본 CLIP 사용
 
 COLLECTION_NAME  = "design"

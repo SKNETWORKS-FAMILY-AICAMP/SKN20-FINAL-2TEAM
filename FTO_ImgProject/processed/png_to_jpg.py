@@ -1,8 +1,11 @@
 from PIL import Image
 import os
+from pathlib import Path
 
-sketch_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/2024-2026/sketches"
-output_dir = "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/2024-2026/jpg"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+sketch_dir = str(PROJECT_ROOT / "data/photo")
+output_dir = str(PROJECT_ROOT / "data/sketch/images_v2")
 
 os.makedirs(output_dir, exist_ok=True)
 

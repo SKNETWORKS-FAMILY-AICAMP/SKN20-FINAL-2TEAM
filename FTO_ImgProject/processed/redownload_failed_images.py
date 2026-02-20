@@ -7,11 +7,13 @@ from PIL import Image
 import torch
 import clip
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 # 경로 설정
-ERROR_LOG = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/error_log.txt"
-JSON_FOLDER = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/json"
-DOWNLOAD_DIR = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/images"
-EMBEDDING_OUTPUT = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/embeddings"
+ERROR_LOG = str(PROJECT_ROOT / "data/error_Flow/1.error_log.txt")
+JSON_FOLDER = str(PROJECT_ROOT / "data/json")
+DOWNLOAD_DIR = str(PROJECT_ROOT / "data/photo/images_v1")
+EMBEDDING_OUTPUT = str(PROJECT_ROOT / "data/photo/embeddings_v1")
 
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)
 Path(EMBEDDING_OUTPUT).mkdir(parents=True, exist_ok=True)

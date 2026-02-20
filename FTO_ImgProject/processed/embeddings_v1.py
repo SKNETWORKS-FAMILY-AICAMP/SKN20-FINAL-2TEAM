@@ -2,6 +2,8 @@ import json
 import requests
 import os
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 from PIL import Image
 from io import BytesIO
 import torch
@@ -25,13 +27,13 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 print(f"모델 로드 완료 (Device: {device})")
 
 # json 파일이 있는 폴더
-JSON_FOLDER = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/json_reject"
+JSON_FOLDER = str(PROJECT_ROOT / "data/evaldata/json_reject")
 # 이미지 저장할 폴더
-DOWNLOAD_DIR = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/images_reject"
+DOWNLOAD_DIR = str(PROJECT_ROOT / "data/evaldata/images_reject")
 # 벡터DB에 적재할 json(임베딩 벡터 포함 버전) 저장할 폴더
-EMBEDDING_OUTPUT = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/embeddings_reject"
+EMBEDDING_OUTPUT = str(PROJECT_ROOT / "data/evaldata/embeddings_reject")
 # 에러 로그 파일
-ERROR_LOG = r"/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/reject_error/embeddingError.txt"
+ERROR_LOG = str(PROJECT_ROOT / "data/evaldata/reject_error/embeddingError.txt")
 
 # 디렉토리 생성
 Path(DOWNLOAD_DIR).mkdir(parents=True, exist_ok=True)

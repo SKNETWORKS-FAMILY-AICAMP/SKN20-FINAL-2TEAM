@@ -30,6 +30,8 @@ import logging                     # 학습 로그를 파일 + 콘솔에 동시 
 import argparse                    # 터미널에서 --epochs 같은 인자를 받기 위한 파서
 from pathlib import Path           # 경로를 객체로 다루는 모듈 (glob으로 이미지 탐색 등)
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 import numpy as np                 # 배열 연산 + cos annealing 수식(np.cos, np.pi)에 사용
 import pandas as pd                # 엑셀 파일 로딩(read_excel) + 히스토리 저장(to_csv)
 from PIL import Image              # 이미지 파일 열기 + RGB 변환 (CLIP 입력 형식 맞춤)
@@ -56,19 +58,19 @@ def get_config():
 
     # ── 경로 설정 ──
     parser.add_argument("--anchor_dir", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/images_reject",
+                        default=str(PROJECT_ROOT / "data/evaldata/images_reject"),
                         help="anchor 이미지 폴더 경로")           # 실제 이미지가 있는 폴더
     parser.add_argument("--positive_dir", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/images_reject_v2",
+                        default=str(PROJECT_ROOT / "data/evaldata/images_reject_v2"),
                         help="positive 이미지 폴더 경로 (증강/전처리 v2)")  # 증강된 버전 폴더
     parser.add_argument("--data_combined", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/dataset_combined_final.xlsx")
+                        default=str(PROJECT_ROOT / "data/evaldata/dataset_combined_final.xlsx"))
     parser.add_argument("--data_reject", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/dataset_images_reject.xlsx")
+                        default=str(PROJECT_ROOT / "data/evaldata/dataset_images_reject.xlsx"))
     parser.add_argument("--data_reject_v2", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/3차_테스트/평가데이터/dataset_images_reject_v2.xlsx")
+                        default=str(PROJECT_ROOT / "data/evaldata/dataset_images_reject_v2.xlsx"))
     parser.add_argument("--output_dir", type=str,
-                        default="/Users/kangminji/__SKN20_FINAL/데이터셋만들기/train/checkpoints")  # 모델 저장 위치
+                        default=str(PROJECT_ROOT / "train/checkpoints"))  # 모델 저장 위치
 
     # ── 학습 하이퍼파라미터 ──
     parser.add_argument("--clip_model", type=str, default="ViT-B/32",
