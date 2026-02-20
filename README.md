@@ -100,9 +100,16 @@ python design_chatbot.py
 
 ### 필수 환경변수 (`.env` 파일)
 ```
+(필수)
 OPENAI_API_KEY=sk-...
 KIPRISPLUS_API_KEY=...
 TAVILY_API_KEY=tvly-...
+
+# 랭스미스 연동 (선택 사항)
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY= 랭스미스 API 키 
+LANGCHAIN_PROJECT=design-chatbot
+
 ```
 
 ### 필수 패키지
