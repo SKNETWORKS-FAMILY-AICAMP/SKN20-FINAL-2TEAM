@@ -117,6 +117,7 @@ async def chat_image(
                 "application_number": comp['application_number'],
                 "article_name": comp['article_name'],
                 "admst_stat": comp['admst_stat'],
+                "last_disposition_date": comp.get('last_disposition_date', ''),
                 "distance": comp['distance'],
                 "image_base64": image_base64,
             })
@@ -165,13 +166,15 @@ async def chat_select(
 @app.post("/chat/text")
 async def chat_text(
     text_query: str = Form(...),
-    thread_id: str = Form(None),  # 없으면 새 대화, 있으면 기존 대화 이어받기
+    thread_id: str = Form(None),      # 없으면 새 대화, 있으면 기존 대화 이어받기
+    image_thread_id: str = Form(None), # 이미지 분석 완료 후 후속 질문 시 전달
 ):
     """
     텍스트 질문 → LLM + Tools(웹검색, DB검색) 답변 (멀티턴 지원)
 
     - 첫 요청: thread_id 없이 전송 → 새 thread_id 발급
     - 이후 요청: 응답받은 thread_id를 함께 전송 → 대화 히스토리 유지
+    - 이미지 분석 후 후속 질문: image_thread_id도 함께 전송 → 분석 결과를 컨텍스트로 주입
     """
     try:
         is_new = thread_id is None
@@ -186,6 +189,28 @@ async def chat_text(
                 messages_history = current.values.get('messages') or []
             except Exception:
                 messages_history = []
+
+        # 이미지 분석 컨텍스트 주입 (첫 후속 질문 시 1회만)
+        if image_thread_id and not any("[이미지 분석 컨텍스트]" in str(m.get('content', '')) for m in messages_history):
+            try:
+                img_config = {"configurable": {"thread_id": image_thread_id}}
+                img_state = graph.get_state(img_config).values
+                if img_state:
+                    designs_summary = "\n".join([
+                        f"  - 출원번호: {c['application_number']}, 상품명: {c['article_name']}, "
+                        f"상태: {c['admst_stat']}, 거리: {c['distance']:.4f}"
+                        for c in img_state.get('comparison_results', [])
+                    ])
+                    context = (
+                        "[이미지 분석 컨텍스트]\n"
+                        f"입력 이미지 분석:\n{img_state.get('input_analysis', '')}\n\n"
+                        f"유사 디자인 검색 결과:\n{designs_summary}\n\n"
+                        f"선택된 디자인 상세 비교:\n{img_state.get('detailed_comparison', '')}\n\n"
+                        f"최종 FTO 리포트:\n{img_state.get('final_report', '')}"
+                    )
+                    messages_history = [{"role": "assistant", "content": context}] + messages_history
+            except Exception:
+                pass
 
         turn = len(messages_history) // 2 + 1
 
@@ -202,16 +227,34 @@ async def chat_text(
             "detailed_comparison": "",
             "final_report": "",
             "general_answer": "",
+            "search_images": [],
             "messages": messages_history,  # 이전 히스토리 전달
         }
 
         result = graph.invoke(initial_state, config)
+
+        # DB 검색 결과 이미지 → base64 변환
+        search_images = []
+        for img_info in result.get('search_images', []):
+            img_path = img_info.get('image_path', '')
+            if img_path and os.path.exists(img_path):
+                try:
+                    with open(img_path, 'rb') as f:
+                        img_b64 = base64.b64encode(f.read()).decode('utf-8')
+                    search_images.append({
+                        'application_number': img_info.get('application_number', ''),
+                        'last_disposition_date': img_info.get('last_disposition_date', ''),
+                        'image_base64': img_b64,
+                    })
+                except Exception:
+                    pass
 
         return JSONResponse(content={
             "success": True,
             "thread_id": thread_id,   # 다음 요청에 포함해서 보내면 대화가 이어짐
             "turn": turn,
             "answer": result.get('general_answer', ''),
+            "search_images": search_images,  # DB 검색 시 관련 도면 이미지
         })
 
     except Exception as e:
