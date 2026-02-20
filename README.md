@@ -1,8 +1,9 @@
-# FTO_ImgProject — 디자인 유사 이미지 검색 시스템
+# ⭐️ FTO_ImgProject — 디자인 유사 이미지 검색 시스템
 
 > **FTO(Freedom To Operate) 분석을 위한 특허 디자인 유사도 검색 시스템**
 > CLIP 임베딩 + ChromaDB + Hybrid Retrieval (Dense + BM25) + RAG(GPT-4o)
 
+## ⚙️ ML 진행중 ...
 ---
 
 ## 목차
