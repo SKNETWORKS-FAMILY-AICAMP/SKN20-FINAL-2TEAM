@@ -4,6 +4,7 @@ design/chroma_db/
 
 data/
 chroma_db/
+chroma_db_v2/
 .env
 __pycache__/
 *.pyc
