@@ -24,3 +24,9 @@ SLLM_model/outputs/*/checkpoint-*/
 SLLM_model/outputs/*/.gitattributes
 SLLM_model/outputs/*/training_args.bin
 SLLM_model/outputs/*/adapter_model.safetensors
+
+# 디자인 
+design/data/
+design/chroma_db/
+design/src/temp_uploads/*
+.DS_Store

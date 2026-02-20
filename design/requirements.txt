@@ -1,0 +1,30 @@
+# Python 3.9+ 필요
+
+# === LangChain 프레임워크 ===
+langchain==1.2.1
+langchain-community==0.4.1
+langchain-core==1.2.6
+langchain-openai==1.1.6
+langgraph==1.0.5
+langgraph-checkpoint==3.0.1
+langgraph-prebuilt==1.0.5
+
+# === 모델 ===
+torch>=2.1.0
+numpy>=1.24.0
+git+https://github.com/openai/CLIP.git
+
+# === 데이터베이스 ===
+chromadb>=0.4.0
+
+# === 웹/API ===
+fastapi>=0.104.0
+uvicorn>=0.24.0
+requests>=2.31.0
+
+# === 이미지/파일 처리 ===
+Pillow>=10.0.0
+openpyxl>=3.1.0
+
+# === 유틸리티 ===
+python-dotenv>=1.0.0
