@@ -50,7 +50,7 @@ from prompts import (
 )
 
 from dotenv import load_dotenv
-load_dotenv() 
+load_dotenv()
 
 
 # ==================== LLM & ChromaDB 초기화 ====================
@@ -86,6 +86,9 @@ class GraphState(TypedDict):
 
     # 텍스트 관련 필드
     general_answer: str              # 일반 질문 답변
+
+    # 멀티턴: 대화 히스토리
+    messages: List[Dict]             # [{"role": "user"|"assistant", "content": "..."}]
 
 
 # ==================== Tool 정의 ====================
@@ -309,48 +312,55 @@ def generate_report_node(state: GraphState) -> GraphState:
 # ===== 텍스트 경로: 일반 질문 (LLM + Tools) =====
 
 def general_question_node(state: GraphState) -> GraphState:
-    """LLM이 필요에 따라 web_search, search_design_db Tool을 사용하여 답변"""
+    """LLM이 필요에 따라 web_search, search_design_db Tool을 사용하여 답변 (멀티턴 지원)"""
 
     print("[일반질문] 답변 생성 중...")
 
-    # 어떤 tool이 필요한지 판단하기 위해 llm에게 전달하는 프롬포트 (system에 tool 사용 지침 포함)
+    # 이전 대화 히스토리 가져오기
+    history = state.get('messages') or []
+    turn = len(history) // 2 + 1
+    print(f"  현재 {turn}턴 (히스토리 {len(history)}개 메시지)")
+
+    # system + 히스토리 + 현재 질문 순서로 구성
     messages = [
         {"role": "system", "content": (
             "당신은 디자인 특허 전문 어시스턴트입니다.\n"
             "- 디자인 검색이 필요하면 search_design_db 도구를 사용하세요.\n"
             "- 최신 정보, 웹 검색이 필요하면 web_search 도구를 사용하세요.\n"
+            "- 이전 대화 내용을 참고하여 일관성 있게 답변하세요.\n"
             "- 답변은 친절하고 정확하게."
-        )},
+        )}
+    ] + history + [
         {"role": "user", "content": state['text_query']}
     ]
 
-    # llm이 질문을 보고 tool을 쓸지 말지 스스로 판단 -> tool_calls(도구 호출 요청) 포함된 response 반환
+    # llm이 질문을 보고 tool을 쓸지 말지 스스로 판단
     response = llm_with_tools.invoke(messages)
 
     if response.tool_calls:
-        # Tool 호출 있는 경우
-
         for tc in response.tool_calls:
             print(f"  Tool 호출: {tc['name']}({tc['args']})")
 
-        #toolNode가 LLM이 요청한 Tool(web_search 또는 search_design_db)을 대신 실행
-        tool_node = ToolNode(tools) # ToolNode 생성
-        tool_results = tool_node.invoke({"messages": [response]}) # Tool 실행
+        tool_node = ToolNode(tools)
+        tool_results = tool_node.invoke({"messages": [response]})
 
         messages.append(response)
-
         for msg in tool_results['messages']:
-            #messages에 tool 실행결과 포함
             messages.append(msg)
 
-        # 최종 응답 생성
         final = llm.invoke(messages)
-        state['general_answer'] = final.content
-
+        answer = final.content
     else:
-        # Tool 없이 직접 답변
-        state['general_answer'] = response.content
+        answer = response.content
 
+    # 대화 히스토리 업데이트 (user + assistant 추가)
+    updated_history = history + [
+        {"role": "user", "content": state['text_query']},
+        {"role": "assistant", "content": answer},
+    ]
+
+    state['messages'] = updated_history
+    state['general_answer'] = answer
     print("  답변 완료")
     return state
 
@@ -430,6 +440,7 @@ def run_chatbot(image_path=None, text_query=None, user_query="이 제품과 유�
         "detailed_comparison": "",
         "final_report": "",
         "general_answer": "",
+        "messages": [],
     }
 
     config = {"configurable": {"thread_id": "session-1"}}
