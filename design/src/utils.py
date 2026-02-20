@@ -18,6 +18,12 @@ import torch
 from pathlib import Path
 from PIL import Image
 
+# ==================== 경로 설정 ====================
+# design/src/utils.py 기준 상위 폴더(= design/)
+BASE_DIR   = Path(__file__).resolve().parent.parent
+
+# design/data/images  ← design_id_to_local_image 기본 이미지 디렉토리
+IMAGES_DIR = str(BASE_DIR / "data" / "images")
 
 # ==================== 전역 변수 ====================
 # CLIP 모델 로드 (ViT-B/32)
@@ -103,10 +109,6 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
 
 # ==================== 이미지 경로 변환 함수 ====================
 
-# utils.py 기준 상대 경로로 이미지 디렉토리 설정
-_DEFAULT_IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "images")
-
-
 def design_id_to_local_image(design_id, images_dir=None):
     """
     ChromaDB design_id를 로컬 이미지 경로로 변환
@@ -121,7 +123,7 @@ def design_id_to_local_image(design_id, images_dir=None):
         None: 파일이 존재하지 않을 경우
     """
     if images_dir is None:
-        images_dir = _DEFAULT_IMAGES_DIR
+        images_dir = IMAGES_DIR
 
     print(f"Processing design_id: {design_id}")  # 디버깅용
     

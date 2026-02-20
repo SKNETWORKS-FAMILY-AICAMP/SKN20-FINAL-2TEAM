@@ -16,7 +16,24 @@
 import os
 import json
 import base64
+from pathlib import Path
 from typing import TypedDict, List, Dict, Any
+
+# ==================== 경로 설정 ====================
+# design/src/design_chatbot.py 기준 상위 폴더(= design/)
+BASE_DIR      = Path(__file__).resolve().parent.parent
+
+# design/chroma_db  ← chromadb.PersistentClient(path=...)에 사용
+CHROMA_DB     = str(BASE_DIR / "chroma_db")
+
+# design/data/images  ← utils.py design_id_to_local_image 기본 경로
+IMAGES_DIR    = str(BASE_DIR / "data" / "images")
+
+# design2/data/images_v2  ← design2/src/utils.py IMAGES_DIR (신규 버전 이미지)
+IMAGES_DIR_V2 = str(BASE_DIR.parent / "design2" / "data" / "images_v2")
+
+# design2/src/api.py의 임시 업로드 폴더
+UPLOAD_DIR    = str(BASE_DIR.parent / "design2" / "src" / "temp_uploads")
 
 # LangChain & LangGraph
 from langchain_openai import ChatOpenAI
@@ -58,7 +75,7 @@ load_dotenv()
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 output_parser = StrOutputParser()
 
-chroma_client = chromadb.PersistentClient(path="..\\chroma_db")
+chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
 image_collection = chroma_client.get_collection(name="design")
 
 
