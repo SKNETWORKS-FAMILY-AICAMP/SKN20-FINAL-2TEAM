@@ -16,7 +16,7 @@
     예) 독립항3개, 종속항7개인 특허 → 3개 청크
 
 관계:
-    - build/tokenizer.py의 extract_keywords_for_sparse()를 사용하여 sparse_text 생성
+    - index/tokenizer.py의 extract_keywords_for_sparse()를 사용하여 sparse_text 생성
     - search/filter.py의 JsonClaimsDB가 claims_db.json을 로드
     - eval/build_index.py가 load_chunks_from_dir(), build_claims_db()를 호출
 """
@@ -24,7 +24,15 @@ import json
 import re
 from pathlib import Path
 
-from .tokenizer import extract_keywords_for_sparse
+import importlib.util
+from pathlib import Path
+
+# tokenizer.py는 index/ 폴더에 bm25.pkl과 함께 배포됨
+_index_dir = Path(__file__).parent.parent / "index"
+_spec = importlib.util.spec_from_file_location("tokenizer", _index_dir / "tokenizer.py")
+_tokenizer_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_tokenizer_mod)
+extract_keywords_for_sparse = _tokenizer_mod.extract_keywords_for_sparse
 
 # ── claim_type 분류 ──────────────────────────────────
 _DEPENDENT_PATTERN = re.compile(r"제\s*(\d+)\s*항")

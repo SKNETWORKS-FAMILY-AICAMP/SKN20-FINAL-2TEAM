@@ -5,7 +5,12 @@
       "Bash(python -m uvicorn:*)",
       "Bash(where:*)",
       "Bash(\"C:\\\\Users\\\\sally\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install:*)",
-      "Bash(\"C:\\\\Users\\\\sally\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install pymysql sqlalchemy pydantic-settings fastapi python-jose[cryptography] bcrypt)"
+      "Bash(\"C:\\\\Users\\\\sally\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install pymysql sqlalchemy pydantic-settings fastapi python-jose[cryptography] bcrypt)",
+      "Bash(cmd //c \"mklink /D \"\"C:\\\\SKN20-FINAL-2TEAM\\\\rag\\\\_backup\\\\index\"\" \"\"C:\\\\SKN20-FINAL-2TEAM\\\\joontest\\\\v1\\\\rag\\\\index\"\"\")",
+      "Bash(cmd //c:*)",
+      "Bash(OPENAI_API_KEY=\"\" python -c \"from rag._backup.eval.evaluate import evaluate; evaluate\\(\\)\")",
+      "Bash(OPENAI_API_KEY=\"\" python -c \":*)",
+      "Bash(OPENAI_API_KEY=\"\" PYTHONIOENCODING=utf-8 python -c \":*)"
     ]
   }
 }

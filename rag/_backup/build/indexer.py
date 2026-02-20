@@ -6,7 +6,7 @@
 
 관계:
     - build/chunker.py가 만든 청크를 입력으로 받음
-    - build/tokenizer.py의 morpheme_tokenize()로 BM25 토크나이징
+    - index/tokenizer.py의 morpheme_tokenize()로 BM25 토크나이징
     - search/retriever.py가 빌드된 인덱스를 로드하여 검색
     - eval/build_index.py가 build_dense_index(), build_sparse_index()를 호출
 """
@@ -19,8 +19,16 @@ from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
+import importlib.util
+
 from .. import config
-from .tokenizer import morpheme_tokenize
+
+# tokenizer.py는 index/ 폴더에 bm25.pkl과 함께 배포됨
+_tokenizer_path = config.INDEX_DIR / "tokenizer.py"
+_spec = importlib.util.spec_from_file_location("tokenizer", _tokenizer_path)
+_tokenizer_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_tokenizer_mod)
+morpheme_tokenize = _tokenizer_mod.morpheme_tokenize
 
 # ── 모델/DB 싱글톤 ──────────────────────────────────
 
