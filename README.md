@@ -1,4 +1,4 @@
-# 디자인 유사 이미지 검색 시스템 — 분석 및 개선 보고서
+# 디자인 유사 이미지 검색 시스템 — 분석 및 개선
 
 > 작성 기준: `chroma_db_train_v2` + `embeddings_reject_v2` + `images_reject_v2`  
 > 검색 방식: Hybrid Retrieval (Dense CLIP + BM25)
