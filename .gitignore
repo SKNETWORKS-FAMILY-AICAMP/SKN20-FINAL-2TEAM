@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment variables
+.env
+
+# Build and distribution
+build/
+dist/
+*.egg-info/

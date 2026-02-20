@@ -1,0 +1,958 @@
+=== 재처리 에러 로그 (적응형 Canny) ===
+시작 시간: 2026-02-13 10:52:57
+재처리 대상: 78개 파일
+원본 없음: 0개 파일
+
+UNEXPECTED ERROR: 3020110047901-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020110047901-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020110047901-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f910090>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f910090>
+
+
+UNEXPECTED ERROR: 3020140022174-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f910040>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f910040>
+
+
+UNEXPECTED ERROR: 3020140022174-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020140022174-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020180060492-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020180060492-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x109005170>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x109005170>
+
+
+UNEXPECTED ERROR: 3020180060492-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x108683b50>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x108683b50>
+
+
+UNEXPECTED ERROR: 3020200039277-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x108682570>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x108682570>
+
+
+UNEXPECTED ERROR: 3020200039277-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1090050d0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1090050d0>
+
+
+UNEXPECTED ERROR: 3020200039277-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020210000087-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020210000087-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020210000087-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020210030467-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020210030467-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020210030467-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020210037279-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020210037279-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020210037279-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020210037761-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020210037761-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020210037761-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020210057338-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020210057338-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020210057338-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020210060457-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020210060457-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020210060457-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220000325-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220000325-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020220000325-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220002841-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220002841-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220002841-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220008980-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220008980-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220008980-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220012817-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020220012817-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168a59b70>
+
+
+UNEXPECTED ERROR: 3020220012818-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220012818-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020220012821-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020220012821-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220013936-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020220013936-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220013936-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220015129-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020220015129-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f95cf40>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f95cf40>
+
+
+UNEXPECTED ERROR: 3020220015129-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220016027-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020220016027-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f95f740>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f95f740>
+
+
+UNEXPECTED ERROR: 3020220016027-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220038114-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220038114-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020220038114-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f95f9c0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f95f9c0>
+
+
+UNEXPECTED ERROR: 3020220038125-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f95de40>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f95de40>
+
+
+UNEXPECTED ERROR: 3020220038125-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16820c180>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16820c180>
+
+
+UNEXPECTED ERROR: 3020220038125-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020220039171-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220039171-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220039171-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16a0683b0>
+
+
+UNEXPECTED ERROR: 3020220040375-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220040375-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220040375-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x1086803b0>
+
+
+UNEXPECTED ERROR: 3020220043199-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe5c10>
+
+
+UNEXPECTED ERROR: 3020220043199-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f95dcb0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f95dcb0>
+
+
+UNEXPECTED ERROR: 3020220043199-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f972020>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f972020>
+
+
+UNEXPECTED ERROR: 3020220043202-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f970d60>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f970d60>
+
+
+UNEXPECTED ERROR: 3020220043202-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16f972020>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16f972020>
+
+
+UNEXPECTED ERROR: 3020220043202-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x109005260>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x109005260>
+
+
+UNEXPECTED ERROR: 3020220043204-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x109004f90>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x109004f90>
+
+
+UNEXPECTED ERROR: 3020220043204-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+UNEXPECTED ERROR: 3020220043204-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x16bbe79c0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x16bbe79c0>
+
+
+UNEXPECTED ERROR: 3020220043205-0.json
+  상세: cannot identify image file <_io.BytesIO object at 0x109005260>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x109005260>
+
+
+UNEXPECTED ERROR: 3020220043205-1.json
+  상세: cannot identify image file <_io.BytesIO object at 0x108683ba0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x108683ba0>
+
+
+UNEXPECTED ERROR: 3020220043205-2.json
+  상세: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+Traceback:
+Traceback (most recent call last):
+  File "/Users/kangminji/__SKN20_FINAL/데이터셋만들기/design/embeddings_v2_error2.py", line 425, in <module>
+    original_image = Image.open(BytesIO(response.content)).convert('RGB')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/anaconda3/envs/openai/lib/python3.11/site-packages/PIL/Image.py", line 3580, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x168653ce0>
+
+
+
+============================================================
+종료 시간: 2026-02-13 10:53:00
+
+[파일 확인 통계]
+에러 로그 파일 총 개수: 78개
+원본 폴더에 존재: 78개
+원본 폴더에 없음: 0개
+
+[이미지 처리 통계]
+처리 대상: 78개
+성공: 0개
+실패: 78개
+
+[스케치 변환 통계]
+사진→스케치 변환: 0개
+원본 스케치 유지: 0개

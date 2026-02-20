@@ -1,0 +1,69 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment variables
+.env
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Data and results (대용량/파일량 많은 폴더 및 파일 무시)
+data/api_xml/
+data/photo/
+data/rawdata/
+data/sketch/
+data/json/
+data/evaldata/
+data/error_Flow/
+data/processed/
+
+# 데이터/임시/결과 폴더
+**/embeddings/
+**/images/
+**/json/
+**/sketches/
+**/xml/
+**/jpg/
+**/split_output/
+**/chroma_db_v1/
+**/chroma_db_v2/
+**/retry_embeddings/
+**/retry_images/
+**/error_Flow/
+**/rawdata/
+**/embeddings_v1/
+**/embeddings_v2/
+
+# 대용량/중간 파일
+*.npz
+*.csv
+
+# Model checkpoints
+train/checkpoints/
+train/traindata/
+
+# Processed sketch images
+design/processedSketch/
+
+# 기타
+*.bak
+*~
