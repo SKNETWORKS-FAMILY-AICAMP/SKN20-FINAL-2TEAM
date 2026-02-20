@@ -5,58 +5,88 @@
 **파인튜닝된 작은 모델이 파인튜닝 안 된 큰 모델보다 성능이 좋다는 것을 입증**
 
 ```
-학습된 1.5B > 학습 안 한 3B
-학습된 3B > 학습 안 한 7B
+학습된 1.5B > 학습 안 한 3B  ✅ 입증 완료 (86.2% vs 30.1%)
+학습된 3B > 학습 안 한 7B    (예정)
 ...
 ```
 
 ---
 
-## 현재 상태
+## 현재 상태 (2026-02-20 기준)
 
-- **Qwen2.5 1.5B** 학습 완료 (2,869건, 정확도 71.7%)
-- 테스트 데이터: 718건
-- 학습 스크립트: `training/train_compare.py`
-- 평가 스크립트: `sllm_smalltrain_dj/eval/`
+| 모델 | 파인튜닝 | 데이터 | 정확도 | 구조성공률 | 법리일관성 | 행수일치율 |
+|------|----------|--------|--------|-----------|-----------|-----------|
+| Qwen 1.5B | O | 17,377건 | **86.2%** | 97.3% | 99.6% | 97.5% |
+| Qwen 3B | X | - | 30.1% | 85.2% | 91.3% | 29.3% |
+| GPT-4o-mini | X | - | 미완료 | - | - | - |
+| Qwen 3B | O | - | 예정 | - | - | - |
+| Qwen 7B | X | - | 예정 | - | - | - |
+
+---
+
+## 완료된 작업
+
+### ✅ Phase 1: Qwen 1.5B 재학습
+- 데이터: `data/sllm_qwen_data/sllm_train.xlsx` (17,377건)
+- 학습 스크립트: `training/train_qwen_v2.py`
+- 출력 모델: `outputs/qwen2.5-1.5b-v2/`
+- 에폭: 2, 5,000스텝마다 eval
+- 정확도: **86.2%** (기존 71.7%에서 대폭 향상)
+
+### ✅ Phase 2: 학습된 1.5B vs 학습 안 한 3B 비교
+- 결과: **86.2% vs 30.1%** → 목표 입증 완료
+- 비교 리포트: `sllm_smalltrain_dj/eval/output/eval_summary.md`
 
 ---
 
 ## 다음 작업 순서
 
-### Phase 1: Qwen 1.5B 추가 학습 (더 많은 데이터)
+### Phase 2-1: GPT-4o-mini 비교 (다음 순서)
 
-1. **새 학습 데이터 준비** (사용자가 제공 예정)
-2. **Qwen 1.5B 재학습**
-   ```bash
-   python -m SLLM_model.training.train_compare --model qwen
-   ```
-3. **평가**
-   ```bash
-   cd SLLM_model/sllm_smalltrain_dj/eval
-   python 01_infer.py --model_path ../../outputs/qwen2.5-1.5b-lora --model_name qwen_v2 --test_data ../../data/sllm_smalltrain/sllm_test_718.xlsx
-   python 02_evaluate.py --input output/infer_qwen_v2.xlsx --model_name qwen_v2
-   ```
+```bash
+cd SLLM_model/sllm_smalltrain_dj/eval
+export OPENAI_API_KEY=sk-...
 
-### Phase 2: 학습된 1.5B vs 학습 안 한 3B 비교
+# 추론 (약 $0.7, 전체 4,317건)
+python 01_infer_gpt4o.py --model gpt-4o-mini --model_name gpt4o_mini
 
-1. **Qwen 3B 베이스 모델로 추론** (학습 없이)
-   - 모델: `Qwen/Qwen2.5-3B-Instruct`
-   - 동일한 테스트 데이터로 추론
-2. **평가 및 비교**
-   - 학습된 1.5B vs 학습 안 한 3B
-   - 정확도, 구조 성공률, 법리 일관성 비교
+# 평가
+python 02_evaluate.py --input output/infer_gpt4o_mini.xlsx --model_name gpt4o_mini
 
-### Phase 3: Qwen 3B 학습
+# 비교
+python 03_compare.py \
+  --model_a output/eval_detail_qwen_v2.xlsx \
+  --model_b output/eval_detail_gpt4o_mini.xlsx \
+  --model_a_name "Qwen1.5B(파인튜닝)" \
+  --model_b_name "GPT-4o-mini"
+```
 
-1. **Qwen 3B QLoRA 파인튜닝**
-   - `train_compare.py`에 3B 모델 추가 필요
-2. **평가**
+### Phase 3: Qwen 3B 파인튜닝
+
+`train_qwen_v2.py` 참고하여 3B 학습 스크립트 신규 작성 (`training/train_qwen3b.py`)
+
+```bash
+# 학습
+python -m SLLM_model.training.train_qwen3b
+
+# 추론 및 평가
+cd SLLM_model/sllm_smalltrain_dj/eval
+python 01_infer_vllm.py --model_path ../../outputs/qwen2.5-3b-v1 --model_name qwen3b_ft
+python 02_evaluate.py --input output/infer_qwen3b_ft.xlsx --model_name qwen3b_ft
+```
 
 ### Phase 4: 학습된 3B vs 학습 안 한 7B 비교
 
-1. **Qwen 7B 베이스 모델로 추론** (학습 없이)
-   - 모델: `Qwen/Qwen2.5-7B-Instruct`
-2. **평가 및 비교**
+```bash
+python 01_infer_vllm.py --model_path Qwen/Qwen2.5-7B-Instruct --model_name qwen7b_base
+python 02_evaluate.py --input output/infer_qwen7b_base.xlsx --model_name qwen7b_base
+
+python 03_compare.py \
+  --model_a output/eval_detail_qwen3b_ft.xlsx \
+  --model_b output/eval_detail_qwen7b_base.xlsx \
+  --model_a_name "Qwen3B(파인튜닝)" \
+  --model_b_name "Qwen7B(베이스)"
+```
 
 ### Phase 5: 반복 (필요시)
 
@@ -70,60 +100,28 @@
 ```
 SLLM_model/
 ├── training/
-│   └── train_compare.py      # 학습 스크립트 (3B, 7B 추가 필요)
+│   ├── train_compare.py        # 구버전 (Gemma vs Qwen 비교용)
+│   └── train_qwen_v2.py        # ✅ 현재 사용 스크립트 (17,377건)
 ├── data/
-│   └── sllm_smalltrain/      # 현재 데이터 (2,869/718)
-│   └── (새 데이터 추가 예정)
+│   ├── sllm_smalltrain/        # 구 데이터 (2,869/718)
+│   └── sllm_qwen_data/         # ✅ 현재 데이터 (17,377/4,317)
 ├── outputs/
-│   └── qwen2.5-1.5b-lora/    # 현재 학습된 모델
-│   └── (새 모델들 추가 예정)
-├── sllm_smalltrain_dj/eval/  # 평가 스크립트
-└── reports/                  # 결과 리포트
+│   ├── qwen2.5-1.5b-lora/      # 구버전 모델 (71.7%)
+│   └── qwen2.5-1.5b-v2/        # ✅ 현재 모델 (86.2%)
+├── sllm_smalltrain_dj/eval/
+│   ├── 01_infer.py             # HuggingFace 추론
+│   ├── 01_infer_vllm.py        # ✅ vLLM 추론 (LoRA 자동감지)
+│   ├── 01_infer_gpt4o.py       # ✅ GPT-4o/mini API 추론
+│   ├── 02_evaluate.py          # 정확도 평가
+│   ├── 03_compare.py           # 두 모델 비교 리포트
+│   └── output/
+│       ├── infer_qwen_v2.xlsx          # ✅ 완료
+│       ├── eval_detail_qwen_v2.xlsx    # ✅ 완료
+│       ├── infer_qwen3b_base.xlsx      # ✅ 완료
+│       ├── eval_detail_qwen3b_base.xlsx # ✅ 완료
+│       └── eval_summary.md             # ✅ 1.5B(FT) vs 3B(베이스) 비교
+└── requirements.txt
 ```
-
----
-
-## 수정 필요 사항
-
-### train_compare.py 수정
-
-Qwen 3B, 7B 모델 추가:
-
-```python
-MODEL_CONFIGS = {
-    "qwen": {
-        "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
-        "output_dir": "outputs/qwen2.5-1.5b-lora",
-    },
-    "qwen3b": {
-        "model_id": "Qwen/Qwen2.5-3B-Instruct",
-        "output_dir": "outputs/qwen2.5-3b-lora",
-    },
-    "qwen7b": {
-        "model_id": "Qwen/Qwen2.5-7B-Instruct",
-        "output_dir": "outputs/qwen2.5-7b-lora",
-    },
-}
-```
-
-### 베이스 모델 추론 스크립트
-
-학습 안 한 베이스 모델로 추론하는 스크립트 필요:
-- `01_infer.py` 수정 또는 새 스크립트 작성
-- LoRA 어댑터 없이 베이스 모델만 로드
-
----
-
-## 예상 결과 테이블
-
-| 모델 | 파인튜닝 | 데이터 | 정확도 |
-|------|----------|--------|--------|
-| Qwen 1.5B | O | 2,869건 | 71.7% |
-| Qwen 1.5B | O | (새 데이터) | ? |
-| Qwen 3B | X | - | ? |
-| Qwen 3B | O | (새 데이터) | ? |
-| Qwen 7B | X | - | ? |
-| ... | | | |
 
 ---
 
@@ -132,3 +130,6 @@ MODEL_CONFIGS = {
 - GPU: A100 권장 (3B, 7B 학습 시)
 - 3B 학습 시 batch_size 조정 필요할 수 있음
 - 7B 학습 시 gradient_checkpointing 활성화 권장
+- GPT-4o-mini 전체 추론 비용: 약 $0.7 (4,317건)
+- vllm 설치 필요: `pip install vllm`
+- transformers 버전 고정: `4.57.6` (5.x 호환 불가)

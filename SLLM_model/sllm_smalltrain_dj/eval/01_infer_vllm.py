@@ -13,12 +13,14 @@ vLLM 엔진으로 배치 추론하여 속도를 대폭 향상시킨다.
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 import pandas as pd
 from loguru import logger
 from vllm import LLM, SamplingParams
+from vllm.lora.request import LoRARequest
 
 # ─── 로깅 설정 ────────────────────────────────────────────
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
@@ -89,9 +91,9 @@ def build_prompt(row: pd.Series) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Step 1: 모델 추론 (vLLM)")
-    parser.add_argument("--model_path", required=True, help="파인튜닝 모델 경로")
-    parser.add_argument("--model_name", required=True, help="모델 이름 (gemma / qwen)")
-    parser.add_argument("--test_data", default="../data/sllm_test_718.xlsx")
+    parser.add_argument("--model_path", required=True, help="파인튜닝 모델 경로 (LoRA 어댑터 or 머지 모델)")
+    parser.add_argument("--model_name", required=True, help="모델 이름 (출력 파일명에 사용)")
+    parser.add_argument("--test_data", default="../../data/sllm_qwen_data/sllm_test.xlsx")
     parser.add_argument("--output_dir", default="./output")
     parser.add_argument("--max_tokens", type=int, default=2048)
     parser.add_argument("--gpu_memory", type=float, default=0.9, help="GPU 메모리 사용 비율 (0~1)")
@@ -99,13 +101,36 @@ def main():
 
     logger.info(f"=== 모델 추론 (vLLM): {args.model_name} ===")
 
-    # ─── 모델 로드 ──────────────────────────────────────
-    llm = LLM(
-        model=args.model_path,
-        trust_remote_code=True,
-        gpu_memory_utilization=args.gpu_memory,
-        max_model_len=4096,
-    )
+    # ─── LoRA 어댑터 여부 확인 ──────────────────────────
+    model_path = Path(args.model_path)
+    adapter_config_path = model_path / "adapter_config.json"
+    is_lora = adapter_config_path.exists()
+
+    if is_lora:
+        with open(adapter_config_path) as f:
+            adapter_cfg = json.load(f)
+        base_model = adapter_cfg["base_model_name_or_path"]
+        lora_rank = adapter_cfg.get("r", 16)
+        logger.info(f"LoRA 어댑터 감지 → 베이스: {base_model}, rank: {lora_rank}")
+        llm = LLM(
+            model=base_model,
+            trust_remote_code=True,
+            gpu_memory_utilization=args.gpu_memory,
+            max_model_len=4096,
+            enable_lora=True,
+            max_lora_rank=lora_rank,
+        )
+        lora_request = LoRARequest("adapter", 1, str(model_path.resolve()))
+    else:
+        logger.info(f"머지 모델 로드: {args.model_path}")
+        llm = LLM(
+            model=args.model_path,
+            trust_remote_code=True,
+            gpu_memory_utilization=args.gpu_memory,
+            max_model_len=4096,
+        )
+        lora_request = None
+
     tokenizer = llm.get_tokenizer()
 
     sampling_params = SamplingParams(
@@ -129,7 +154,7 @@ def main():
 
     # ─── 배치 추론 ──────────────────────────────────────
     logger.info(f"vLLM 배치 추론 시작 ({len(prompts)}건)")
-    outputs = llm.generate(prompts, sampling_params)
+    outputs = llm.generate(prompts, sampling_params, lora_request=lora_request)
 
     preds = [output.outputs[0].text for output in outputs]
     logger.info(f"추론 완료: {len(preds)}건")
