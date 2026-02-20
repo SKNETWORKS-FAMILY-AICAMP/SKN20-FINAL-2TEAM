@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 design/src/temp_uploads/*
 .DS_Store
+design2/
