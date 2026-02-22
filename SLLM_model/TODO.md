@@ -6,21 +6,21 @@
 
 ```
 학습된 1.5B > 학습 안 한 3B  ✅ 입증 완료 (86.2% vs 30.1%)
-학습된 3B > 학습 안 한 7B    (예정)
+학습된 3B > 학습 안 한 7B    ✅ 입증 완료 (89.5% vs 31.8%)
 ...
 ```
 
 ---
 
-## 현재 상태 (2026-02-20 기준)
+## 현재 상태 (2026-02-22 기준)
 
 | 모델 | 파인튜닝 | 데이터 | 정확도 | 구조성공률 | 법리일관성 | 행수일치율 |
 |------|----------|--------|--------|-----------|-----------|-----------|
 | Qwen 1.5B | O | 17,377건 | **86.2%** | 97.3% | 99.6% | 97.5% |
 | Qwen 3B | X | - | 30.1% | 85.2% | 91.3% | 29.3% |
+| Qwen 3B | O | 17,377건 | **89.5%** | 98.9% | 99.6% | 99.3% |
+| Qwen 7B | X | - | 31.8% | 98.0% | 48.1% | 70.8% |
 | GPT-4o-mini | X | - | 미완료 | - | - | - |
-| Qwen 3B | O | - | 예정 | - | - | - |
-| Qwen 7B | X | - | 예정 | - | - | - |
 
 ---
 
@@ -37,11 +37,29 @@
 - 결과: **86.2% vs 30.1%** → 목표 입증 완료
 - 비교 리포트: `sllm_smalltrain_dj/eval/output/eval_summary.md`
 
+### ✅ Phase 3: Qwen 3B 파인튜닝
+- 데이터: `data/sllm_qwen_data/sllm_train.xlsx` (17,377건)
+- 학습 스크립트: `training/train_qwen3b.py`
+- 출력 모델: `outputs/qwen2.5-3b-lora/`
+- 에폭: 2, batch_size: 2
+- 정확도: **89.5%** (1.5B 86.2%에서 향상)
+
+### ✅ Phase 4: 학습된 3B vs 학습 안 한 7B 비교
+- 결과: **89.5% vs 31.8%** → 목표 입증 완료
+
+| 평가 항목 | Qwen3B(파인튜닝) | Qwen7B(베이스) |
+|-----------|----------------|--------------|
+| 라벨 정확도 | **89.5%** | 31.8% |
+| 구조 성공률 | 98.9% | 98.0% |
+| 법리 일관성 | **99.6%** | 48.1% |
+| 행수 일치율 | **99.3%** | 70.8% |
+| 매핑실패 | 33건 | 73건 |
+
 ---
 
 ## 다음 작업 순서
 
-### Phase 2-1: GPT-4o-mini 비교 (다음 순서)
+### Phase 2-1: GPT-4o-mini 비교 (선택)
 
 ```bash
 cd SLLM_model/sllm_smalltrain_dj/eval
@@ -59,33 +77,6 @@ python 03_compare.py \
   --model_b output/eval_detail_gpt4o_mini.xlsx \
   --model_a_name "Qwen1.5B(파인튜닝)" \
   --model_b_name "GPT-4o-mini"
-```
-
-### Phase 3: Qwen 3B 파인튜닝
-
-`train_qwen_v2.py` 참고하여 3B 학습 스크립트 신규 작성 (`training/train_qwen3b.py`)
-
-```bash
-# 학습
-python -m SLLM_model.training.train_qwen3b
-
-# 추론 및 평가
-cd SLLM_model/sllm_smalltrain_dj/eval
-python 01_infer_vllm.py --model_path ../../outputs/qwen2.5-3b-v1 --model_name qwen3b_ft
-python 02_evaluate.py --input output/infer_qwen3b_ft.xlsx --model_name qwen3b_ft
-```
-
-### Phase 4: 학습된 3B vs 학습 안 한 7B 비교
-
-```bash
-python 01_infer_vllm.py --model_path Qwen/Qwen2.5-7B-Instruct --model_name qwen7b_base
-python 02_evaluate.py --input output/infer_qwen7b_base.xlsx --model_name qwen7b_base
-
-python 03_compare.py \
-  --model_a output/eval_detail_qwen3b_ft.xlsx \
-  --model_b output/eval_detail_qwen7b_base.xlsx \
-  --model_a_name "Qwen3B(파인튜닝)" \
-  --model_b_name "Qwen7B(베이스)"
 ```
 
 ### Phase 5: 반복 (필요시)
@@ -119,7 +110,11 @@ SLLM_model/
 │       ├── eval_detail_qwen_v2.xlsx    # ✅ 완료
 │       ├── infer_qwen3b_base.xlsx      # ✅ 완료
 │       ├── eval_detail_qwen3b_base.xlsx # ✅ 완료
-│       └── eval_summary.md             # ✅ 1.5B(FT) vs 3B(베이스) 비교
+│       ├── infer_qwen3b_ft.xlsx        # ✅ 완료
+│       ├── eval_detail_qwen3b_ft.xlsx  # ✅ 완료
+│       ├── infer_qwen7b_base.xlsx      # ✅ 완료
+│       ├── eval_detail_qwen7b_base.xlsx # ✅ 완료
+│       └── eval_summary.md             # ✅ 3B(FT) vs 7B(베이스) 비교
 └── requirements.txt
 ```
 

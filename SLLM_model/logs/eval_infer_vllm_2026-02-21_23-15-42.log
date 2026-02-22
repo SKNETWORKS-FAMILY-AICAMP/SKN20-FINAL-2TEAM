@@ -1,0 +1,6 @@
+2026-02-21 23:15:42.269 | INFO     | __main__:main:102 - === 모델 추론 (vLLM): qwen3b_ft ===
+2026-02-21 23:15:42.269 | INFO     | __main__:main:114 - LoRA 어댑터 감지 → 베이스: Qwen/Qwen2.5-3B-Instruct, rank: 16
+2026-02-21 23:18:03.038 | INFO     | __main__:main:143 - 테스트: 4317건
+2026-02-21 23:18:03.920 | INFO     | __main__:main:156 - vLLM 배치 추론 시작 (4317건)
+2026-02-21 23:31:14.463 | INFO     | __main__:main:160 - 추론 완료: 4317건
+2026-02-21 23:31:18.341 | SUCCESS  | __main__:main:168 - 추론 완료! 저장: output/infer_qwen3b_ft.xlsx

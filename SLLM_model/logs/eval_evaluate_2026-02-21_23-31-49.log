@@ -1,0 +1,22 @@
+2026-02-21 23:31:49.420 | INFO     | __main__:main:123 - === 모델 평가: qwen3b_ft ===
+2026-02-21 23:31:51.025 | INFO     | __main__:main:130 - 입력: output/infer_qwen3b_ft.xlsx (4317건)
+2026-02-21 23:31:51.805 | INFO     | __main__:print_summary:81 - [라벨 정확도] 89.5% (매핑실패: 33건)
+2026-02-21 23:31:51.855 | INFO     | __main__:print_summary:86 - 
+              precision    recall  f1-score   support
+
+          침해       0.92      0.93      0.93      1340
+         비침해       0.85      0.95      0.90      1179
+          애매       0.95      0.91      0.93       896
+      침해_전문가       0.90      0.75      0.82       902
+
+   micro avg       0.90      0.89      0.90      4317
+   macro avg       0.91      0.89      0.89      4317
+weighted avg       0.90      0.89      0.90      4317
+
+2026-02-21 23:31:51.856 | INFO     | __main__:print_summary:91 - [구조] 섹션완성: 4268/4317 (98.9%), 테이블파싱: 4295/4317 (99.5%)
+2026-02-21 23:31:51.857 | INFO     | __main__:print_summary:97 - [행수일치] 4287/4317 (99.3%)
+2026-02-21 23:31:51.858 | INFO     | __main__:print_summary:104 - [법리일관성] 3414/3428 (99.6%)
+2026-02-21 23:31:51.860 | INFO     | __main__:print_summary:108 -   X:R11:전문가+균등내재성없음: 9건
+2026-02-21 23:31:51.860 | INFO     | __main__:print_summary:108 -   X:R13:전문가+일반미대응: 5건
+2026-02-21 23:31:52.307 | WARNING  | __main__:print_summary:113 - 금지문구 위반: 1건
+2026-02-21 23:31:52.966 | SUCCESS  | __main__:main:139 - 평가 완료! 저장: output/eval_detail_qwen3b_ft.xlsx

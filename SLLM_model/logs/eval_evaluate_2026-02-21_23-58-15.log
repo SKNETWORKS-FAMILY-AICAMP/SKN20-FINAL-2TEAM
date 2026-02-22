@@ -1,0 +1,26 @@
+2026-02-21 23:58:16.002 | INFO     | __main__:main:123 - === 모델 평가: qwen7b_base ===
+2026-02-21 23:58:17.600 | INFO     | __main__:main:130 - 입력: output/infer_qwen7b_base.xlsx (4317건)
+2026-02-21 23:58:18.409 | INFO     | __main__:print_summary:81 - [라벨 정확도] 31.8% (매핑실패: 73건)
+2026-02-21 23:58:18.459 | INFO     | __main__:print_summary:86 - 
+              precision    recall  f1-score   support
+
+          침해       0.50      0.11      0.17      1340
+         비침해       0.30      0.81      0.44      1179
+          애매       0.28      0.01      0.03       896
+      침해_전문가       0.35      0.29      0.31       902
+
+   micro avg       0.32      0.32      0.32      4317
+   macro avg       0.36      0.31      0.24      4317
+weighted avg       0.37      0.32      0.25      4317
+
+2026-02-21 23:58:18.459 | INFO     | __main__:print_summary:91 - [구조] 섹션완성: 4229/4317 (98.0%), 테이블파싱: 4317/4317 (100.0%)
+2026-02-21 23:58:18.460 | INFO     | __main__:print_summary:97 - [행수일치] 3057/4317 (70.8%)
+2026-02-21 23:58:18.461 | INFO     | __main__:print_summary:104 - [법리일관성] 1791/3727 (48.1%)
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R14:비침해+균등내재성만: 1441건
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R11:전문가+균등내재성없음: 246건
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R10:비침해+전부대응: 203건
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R13:전문가+일반미대응: 27건
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R12:침해+균등내재성존재: 17건
+2026-02-21 23:58:18.463 | INFO     | __main__:print_summary:108 -   X:R9:침해+일반미대응: 2건
+2026-02-21 23:58:18.915 | WARNING  | __main__:print_summary:113 - 금지문구 위반: 274건
+2026-02-21 23:58:19.551 | SUCCESS  | __main__:main:139 - 평가 완료! 저장: output/eval_detail_qwen7b_base.xlsx
