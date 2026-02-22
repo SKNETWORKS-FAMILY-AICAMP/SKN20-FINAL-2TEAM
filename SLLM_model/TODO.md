@@ -41,6 +41,7 @@
 - 데이터: `data/sllm_qwen_data/sllm_train.xlsx` (17,377건)
 - 학습 스크립트: `training/train_qwen3b.py`
 - 출력 모델: `outputs/qwen2.5-3b-lora/`
+- HuggingFace: https://huggingface.co/itsbini/qwen2.5-3b-fto
 - 에폭: 2, batch_size: 2
 - 정확도: **89.5%** (1.5B 86.2%에서 향상)
 
