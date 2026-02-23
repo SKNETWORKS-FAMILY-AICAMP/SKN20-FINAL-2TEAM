@@ -13,6 +13,7 @@
 import os
 import uuid
 import base64
+import requests
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
@@ -23,7 +24,7 @@ import uvicorn
 from langgraph.types import Command
 
 # design_chatbot_v3에서 그래프와 유틸 가져오기
-from design_chatbot import graph, design_id_to_local_image
+from design_chatbot import graph
 
 
 # ==================== FastAPI 초기화 ====================
@@ -105,10 +106,16 @@ async def chat_image(
         for comp in result.get('comparison_results', []):
             # 이미지를 base64로 인코딩
             image_base64 = None
-            if comp.get('image_path') and os.path.exists(comp['image_path']):
+            img_path = comp.get('image_path', '')
+            if img_path:
                 try:
-                    with open(comp['image_path'], 'rb') as f:
-                        image_base64 = base64.b64encode(f.read()).decode('utf-8')
+                    if img_path.startswith('http://') or img_path.startswith('https://'):
+                        resp = requests.get(img_path, timeout=5)
+                        if resp.status_code == 200:
+                            image_base64 = base64.b64encode(resp.content).decode('utf-8')
+                    elif os.path.exists(img_path):
+                        with open(img_path, 'rb') as f:
+                            image_base64 = base64.b64encode(f.read()).decode('utf-8')
                 except Exception:
                     pass
 
@@ -118,7 +125,7 @@ async def chat_image(
                 "article_name": comp['article_name'],
                 "admst_stat": comp['admst_stat'],
                 "last_disposition_date": comp.get('last_disposition_date', ''),
-                "distance": comp['distance'],
+                "distance": comp['hybrid_score'],
                 "image_base64": image_base64,
             })
 
@@ -198,7 +205,7 @@ async def chat_text(
                 if img_state:
                     designs_summary = "\n".join([
                         f"  - 출원번호: {c['application_number']}, 상품명: {c['article_name']}, "
-                        f"상태: {c['admst_stat']}, 거리: {c['distance']:.4f}"
+                        f"상태: {c['admst_stat']}, 거리: {c['hybrid_score']:.4f}"
                         for c in img_state.get('comparison_results', [])
                     ])
                     context = (
@@ -233,19 +240,26 @@ async def chat_text(
 
         result = graph.invoke(initial_state, config)
 
-        # DB 검색 결과 이미지 → base64 변환
+        # DB 검색 결과 이미지 → base64 변환 (state['search_images']에서 읽기)
         search_images = []
         for img_info in result.get('search_images', []):
             img_path = img_info.get('image_path', '')
-            if img_path and os.path.exists(img_path):
+            if img_path:
                 try:
-                    with open(img_path, 'rb') as f:
-                        img_b64 = base64.b64encode(f.read()).decode('utf-8')
-                    search_images.append({
-                        'application_number': img_info.get('application_number', ''),
-                        'last_disposition_date': img_info.get('last_disposition_date', ''),
-                        'image_base64': img_b64,
-                    })
+                    if img_path.startswith('http://') or img_path.startswith('https://'):
+                        resp = requests.get(img_path, timeout=5)
+                        img_b64 = base64.b64encode(resp.content).decode('utf-8') if resp.status_code == 200 else None
+                    elif os.path.exists(img_path):
+                        with open(img_path, 'rb') as f:
+                            img_b64 = base64.b64encode(f.read()).decode('utf-8')
+                    else:
+                        img_b64 = None
+                    if img_b64:
+                        search_images.append({
+                            'application_number': img_info.get('application_number', ''),
+                            'last_disposition_date': img_info.get('last_disposition_date', ''),
+                            'image_base64': img_b64,
+                        })
                 except Exception:
                     pass
 
