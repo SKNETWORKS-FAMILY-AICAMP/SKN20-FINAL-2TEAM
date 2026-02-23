@@ -14,8 +14,11 @@
 """
 
 import os
+import re
 import json
 import base64
+import tempfile
+from PIL import Image as PILImage
 from pathlib import Path
 from typing import TypedDict, List, Dict, Any
 
@@ -53,13 +56,15 @@ from langchain_community.tools import TavilySearchResults
 
 # 벡터DB
 import chromadb
+from rank_bm25 import BM25Okapi
 
 # 기존 유틸 함수 재사용
 from utils import (
-    get_image_embedding,              # 이미지 → CLIP 임베딩
     get_text_embedding,               # 텍스트 → CLIP 임베딩 (DB검색 Tool용)
     design_id_to_local_image,         # design_id → 로컬 이미지 경로
-    search_and_filter_similar_designs # 벡터DB 검색 + 중복 필터링
+    search_and_filter_similar_designs,# 벡터DB 검색 + 중복 필터링 (텍스트 Tool용)
+    hybrid_retrieve,                  # Hybrid Retrieval (이미지 검색용)
+    convert_to_sketch_query           # 쿼리 이미지 → 스케치 변환
 )
 
 # 기존 프롬프트 재사용
@@ -80,6 +85,16 @@ output_parser = StrOutputParser()
 
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
 image_collection = chroma_client.get_collection(name="design")
+
+# BM25 인덱스 빌드 (전체 코퍼스 1회 로드)
+_all          = image_collection.get(include=["metadatas"])
+all_ids       = _all["ids"]
+all_metadatas = _all["metadatas"]
+corpus_tokens = [
+    re.split(r"\s+", (m.get("articleName", "") + " " + m.get("designSummary", "")).strip())
+    for m in all_metadatas
+]
+bm25 = BM25Okapi(corpus_tokens)
 
 
 # ==================== State 정의 ====================
@@ -204,32 +219,47 @@ def analyze_image_node(state: GraphState) -> GraphState:
 
 
 def image_search_node(state: GraphState) -> GraphState:
-    """입력 이미지로 벡터DB에서 유사 디자인 10개 검색"""
+    """입력 이미지로 Hybrid Retrieval (Dense + BM25 재랭킹) 유사 디자인 검색"""
     print("[벡터검색] 유사 디자인 검색 중...")
 
-    # CLIP 임베딩 → 벡터DB 검색
-    embedding = get_image_embedding(state['image_path'])
-    results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
-    state['search_results'] = results #검색 원본 저장
+    # 쿼리 이미지 → 스케치 변환 (DB 임베딩과 동일한 전처리 적용)
+    pil_image    = PILImage.open(state['image_path']).convert('RGB')
+    sketch_image = convert_to_sketch_query(pil_image)
 
-    # 원본 결과를 사용자에게 보여줄 포맷으로 정리 (인덱스, 디자인id, 거리, 출원번호, 상품명, 등록상태, 이미지 경로)
+    # 스케치 이미지를 임시 파일로 저장 후 hybrid_retrieve에 전달
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+        sketch_image.save(tmp.name)
+        sketch_path = tmp.name
+
+    try:
+        # Hybrid Retrieval (Dense → BM25 재랭킹 → 출원번호 중복제거 → top_k)
+        hybrid_results = hybrid_retrieve(
+            sketch_path,
+            image_collection,
+            bm25,
+            all_ids,
+            all_metadatas,
+        )
+    finally:
+        os.unlink(sketch_path)  # 임시 파일 삭제
+
     comparison_results = []
-    for i in range(len(results['ids'][0])):
-        design_id = results['ids'][0][i]
-        metadata = results['metadatas'][0][i]
-        distance = results['distances'][0][i]
-
+    for i, item in enumerate(hybrid_results):
+        design_id = item['id']
+        metadata  = item['metadata']
         comparison_results.append({
-            'index': i + 1,
-            'design_id': design_id,
-            'distance': distance,
+            'index':              i + 1,
+            'design_id':          design_id,
+            'hybrid_score':       item['hybrid_score'],
+            'dense_score':        item['dense_score'],
+            'bm25_score':         item['bm25_score'],
             'application_number': metadata.get('applicationNumber', 'N/A'),
-            'article_name': metadata.get('articleName', 'N/A'),
-            'admst_stat': metadata.get('admstStat', 'N/A'),
-            'image_path': design_id_to_local_image(design_id),
+            'article_name':       metadata.get('articleName', 'N/A'),
+            'admst_stat':         metadata.get('admstStat', 'N/A'),
+            'image_path':         design_id_to_local_image(design_id),
         })
 
-    state['comparison_results'] = comparison_results # 최종 유사 디자인 목록 저장
+    state['comparison_results'] = comparison_results
     print(f"  {len(comparison_results)}개 유사 디자인 발견")
     return state
 
@@ -246,7 +276,7 @@ def show_results_node(state: GraphState) -> GraphState:
         print(f"  [{comp['index']}] 출원번호: {comp['application_number']}",
               f"상품명: {comp['article_name']}, "
               f"등록상태: {comp['admst_stat']}, "
-              f"거리: {comp['distance']:.4f}")
+              f"점수: {comp['hybrid_score']:.4f}")
 
     # ★ interrupt: 여기서 그래프 실행이 멈추고, 사용자 입력을 기다림 ★
     selected = interrupt({
@@ -312,7 +342,7 @@ def generate_report_node(state: GraphState) -> GraphState:
             f"출원번호: {selected['application_number']}\n"
             f"상품명: {selected['article_name']}\n"
             f"등록상태: {selected['admst_stat']}\n"
-            f"유사도 거리: {selected['distance']:.4f}"
+            f"유사도 점수: {selected['hybrid_score']:.4f}"
         )
 
     # 리포트 생성
