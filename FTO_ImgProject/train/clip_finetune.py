@@ -91,7 +91,7 @@ class TripletDesignDataset(Dataset):
     triplets.csv 로드 → (anchor, positive, negative) PIL 이미지 반환
 
     hard/easy 비율 조정 가능:
-      hard_ratio=0.7 → hard 70% + easy 30% 로 샘플링
+    hard_ratio=0.7 → hard 70% + easy 30% 로 샘플링
     """
     def __init__(self, rows: list, preprocess, hard_ratio: float = HARD_RATIO):
         self.preprocess  = preprocess
@@ -260,9 +260,9 @@ def main():
     val_ds   = TripletDesignDataset(val_rows,   preprocess, hard_ratio=0.5)
 
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,
-                              num_workers=4, pin_memory=True)
+                            num_workers=4, pin_memory=True)
     val_loader   = DataLoader(val_ds,   batch_size=BATCH_SIZE, shuffle=False,
-                              num_workers=2, pin_memory=True)
+                            num_workers=2, pin_memory=True)
 
     # ── Optimizer & Scheduler ──
     criterion = TripletLoss(margin=MARGIN)
@@ -271,7 +271,7 @@ def main():
         lr=LR, weight_decay=1e-4
     )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.5, patience=3, verbose=True
+        optimizer, mode="min", factor=0.5, patience=3
     )
 
     # ── 학습 ──

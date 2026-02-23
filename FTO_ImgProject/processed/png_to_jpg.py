@@ -4,8 +4,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-sketch_dir = str(PROJECT_ROOT / "data/photo")
-output_dir = str(PROJECT_ROOT / "data/sketch/images_v2")
+sketch_dir = str(PROJECT_ROOT / "/Users/kangminji/__SKN20_FINAL/similar/img/similar_v1")
+output_dir = str(PROJECT_ROOT / "/Users/kangminji/__SKN20_FINAL/similar/img/similar1")
 
 os.makedirs(output_dir, exist_ok=True)
 

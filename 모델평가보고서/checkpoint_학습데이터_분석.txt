@@ -1,0 +1,99 @@
+================================================================
+체크포인트별 학습 데이터 분석
+================================================================
+
+----------------------------------------------------------------
+1. best_model.pt
+----------------------------------------------------------------
+학습 스크립트 : train/train.py
+Loss          : InfoNCE (Contrastive Learning, In-batch negatives)
+
+[데이터 소스 - evaldata/ 폴더의 Excel 3개 통합]
+  - dataset_combined_final.xlsx   : 167쌍 (images_reject ↔ images_reject_v2 cross-folder 페어)
+  - dataset_images_reject.xlsx    : 55쌍  (images_reject 폴더 내 유사 제품 페어)
+  - dataset_images_reject_v2.xlsx : 55쌍  (images_reject_v2 폴더 내 유사 제품 페어)
+
+[이미지 폴더]
+  data/evaldata/images_reject/
+  data/evaldata/images_reject_v2/
+  (거절 심사 이미지)
+
+[총 유효 페어]  약 277쌍 (중복 제거 후)
+
+[학습 설정]
+  모델     : CLIP ViT-B/32
+  Epochs   : 100
+  Batch    : 8
+  LR       : 1e-5
+  Freeze   : Text Encoder 동결, 마지막 2개 Visual Transformer Block만 학습
+  온도     : temperature=0.07
+  val_ratio: 0.15 (85% train / 15% val)
+
+[저장 기준]
+  Epoch 25에서 R@1 최고값으로 저장
+  R@1=0.4286 / R@5=0.9286 / R@10=0.9762
+
+
+----------------------------------------------------------------
+2. clip_finetuned_best.pt
+----------------------------------------------------------------
+학습 스크립트 : train/clip_finetune.py
+Loss          : Triplet Margin Loss (margin=0.2)
+
+[데이터 소스]
+  train/traindata/triplets.csv
+
+[데이터 통계]
+  전체 triplet 수 : 41,792개
+  hard negative   : 20,318개  (같은 물품명이지만 다른 디자인, 예: 화장품 용기 vs 화장품 용기)
+  easy negative   : 21,474개  (아예 다른 물품명)
+  출원번호 수     : 7,397개
+  물품명 종류     : 691개 (화장품 용기, 포장용기, 병, 샴푸 용기 등)
+
+[이미지 폴더]
+  data/sketch/images_v2/
+  (특허 도면 스케치 이미지)
+
+[학습 설정]
+  모델       : CLIP ViT-B/32
+  Epochs     : 30
+  Batch      : 32
+  LR         : 1e-5
+  Margin     : 0.2
+  Freeze     : Text Encoder 동결, 마지막 4개 Visual Transformer Block만 학습
+  Sampling   : hard 70% + easy 30% (hard_ratio=0.7)
+  val_ratio  : 0.1 (90% train / 10% val)
+  Scheduler  : ReduceLROnPlateau (factor=0.5, patience=3)
+
+[저장 기준]
+  Epoch 28에서 val_loss 최저값으로 저장
+  val_loss=0.00549 / margin_gap=0.723
+
+
+----------------------------------------------------------------
+3. clip_finetuned_final.pt
+----------------------------------------------------------------
+학습 스크립트 : train/clip_finetune.py (clip_finetuned_best.pt와 동일)
+Loss          : Triplet Margin Loss (margin=0.2)
+
+[데이터 소스]
+  clip_finetuned_best.pt와 완전히 동일
+  (train/traindata/triplets.csv, 41,792개 triplet)
+
+[저장 기준]
+  최고 성능 기준이 아닌 Epoch 30 (마지막 에폭) 상태 그대로 저장
+
+
+================================================================
+요약 비교
+================================================================
+
+  체크포인트              학습 데이터                          규모        Loss
+  ─────────────────────────────────────────────────────────────────────────────
+  best_model.pt          evaldata 거절 이미지 페어 (Excel)    ~277쌍      InfoNCE
+  clip_finetuned_best.pt 특허 도면 triplets.csv              41,792쌍    Triplet (Epoch 28 best)
+  clip_finetuned_final.pt 특허 도면 triplets.csv             41,792쌍    Triplet (Epoch 30 final)
+
+* best_model.pt는 소규모 평가용 거절 이미지로 학습
+* clip_finetuned_*.pt는 약 150배 규모의 실제 특허 도면 triplet 데이터로 학습
+================================================================

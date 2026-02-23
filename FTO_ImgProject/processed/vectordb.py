@@ -11,16 +11,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # ─────────────────────────────────────────────
 # 0. 경로 설정
 # ─────────────────────────────────────────────
-CHROMA_DB_PATH = str(PROJECT_ROOT / "data/evaldata/chroma_db_train_v2")
+CHROMA_DB_PATH = str(PROJECT_ROOT / "FTO_ImgProject/data/sketch/chroma_db_v2")
 COLLECTION_NAME = "design"
 
-IMAGE_DIR = str(PROJECT_ROOT / "data/evaldata/images_reject_v2")
+IMAGE_DIR = str(PROJECT_ROOT / "FTO_ImgProject/data/sketch/images_v2")
 
 EMBEDDING_DIRS = [
-    str(PROJECT_ROOT / "data/evaldata/embeddings_reject_v2"),
+    str(PROJECT_ROOT / "FTO_ImgProject/data/sketch/embeddings_v2"),
 ]
 
-error_log_path = str(PROJECT_ROOT / "data/evaldata/imgEmbedding_vectorDB_v2.txt")
+error_log_path = str(PROJECT_ROOT / "FTO_ImgProject/data/sketch/imgEmbedding_vectorDB_v2.txt")
 
 # ─────────────────────────────────────────────
 # 1. 로컬 이미지 경로 자동 매핑 딕셔너리 구축

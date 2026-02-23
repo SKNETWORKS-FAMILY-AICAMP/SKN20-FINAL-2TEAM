@@ -1,0 +1,324 @@
+"""
+Dense:BM25 가중치 그리드 서치 - Hit Rate 평가 스크립트
+=======================================================
+평가 방식: CSV 37개 행 각각을 독립적인 (query, relevant) 테스트로 처리
+  - HR@K = (relevant_image가 top-K에 있는 행 수) / 37
+- 가중치: Dense 1.0→0.0 (0.1 단위) / BM25 = 1 - Dense
+- 평가 지표: HR@5, HR@10, HR@20, HR@100
+
+실행: python eval_weights.py
+"""
+
+import json
+import os
+import re
+import csv
+from pathlib import Path
+
+import cv2
+import numpy as np
+import torch
+import torch.nn.functional as F
+import chromadb
+import clip
+from PIL import Image
+from rank_bm25 import BM25Okapi
+
+# ─────────────────────────────────────────────
+# 0. 경로 설정
+# ─────────────────────────────────────────────
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+CHROMA_DB_PATH       = str(PROJECT_ROOT / "/Users/kangminji/__SKN20_FINAL/SKN20-FINAL-2TEAM/FTO_ImgProject/data/sketch/chroma_db_v2")
+FINETUNED_MODEL_PATH = ""  #원본 CLIP 사용
+COLLECTION_NAME      = "design"
+CLIP_MODEL_NAME      = "ViT-B/32"
+
+EVAL_CSV        = str(PROJECT_ROOT / "data/evaldata/ground_truth_task2_filtered.csv")
+PHOTO_DIR       = str(PROJECT_ROOT / "SKN20-FINAL-2TEAM/FTO_ImgProject/data/sketch/images_v2")
+RETRIEVAL_TOP_K = 100   # HR@100을 위해 최소 100개 검색
+
+DEVICE = (
+    "cuda" if torch.cuda.is_available() else
+    "mps"  if torch.backends.mps.is_available() else
+    "cpu"
+)
+
+# ─────────────────────────────────────────────
+# 1. 유틸 함수
+# ─────────────────────────────────────────────
+def _safe_str(val) -> str:
+    if isinstance(val, dict):
+        return json.dumps(val, ensure_ascii=False)
+    return str(val) if val else ""
+
+
+def convert_to_sketch_query(image: Image.Image) -> Image.Image:
+    img_array  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+    blurred    = cv2.GaussianBlur(img_array, (5, 5), 1.0)
+    edges      = cv2.Canny(blurred, 30, 120)
+    edges      = cv2.dilate(edges, np.ones((2, 2), np.uint8), iterations=1)
+    sketch     = 255 - edges
+    sketch_rgb = cv2.cvtColor(sketch, cv2.COLOR_GRAY2RGB)
+    return Image.fromarray(sketch_rgb)
+
+
+def get_image_embedding(image: Image.Image, model, preprocess) -> np.ndarray:
+    image  = convert_to_sketch_query(image)
+    tensor = preprocess(image).unsqueeze(0).to(DEVICE)
+    with torch.no_grad():
+        emb = model.encode_image(tensor).float()
+        emb = F.normalize(emb, dim=-1)
+    return emb.cpu().numpy()[0]
+
+
+def filename_to_key(fname: str) -> str:
+    """
+    '3020140032005-api_xml-0_000.jpg' → '3020140032005-api_xml-0'
+    (스템에서 끝 _NNN 숫자 제거)
+    """
+    stem = Path(fname).stem
+    return stem.rsplit("_", 1)[0]
+
+
+def chroma_id_to_key(chroma_id: str) -> str:
+    """
+    '3020140032005-api_xml-0-IMG-0' → '3020140032005-api_xml-0'
+    """
+    if "-IMG-" in chroma_id:
+        return chroma_id.rsplit("-IMG-", 1)[0]
+    return chroma_id
+
+
+def find_query_image(fname: str) -> Path | None:
+    for ext in ["", ".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG"]:
+        p = Path(PHOTO_DIR) / (Path(fname).stem + ext if ext else fname)
+        if p.exists():
+            return p
+    return None
+
+
+# ─────────────────────────────────────────────
+# 2. 모델 & ChromaDB 초기화
+# ─────────────────────────────────────────────
+print(f"\n{'='*65}")
+print(f"Device: {DEVICE}")
+
+print("CLIP 모델 로드 중...")
+model, preprocess = clip.load(CLIP_MODEL_NAME, device=DEVICE)
+model = model.float()
+
+if FINETUNED_MODEL_PATH and os.path.exists(FINETUNED_MODEL_PATH):
+    checkpoint = torch.load(FINETUNED_MODEL_PATH, map_location=DEVICE)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    print(f"  → 파인튜닝 모델 (Epoch {checkpoint.get('epoch','?')}, Gap {checkpoint.get('margin_gap', 0):.4f})")
+else:
+    print("  → 원본 CLIP 모델")
+model.eval()
+
+print("ChromaDB 연결 중...")
+client     = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+collection = client.get_collection(name=COLLECTION_NAME)
+print(f"  → {collection.count():,}건")
+
+print("BM25 인덱스 구축 중...")
+all_data      = collection.get(include=["metadatas"])
+all_ids       = all_data["ids"]
+all_metadatas = all_data["metadatas"]
+
+corpus_tokens = []
+for m in all_metadatas:
+    text  = _safe_str(m.get("articleName", ""))
+    text += " " + _safe_str(m.get("designSummary", ""))
+    tokens = [t for t in re.split(r"\s+", text.strip()) if len(t) >= 1]
+    corpus_tokens.append(tokens if tokens else ["없음"])
+
+bm25 = BM25Okapi(corpus_tokens)
+print(f"  → BM25 인덱스 완료 ({len(all_ids):,}건)")
+
+# ChromaDB ID → key 역방향 맵 (매칭용)
+key_to_chroma_id: dict[str, str] = {}
+for cid in all_ids:
+    key_to_chroma_id[chroma_id_to_key(cid)] = cid
+
+# ─────────────────────────────────────────────
+# 3. CSV 로드 → 37개 (query, relevant) 쌍
+# ─────────────────────────────────────────────
+print(f"\nGround Truth 로드: {Path(EVAL_CSV).name}")
+
+# 37개 행 각각을 독립 테스트로 보존
+test_pairs: list[dict] = []   # {"q_fname": str, "rel_id": str | None}
+
+with open(EVAL_CSV, encoding="utf-8-sig") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        q_fname   = row["query_image"].strip()
+        rel_fname = row["relevant_image"].strip()
+        rel_key   = filename_to_key(rel_fname)
+        rel_id    = key_to_chroma_id.get(rel_key)
+        test_pairs.append({"q_fname": q_fname, "rel_fname": rel_fname, "rel_id": rel_id})
+
+total_rows = len(test_pairs)
+missing_cnt = sum(1 for p in test_pairs if p["rel_id"] is None)
+
+print(f"  → 전체 행: {total_rows}개")
+if missing_cnt:
+    print(f"  ⚠️  relevant 매핑 실패: {missing_cnt}개")
+    for p in test_pairs:
+        if p["rel_id"] is None:
+            print(f"     - {p['rel_fname']}")
+
+# ─────────────────────────────────────────────
+# 4. 고유 쿼리 이미지별 Dense/BM25 점수 캐싱
+#    (같은 쿼리가 여러 행에 등장해도 1회만 계산)
+# ─────────────────────────────────────────────
+unique_queries = list(dict.fromkeys(p["q_fname"] for p in test_pairs))
+print(f"\n쿼리 임베딩 계산 중 (고유 쿼리 {len(unique_queries)}개 / 전체 {total_rows}행)...")
+
+query_cache: dict[str, dict] = {}   # q_fname → {dense_ids, dense_scores, bm25_map}
+
+for q_fname in unique_queries:
+    q_path = find_query_image(q_fname)
+    if q_path is None:
+        print(f"  ⚠️  이미지 파일 없음: {q_fname}")
+        continue
+
+    try:
+        image     = Image.open(q_path).convert("RGB")
+        query_emb = get_image_embedding(image, model, preprocess)
+
+        dense_res       = collection.query(
+            query_embeddings=[query_emb.tolist()],
+            n_results=min(RETRIEVAL_TOP_K, collection.count()),
+            include=["metadatas", "distances"],
+        )
+        dense_ids       = dense_res["ids"][0]
+        dense_distances = dense_res["distances"][0]
+        dense_scores    = [1.0 - d for d in dense_distances]
+
+        top_meta     = all_metadatas[all_ids.index(dense_ids[0])] if dense_ids else {}
+        query_text   = _safe_str(top_meta.get("articleName", ""))
+        query_tokens = [t for t in re.split(r"\s+", query_text.strip()) if t] or ["검색"]
+        bm25_raw     = bm25.get_scores(query_tokens)
+        bm25_map     = {all_ids[i]: float(bm25_raw[i]) for i in range(len(all_ids))}
+
+        query_cache[q_fname] = {
+            "dense_ids":    dense_ids,
+            "dense_scores": dense_scores,
+            "bm25_map":     bm25_map,
+        }
+        print(f"  ✓ {q_fname}")
+
+    except Exception as e:
+        print(f"  ❌ {q_fname}: {e}")
+
+# 유효 테스트 쌍: 쿼리 캐시 & relevant_id 모두 존재하는 행
+valid_pairs = [
+    p for p in test_pairs
+    if p["q_fname"] in query_cache and p["rel_id"] is not None
+]
+n_eval = len(valid_pairs)
+print(f"\n  평가 가능 쌍: {n_eval}/{total_rows}개")
+
+# ─────────────────────────────────────────────
+# 5. 가중치 그리드 서치
+# ─────────────────────────────────────────────
+KS           = [1, 5, 10, 20, 100]
+weight_steps = [round(w * 0.1, 1) for w in range(10, -1, -1)]  # 1.0 → 0.0
+results_table = []
+
+print(f"\n{'='*65}")
+print(f"Dense:BM25 가중치 그리드 서치  (평가 쌍: {n_eval}개)")
+print(f"{'='*65}")
+print(f"{'Dense':>6} {'BM25':>6} | {'HR@1':>7} {'HR@5':>7} {'HR@10':>7} {'HR@20':>7} {'HR@100':>8}")
+print("-"*65)
+
+for dense_w in weight_steps:
+    bm25_w = round(1.0 - dense_w, 1)
+    hits   = {k: 0 for k in KS}
+
+    for pair in valid_pairs:
+        q_fname = pair["q_fname"]
+        rel_id  = pair["rel_id"]
+        qdata   = query_cache[q_fname]
+
+        dense_ids    = qdata["dense_ids"]
+        dense_scores = qdata["dense_scores"]
+        bm25_map     = qdata["bm25_map"]
+
+        # min-max 정규화
+        d_min, d_max = min(dense_scores), max(dense_scores)
+        d_range = d_max - d_min if d_max != d_min else 1e-8
+
+        b_vals  = [bm25_map.get(did, 0.0) for did in dense_ids]
+        b_min, b_max = min(b_vals), max(b_vals)
+        b_range = b_max - b_min if b_max != b_min else 1e-8
+
+        scored = []
+        for did, ds in zip(dense_ids, dense_scores):
+            d_norm = (ds - d_min) / d_range
+            b_norm = (bm25_map.get(did, 0.0) - b_min) / b_range
+            hybrid = dense_w * d_norm + bm25_w * b_norm
+            scored.append((did, hybrid))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        ranked_ids = [x[0] for x in scored]
+
+        for k in KS:
+            if rel_id in ranked_ids[:k]:
+                hits[k] += 1
+
+    row = {
+        "Dense": dense_w,
+        "BM25":  bm25_w,
+        **{f"HR@{k}": round(hits[k] / n_eval * 100, 1) for k in KS},
+        "hits":  dict(hits),
+    }
+    results_table.append(row)
+    print(
+        f"{dense_w:>6.1f} {bm25_w:>6.1f} | "
+        f"{row['HR@1']:>6.1f}% "
+        f"{row['HR@5']:>6.1f}% "
+        f"{row['HR@10']:>6.1f}% "
+        f"{row['HR@20']:>6.1f}% "
+        f"{row['HR@100']:>7.1f}%"
+    )
+
+# ─────────────────────────────────────────────
+# 6. 최적 파라미터 요약
+# ─────────────────────────────────────────────
+print(f"\n{'='*65}")
+print(f"최적 가중치 요약  (총 {n_eval}쌍 평가)")
+print("-"*65)
+for k in KS:
+    best = max(results_table, key=lambda r: r[f"HR@{k}"])
+    print(
+        f"  HR@{k:>3}: Dense={best['Dense']:.1f} / BM25={best['BM25']:.1f} "
+        f"→ {best[f'HR@{k}']}%  ({best['hits'][k]}/{n_eval})"
+    )
+print(f"{'='*65}")
+
+# ─────────────────────────────────────────────
+# 7. CSV 저장
+# ─────────────────────────────────────────────
+import pandas as pd
+from datetime import datetime
+
+csv_rows = []
+for row in results_table:
+    csv_rows.append({
+        "Dense": row["Dense"],
+        "BM25":  row["BM25"],
+        "HR@1":  row["HR@1"],
+        "HR@5":  row["HR@5"],
+        "HR@10": row["HR@10"],
+        "HR@20": row["HR@20"],
+        "HR@100":row["HR@100"],
+    })
+
+df_result = pd.DataFrame(csv_rows)
+
+timestamp  = datetime.now().strftime("%Y%m%d_%H%M%S")
+out_path   = str(PROJECT_ROOT / f"data/evaldata/eval_weights_{timestamp}.csv")
+df_result.to_csv(out_path, index=False, encoding="utf-8-sig")
+print(f"\n💾 결과 CSV 저장 완료: {out_path}")
