@@ -13,6 +13,9 @@
 """
 
 import os
+import re
+import cv2
+import numpy as np
 import clip
 import torch
 from pathlib import Path
@@ -29,6 +32,11 @@ IMAGES_DIR = str(BASE_DIR / "data" / "images")
 # CLIP 모델 로드 (ViT-B/32)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
+
+# Hybrid Retrieval 파라미터
+RETRIEVAL_TOP_K = 50   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
+TOP_K           = 10   # 최종 반환 개수
+DENSE_WEIGHT    = 0.7  # Dense 가중치 (BM25 가중치 = 1 - DENSE_WEIGHT)
 
 
 # ==================== 이미지 임베딩 함수 ====================
@@ -133,6 +141,136 @@ def design_id_to_local_image(design_id, images_dir=None):
             return os.path.join(images_dir, fname)
 
     return None
+
+
+# ==================== 이미지 전처리 함수 ====================
+
+def convert_to_sketch_query(image: Image.Image) -> Image.Image:
+    """
+    업로드된 쿼리 이미지에 벡터 DB에 임베딩해서 넣은 사진들과 동일한
+    Canny Edge Detection 전처리를 적용.
+
+    저장된 DB 임베딩 = 스케치 변환 이미지 기반
+    쿼리 임베딩      = 원본 이미지 기반  ← 불일치 → 이 함수로 해결
+
+    파라미터: GaussianBlur(5,5,1.0) / Canny(30,120) / dilate(2x2, 1회)
+    결과: 흰 배경 + 검은 윤곽선 PIL Image
+    """
+    img_array  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+    blurred    = cv2.GaussianBlur(img_array, (5, 5), 1.0)
+    edges      = cv2.Canny(blurred, 30, 120)
+    edges      = cv2.dilate(edges, np.ones((2, 2), np.uint8), iterations=1)
+    sketch     = 255 - edges              # 흰 배경, 검은 선
+    sketch_rgb = cv2.cvtColor(sketch, cv2.COLOR_GRAY2RGB)
+    return Image.fromarray(sketch_rgb)
+
+
+# ==================== Hybrid Retrieval 함수 ====================
+
+def hybrid_retrieve(
+    image_path: str,
+    image_collection,
+    bm25,
+    all_ids: list,
+    all_metadatas: list,
+    top_k: int = TOP_K,
+    retrieval_top_k: int = RETRIEVAL_TOP_K,
+    dense_weight: float = DENSE_WEIGHT,
+) -> list[dict]:
+    """
+    Hybrid Retrieval (Dense-first 재랭킹 방식):
+
+      1) Dense:  CLIP 임베딩 → ChromaDB에서 retrieval_top_k개 검색
+      2) BM25:   Dense 1위 articleName → Dense 결과 내 BM25 재점수
+      3) min-max 정규화 후 가중 합산 (dense_weight : 1-dense_weight)
+      4) 동일 출원번호 중복 제거 (hybrid_score 높은 도면 유지)
+      5) 최종 top_k 반환
+
+    Args:
+        image_path      : 쿼리 이미지 파일 경로
+        image_collection: ChromaDB 컬렉션
+        bm25            : 사전 빌드된 BM25Okapi 인덱스
+        all_ids         : ChromaDB 전체 ID 리스트 (bm25 코퍼스와 순서 일치)
+        all_metadatas   : ChromaDB 전체 메타데이터 리스트
+        top_k           : 최종 반환 개수
+        retrieval_top_k : Dense 1차 검색 개수
+        dense_weight    : Dense 점수 가중치 (0~1)
+
+    Returns:
+        list[dict]: 정렬된 검색 결과
+            [{"id": ..., "metadata": ..., "dense_score": ...,
+              "bm25_score": ..., "hybrid_score": ...}, ...]
+    """
+    bm25_weight = 1.0 - dense_weight
+
+    # O(1) 탐색을 위한 사전 구성
+    id_to_meta = {id_: meta for id_, meta in zip(all_ids, all_metadatas)}
+    id_to_idx  = {id_: i   for i,   id_  in enumerate(all_ids)}
+
+    # ── Step 1: Dense 검색 ──
+    query_emb = get_image_embedding(image_path)
+    if query_emb is None:
+        return []
+
+    dense_results = image_collection.query(
+        query_embeddings=[query_emb],
+        n_results=min(retrieval_top_k, image_collection.count()),
+        include=["metadatas", "distances"],
+    )
+    dense_ids     = dense_results["ids"][0]
+    dense_scores  = {
+        did: 1.0 - d
+        for did, d in zip(dense_ids, dense_results["distances"][0])
+    }  # cosine distance(0~2) → similarity(0~1)
+
+    # ── Step 2: BM25 재점수 (Dense 결과만 대상) ──
+    # Dense 1위 articleName → BM25 쿼리 토큰
+    top_meta     = id_to_meta.get(dense_ids[0], {}) if dense_ids else {}
+    query_text   = top_meta.get("articleName", "").strip()
+    query_tokens = [t for t in re.split(r"\s+", query_text) if t] or ["검색"]
+
+    # 전체 코퍼스 BM25 스코어에서 Dense 결과 ID에 해당하는 것만 추출
+    bm25_all_scores = bm25.get_scores(query_tokens)
+    bm25_scores = {
+        did: float(bm25_all_scores[id_to_idx[did]])
+        for did in dense_ids
+        if did in id_to_idx
+    }
+
+    # ── Step 3: min-max 정규화 ──
+    def _minmax(score_map: dict) -> dict:
+        vals = list(score_map.values())
+        lo, hi = min(vals), max(vals)
+        r = hi - lo if hi != lo else 1e-8
+        return {k: (v - lo) / r for k, v in score_map.items()}
+
+    d_norm = _minmax(dense_scores)
+    b_norm = _minmax(bm25_scores)
+
+    # ── Step 4: 가중 합산 ──
+    scored = [
+        {
+            "id":           did,
+            "metadata":     id_to_meta.get(did, {}),
+            "dense_score":  round(dense_scores.get(did, 0.0), 4),
+            "bm25_score":   round(bm25_scores.get(did, 0.0), 4),
+            "hybrid_score": round(
+                dense_weight * d_norm.get(did, 0.0)
+                + bm25_weight * b_norm.get(did, 0.0), 4
+            ),
+        }
+        for did in dense_ids
+    ]
+
+    # ── Step 5: 동일 출원번호 중복 제거 (hybrid_score 높은 도면 유지) ──
+    deduped: dict[str, dict] = {}
+    for item in scored:
+        app_num = item["metadata"].get("applicationNumber", "N/A")
+        if app_num not in deduped or item["hybrid_score"] > deduped[app_num]["hybrid_score"]:
+            deduped[app_num] = item
+
+    # ── Step 6: 정렬 후 top_k 반환 ──
+    return sorted(deduped.values(), key=lambda x: x["hybrid_score"], reverse=True)[:top_k]
 
 
 # ==================== 벡터 검색 및 필터링 함수 ====================
