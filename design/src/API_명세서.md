@@ -67,7 +67,7 @@
 {
   "success": true,
   "thread_id": "550e8400-e29b-41d4-a716-446655440000",
-  "input_analysis": "{\"물품\": \"용기\", \"형상_관찰\": {\"전체_실루엣\": \"...\"}}",
+  "input_analysis": "📦 물품: 용기\n\n🔍 형상 분석\n- 전체 실루엣: ...\n- 몸체 형태: ...",
   "similar_designs": [
     {
       "index": 1,
@@ -94,7 +94,7 @@
 |------|------|------|
 | `success` | boolean | 성공 여부 |
 | `thread_id` | string | 세션 ID (2단계에서 필수) |
-| `input_analysis` | string | VLM 입력 이미지 분석 결과 (JSON) |
+| `input_analysis` | string | 입력 디자인 형상 분석 결과 (이모지 포함 포맷팅된 텍스트) |
 | `similar_designs` | array | 유사 디자인 목록 |
 | `similar_designs[].index` | int | 디자인 번호 (1~10) |
 | `similar_designs[].application_number` | string | 출원번호 |
@@ -147,8 +147,8 @@
 | 필드 | 타입 | 설명 |
 |------|------|------|
 | `success` | boolean | 성공 여부 |
-| `detailed_comparison` | string | VLM 상세 비교 결과 (JSON 문자열: 유사한_점, 비유사한_점) |
-| `final_report` | string | FTO 리포트 (마크다운 형식 텍스트) |
+| `detailed_comparison` | string | VLM 상세 비교 결과 (JSON 문자열: 유사한_점, 비유사한_점) — 내부 분석용, 프론트엔드 미표시 |
+| `final_report` | string | FTO 리포트 (마크다운 형식 텍스트) — 프론트엔드 표시 대상 |
 
 ### Error Response
 
@@ -172,6 +172,8 @@
 | 파라미터 | 타입 | 필수 | 설명 |
 |----------|------|------|------|
 | `text_query` | string | O | 사용자 질문 |
+| `thread_id` | string | X | 이전 대화 세션 ID (없으면 새 대화 시작, 있으면 대화 이어받기) |
+| `image_thread_id` | string | X | 이미지 분석 완료 후 후속 질문 시 전달 (분석 결과를 컨텍스트로 주입, 1회만 유효) |
 
 ### 질문 유형별 Tool 호출 예시
 
@@ -186,14 +188,29 @@
 ```json
 {
   "success": true,
-  "answer": "디자인 특허 출원 절차는 일반적으로 다음과 같은 단계로 이루어집니다..."
+  "thread_id": "새로운-또는-기존-세션-id",
+  "turn": 1,
+  "answer": "디자인 특허 출원 절차는 일반적으로 다음과 같은 단계로 이루어집니다...",
+  "search_images": [
+    {
+      "application_number": "3020240009248",
+      "last_disposition_date": "2024-03-15",
+      "image_base64": "/9j/4AAQSkZJRg..."
+    }
+  ]
 }
 ```
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
 | `success` | boolean | 성공 여부 |
+| `thread_id` | string | 세션 ID — **다음 요청에 포함하면 대화가 이어짐** |
+| `turn` | int | 현재 대화 턴 수 |
 | `answer` | string | LLM 답변 텍스트 |
+| `search_images` | array | `search_design_db` 호출 시 관련 디자인 이미지 목록 (없으면 빈 배열) |
+| `search_images[].application_number` | string | 출원번호 |
+| `search_images[].last_disposition_date` | string | 최종 처분일 |
+| `search_images[].image_base64` | string | 디자인 이미지 (base64 JPEG) |
 
 ### Error Response
 

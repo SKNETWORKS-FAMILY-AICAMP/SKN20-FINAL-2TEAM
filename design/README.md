@@ -57,10 +57,9 @@ temp_uploads/*
 - 위 링크에서 `chroma_db/` 폴더를 다운받아, 폴더 자체를 design 루트 디렉토리에 배치.
 
 
-2. **이미지 데이터** 다운로드 (1.97 GB)
-- https://drive.google.com/drive/folders/1JkeGGx2MyGmmuUczrHQ0o-HDH74MWYtt?usp=drive_link 
-- 위 링크에서  `images/` 폴더를 다운받아, 폴더 자체를  `design/data/` 폴더에 배치. 
-- 챗봇에서 이미지 표시할때 사용
+2. **이미지 데이터** ~~다운로드 (1.97 GB)~~ → **다운로드 불필요**
+- 이미지는 ChromaDB 메타데이터에 저장된 `imagePath` (kipris.or.kr URL)에서 실시간으로 가져옵니다.
+- 로컬 `data/images/` 폴더가 없어도 정상 동작합니다.
 
 
 ### ⚙️ Step 2: 환경 설정
