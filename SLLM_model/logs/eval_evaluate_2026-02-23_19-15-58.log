@@ -1,0 +1,24 @@
+2026-02-23 19:15:58.032 | INFO     | __main__:main:123 - === 모델 평가: gemma_compare ===
+2026-02-23 19:15:59.077 | INFO     | __main__:main:130 - 입력: output/infer_gemma.xlsx (718건)
+2026-02-23 19:15:59.173 | INFO     | __main__:print_summary:81 - [라벨 정확도] 56.1% (매핑실패: 14건)
+2026-02-23 19:15:59.190 | INFO     | __main__:print_summary:86 - 
+              precision    recall  f1-score   support
+
+          침해       0.63      0.66      0.65       190
+         비침해       0.61      0.59      0.60       190
+          애매       0.67      0.42      0.52       148
+      침해_전문가       0.45      0.54      0.49       190
+
+   micro avg       0.57      0.56      0.57       718
+   macro avg       0.59      0.55      0.56       718
+weighted avg       0.59      0.56      0.57       718
+
+2026-02-23 19:15:59.191 | INFO     | __main__:print_summary:91 - [구조] 섹션완성: 696/718 (96.9%), 테이블파싱: 709/718 (98.7%)
+2026-02-23 19:15:59.192 | INFO     | __main__:print_summary:97 - [행수일치] 671/718 (93.5%)
+2026-02-23 19:15:59.198 | INFO     | __main__:print_summary:104 - [법리일관성] 497/602 (82.6%)
+2026-02-23 19:15:59.203 | INFO     | __main__:print_summary:108 -   X:R14:비침해+균등내재성만: 68건
+2026-02-23 19:15:59.204 | INFO     | __main__:print_summary:108 -   X:R11:전문가+균등내재성없음: 28건
+2026-02-23 19:15:59.204 | INFO     | __main__:print_summary:108 -   X:R10:비침해+전부대응: 5건
+2026-02-23 19:15:59.204 | INFO     | __main__:print_summary:108 -   X:R13:전문가+일반미대응: 3건
+2026-02-23 19:15:59.205 | INFO     | __main__:print_summary:108 -   X:R12:침해+균등내재성존재: 1건
+2026-02-23 19:15:59.415 | SUCCESS  | __main__:main:139 - 평가 완료! 저장: output\eval_detail_gemma_compare.xlsx
