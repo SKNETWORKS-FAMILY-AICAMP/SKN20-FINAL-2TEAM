@@ -117,6 +117,7 @@ def main():
     parser.add_argument("--test_data", default="../../data/sllm_qwen_data/sllm_test.xlsx")
     parser.add_argument("--output_dir", default="./output")
     parser.add_argument("--max_tokens", type=int, default=2048)
+    parser.add_argument("--max_model_len", type=int, default=4096, help="모델 최대 컨텍스트 길이 (4096 초과 데이터 시 올릴 것)")
     parser.add_argument("--gpu_memory", type=float, default=0.9, help="GPU 메모리 사용 비율 (0~1)")
     args = parser.parse_args()
 
@@ -139,7 +140,7 @@ def main():
             model=base_model,
             trust_remote_code=True,
             gpu_memory_utilization=args.gpu_memory,
-            max_model_len=4096,
+            max_model_len=args.max_model_len,
             enable_lora=True,
             max_lora_rank=lora_rank,
         )
@@ -150,7 +151,7 @@ def main():
             model=str(model_path),
             trust_remote_code=True,
             gpu_memory_utilization=args.gpu_memory,
-            max_model_len=4096,
+            max_model_len=args.max_model_len,
         )
         lora_request = None
 
