@@ -631,11 +631,7 @@
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
 
-            let html = `<h3 style="color: #667eea; margin-bottom: 10px;">📊 상세 비교 결과</h3>`;
-
-            if (result.detailed_comparison) {
-                html += `<div style="background: #f0f0f0; padding: 12px; border-radius: 8px; margin-bottom: 15px; white-space: pre-wrap; font-size: 0.9rem;">${escapeHtml(result.detailed_comparison)}</div>`;
-            }
+            let html = ``;
 
             if (result.final_report) {
                 html += `<h3 style="color: #667eea; margin: 15px 0 10px;">📋 최종 리포트</h3>`;
