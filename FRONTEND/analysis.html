@@ -141,41 +141,41 @@
             color: #CC4A1A;
         }
 
-        /* 피처 카드 아이콘 - primary 톤 통일 */
-        .feature-icon {
-            width: 3rem;
-            height: 3rem;
-            border-radius: 0.75rem;
+        /* 피처 카드 아이콘 - primary 톤 통일 (컴팩트 수평형) */
+        .feature-icon-sm {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.625rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
+            flex-shrink: 0;
         }
 
-        .feature-icon.tone-light {
+        .feature-icon-sm.tone-light {
             background: rgba(255, 107, 53, 0.08);
             border: 1px solid rgba(255, 107, 53, 0.15);
         }
 
-        .feature-icon.tone-mid {
+        .feature-icon-sm.tone-mid {
             background: rgba(255, 107, 53, 0.12);
             border: 1px solid rgba(255, 107, 53, 0.22);
         }
 
-        .feature-icon.tone-deep {
+        .feature-icon-sm.tone-deep {
             background: rgba(255, 107, 53, 0.16);
             border: 1px solid rgba(255, 107, 53, 0.28);
         }
 
-        .feature-icon i {
+        .feature-icon-sm i {
             color: var(--primary);
-            font-size: 1.25rem;
+            font-size: 0.875rem;
         }
 
         /* 스텝 넘버링 - primary 톤 그라데이션 */
         .step-num {
-            width: 2rem;
-            height: 2rem;
+            width: 1.5rem;
+            height: 1.5rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -186,13 +186,146 @@
 
         .step-num span {
             color: white;
-            font-size: 0.875rem;
+            font-size: 0.65rem;
             font-weight: 700;
         }
 
         .step-num.step-1 { background: var(--primary); }
         .step-num.step-2 { background: var(--primary-light); }
         .step-num.step-3 { background: var(--primary-dark); }
+
+        /* 빠른시작 버튼 */
+        .sample-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 0.625rem;
+            color: #525252;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .sample-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .sample-btn i {
+            width: 12px;
+            text-align: center;
+            color: #A3A3A3;
+            flex-shrink: 0;
+        }
+
+        .sample-btn:hover i {
+            color: var(--primary);
+        }
+
+        /* ── 첨부 기능 ────────────────────────────────────────── */
+
+        /* 입력 행 레이아웃 */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* 클립(첨부) 버튼 */
+        .attach-btn {
+            width: 2.75rem;
+            height: 2.75rem;
+            flex-shrink: 0;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #D4D4D4;
+            border-radius: 0.75rem;
+            background: white;
+            color: #737373;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .attach-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .attach-btn.has-files {
+            color: var(--primary);
+            background: var(--primary-bg);
+            border-color: var(--primary);
+        }
+
+        /* 이미지 프리뷰 영역 */
+        .image-preview-area {
+            margin-bottom: 0.625rem;
+            padding: 0.625rem 0.75rem;
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: 0.75rem;
+        }
+
+        .image-preview-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* 개별 썸네일 */
+        .image-preview-item {
+            position: relative;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.5rem;
+            overflow: visible;
+            border: 1px solid var(--primary-border);
+            flex-shrink: 0;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            display: block;
+        }
+
+        /* 삭제(×) 버튼 */
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: -0.35rem;
+            right: -0.35rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            padding: 0;
+            line-height: 1;
+            transition: background 0.15s ease;
+            z-index: 1;
+        }
+
+        .image-preview-item .remove-btn:hover {
+            background: var(--primary-dark);
+        }
     </style>
 </head>
 
@@ -271,120 +404,108 @@
         <main id="mainContent" class="flex-1 ml-0 lg:ml-72 transition-all duration-300" style="margin-left: 18rem; background-color: #FFF7F2;">
             <div class="h-screen flex flex-col" style="padding-top: 80px;">
                 <!-- Welcome Screen -->
-                <div class="flex-1 overflow-y-auto p-8">
-                    <div class="max-w-5xl mx-auto">
-                        <!-- Title Section -->
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background: rgba(255, 107, 53, 0.10);">
-                                <i class="fas fa-robot text-2xl text-primary"></i>
+                <div class="flex-1 overflow-y-auto p-5">
+                    <div class="max-w-4xl mx-auto">
+
+                        <!-- Title Section - 컴팩트 -->
+                        <div class="text-center mb-5">
+                            <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-3" style="background: rgba(255, 107, 53, 0.10);">
+                                <i class="fas fa-robot text-lg text-primary"></i>
                             </div>
-                            <h1 class="text-3xl md:text-4xl font-bold text-black mb-3">
+                            <h1 class="text-xl font-bold text-black mb-1">
                                 FTO 리스크 분석 AI
                             </h1>
-                            <p class="text-neutral-600 text-base md:text-lg">
+                            <p class="text-neutral-500 text-xs">
                                 제품 정보를 입력하면 AI가 자동으로 특허·디자인 침해 리스크를 분석합니다
                             </p>
                         </div>
 
-                        <!-- Features Grid (색상 통일: primary 톤) -->
-                        <div class="grid md:grid-cols-3 gap-5 mb-8">
-                            <div class="bg-white border border-neutral-200 rounded-2xl p-6 hover:shadow-md hover:border-neutral-300 transition-all">
-                                <div class="feature-icon tone-light">
+                        <!-- Features Grid - 수평 컴팩트 카드 -->
+                        <div class="grid md:grid-cols-3 gap-2.5 mb-3">
+                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                                <div class="feature-icon-sm tone-light">
                                     <i class="fas fa-search"></i>
                                 </div>
-                                <h3 class="text-black font-bold mb-2 text-sm">글로벌 DB 검색</h3>
-                                <p class="text-neutral-600 text-xs leading-relaxed">
-                                    KIPRIS, USPTO, EPO 등 420만 건 실시간 연동
-                                </p>
+                                <div>
+                                    <h3 class="text-black font-bold text-xs mb-0.5">글로벌 DB 검색</h3>
+                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">KIPRIS, USPTO, EPO 등 420만 건</p>
+                                </div>
                             </div>
 
-                            <div class="bg-white border border-neutral-200 rounded-2xl p-6 hover:shadow-md hover:border-neutral-300 transition-all">
-                                <div class="feature-icon tone-mid">
+                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                                <div class="feature-icon-sm tone-mid">
                                     <i class="fas fa-brain"></i>
                                 </div>
-                                <h3 class="text-black font-bold mb-2 text-sm">법리 기반 분석</h3>
-                                <p class="text-neutral-600 text-xs leading-relaxed">
-                                    All Elements Rule, 균등론 등 특허법 적용
-                                </p>
+                                <div>
+                                    <h3 class="text-black font-bold text-xs mb-0.5">법리 기반 분석</h3>
+                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">All Elements Rule, 균등론 등 적용</p>
+                                </div>
                             </div>
 
-                            <div class="bg-white border border-neutral-200 rounded-2xl p-6 hover:shadow-md hover:border-neutral-300 transition-all">
-                                <div class="feature-icon tone-deep">
+                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                                <div class="feature-icon-sm tone-deep">
                                     <i class="fas fa-route"></i>
                                 </div>
-                                <h3 class="text-black font-bold mb-2 text-sm">회피 설계 제안</h3>
-                                <p class="text-neutral-600 text-xs leading-relaxed">
-                                    침해 리스크 발견 시 구체적인 대안 자동 생성
+                                <div>
+                                    <h3 class="text-black font-bold text-xs mb-0.5">회피 설계 제안</h3>
+                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">침해 발견 시 구체적 대안 자동 생성</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 사용 방법 + 빠른 시작: 2컬럼 컴팩트 카드 -->
+                        <div class="grid md:grid-cols-2 gap-2.5">
+
+                            <!-- 사용 방법 - 컴팩트 카드 -->
+                            <div class="border rounded-xl p-4" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04), var(--primary-bg)); border-color: var(--primary-border);">
+                                <p class="text-xs font-bold text-black mb-3 flex items-center gap-1.5">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                    사용 방법
                                 </p>
-                            </div>
-                        </div>
-
-                        <!-- 사용 방법 (색상 통일) -->
-                        <div class="border rounded-2xl p-6 mb-6" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04), var(--primary-bg)); border-color: var(--primary-border);">
-                            <div class="flex items-start gap-4">
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-                                        <i class="fas fa-lightbulb text-xl text-white"></i>
+                                <div class="flex flex-col gap-2.5">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="step-num step-1"><span>1</span></div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-black leading-tight">제품 정보 입력</p>
+                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">텍스트 또는 이미지를 업로드하세요</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-black font-bold mb-4 text-base">사용 방법</h4>
-                                    <div class="grid md:grid-cols-3 gap-6">
-                                        <div class="flex items-start gap-3">
-                                            <div class="step-num step-1">
-                                                <span>1</span>
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-black mb-1">제품 정보 입력</p>
-                                                <p class="text-xs text-neutral-600 leading-relaxed">
-                                                    제품 설명 텍스트 또는 이미지를 업로드하세요
-                                                </p>
-                                            </div>
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="step-num step-2"><span>2</span></div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-black leading-tight">AI 자동 분석</p>
+                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">분석 유형을 AI가 자동으로 감지합니다</p>
                                         </div>
-                                        <div class="flex items-start gap-3">
-                                            <div class="step-num step-2">
-                                                <span>2</span>
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-black mb-1">AI 자동 분석</p>
-                                                <p class="text-xs text-neutral-600 leading-relaxed">
-                                                    AI가 자동으로 분석 유형을 감지합니다
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-start gap-3">
-                                            <div class="step-num step-3">
-                                                <span>3</span>
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-black mb-1">결과 확인</p>
-                                                <p class="text-xs text-neutral-600 leading-relaxed">
-                                                    실시간으로 분석 진행 상황을 확인하세요
-                                                </p>
-                                            </div>
+                                    </div>
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="step-num step-3"><span>3</span></div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-black leading-tight">결과 확인</p>
+                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">실시간으로 분석 진행 상황을 확인하세요</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Sample Queries -->
-                        <div class="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-                            <p class="text-black text-sm font-bold mb-4 flex items-center gap-2">
-                                <i class="fas fa-bolt text-primary"></i>
-                                빠른 시작 예시
-                            </p>
-                            <div class="flex flex-wrap gap-3">
-                                <button onclick="fillSampleQuery('스마트 보온 머그컵')" class="px-5 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary text-sm transition-all font-semibold shadow-sm hover:shadow-md">
-                                    <i class="fas fa-coffee mr-2"></i>스마트 보온 머그컵
-                                </button>
-                                <button onclick="fillSampleQuery('무선 충전 패드')" class="px-5 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary text-sm transition-all font-semibold shadow-sm hover:shadow-md">
-                                    <i class="fas fa-bolt mr-2"></i>무선 충전 패드
-                                </button>
-                                <button onclick="fillSampleQuery('접이식 스마트폰')" class="px-5 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary text-sm transition-all font-semibold shadow-sm hover:shadow-md">
-                                    <i class="fas fa-mobile-alt mr-2"></i>접이식 스마트폰
-                                </button>
+                            <!-- 빠른 시작 예시 - 컴팩트 카드 -->
+                            <div class="bg-white border border-neutral-200 rounded-xl p-4 shadow-sm">
+                                <p class="text-xs font-bold text-black mb-3 flex items-center gap-1.5">
+                                    <i class="fas fa-bolt text-primary"></i>
+                                    빠른 시작 예시
+                                </p>
+                                <div class="flex flex-col gap-2">
+                                    <button onclick="fillSampleQuery('세라마이드/판테놀 기반 피부장벽 강화 크림 조성물')" class="sample-btn">
+                                        <i class="fas fa-pump-soap"></i>세라마이드/판테놀 기반 피부장벽 강화 크림 조성물
+                                    </button>
+                                    <button onclick="fillSampleQuery('마스크프루프 지속력을 향상시키는 립 틴트 조성물')" class="sample-btn">
+                                        <i class="fas fa-palette"></i>마스크프루프 지속력을 향상시키는 립 틴트 조성물
+                                    </button>
+                                    <button onclick="fillSampleQuery('자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물')" class="sample-btn">
+                                        <i class="fas fa-sun"></i>자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물
+                                    </button>
+                                </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -392,13 +513,43 @@
                 <!-- Input Area (하단 고정) -->
                 <div class="border-t border-neutral-200 bg-white p-6 shadow-sm">
                     <div class="max-w-4xl mx-auto">
-                        <div class="flex gap-3">
+
+                        <!-- 이미지 프리뷰 (파일이 있을 때만 표시) -->
+                        <div id="imagePreviewArea" class="image-preview-area" style="display: none;">
+                            <div id="imagePreviewList" class="image-preview-list"></div>
+                        </div>
+
+                        <!-- 입력 행 -->
+                        <div class="input-row">
+                            <!-- 숨겨진 파일 입력 -->
+                            <input
+                                type="file"
+                                id="imageFileInput"
+                                accept="image/png,image/jpg,image/jpeg,image/webp"
+                                multiple
+                                style="display: none;"
+                            />
+
+                            <!-- 클립(첨부) 버튼 -->
+                            <button
+                                type="button"
+                                id="attachBtn"
+                                onclick="triggerFileInput()"
+                                class="attach-btn"
+                                title="이미지 첨부 (png, jpg, jpeg, webp)"
+                            >
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+
+                            <!-- 텍스트 입력 -->
                             <input
                                 type="text"
                                 id="messageInput"
                                 placeholder="제품 설명을 입력하세요 (예: 스마트 보온 머그컵)..."
                                 class="flex-1 px-5 py-3.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm"
                             />
+
+                            <!-- 전송 버튼 -->
                             <button
                                 onclick="sendMessage()"
                                 class="px-8 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
@@ -413,6 +564,21 @@
         </main>
     </div>
 
+    <!-- 개발 환경 인증 우회: script.js 로드 전에 가짜 토큰 주입 -->
+    <script>
+        (function() {
+            // 만료 시간이 매우 긴 가짜 JWT 생성 (개발용)
+            const header  = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({ sub: 'dev', exp: Math.floor(Date.now() / 1000) + 86400 * 365 }));
+            const devToken = `${header}.${payload}.dev_signature`;
+            const devUser  = JSON.stringify({ id: 'dev', name: '개발자', email: 'dev@ftoguard.com' });
+
+            if (!localStorage.getItem('authToken')) {
+                localStorage.setItem('authToken', devToken);
+                localStorage.setItem('user', devUser);
+            }
+        })();
+    </script>
     <script src="toast.js"></script>
     <script src="script.js"></script>
     <script>
@@ -422,19 +588,104 @@
             document.getElementById('messageInput').focus();
         }
 
-        // Send message
+        // ── 이미지 첨부 로직 ──────────────────────────────────────
+        let fileIdCounter = 0;
+        const attachedFiles = []; // [{ id, file }, ...]
+
+        /** 숨겨진 file input을 열어 파일 선택 다이얼로그 표시 */
+        function triggerFileInput() {
+            document.getElementById('imageFileInput').click();
+        }
+
+        /** file input change 핸들러 */
+        function handleFileInputChange(e) {
+            const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+            Array.from(e.target.files).forEach(file => {
+                if (!allowed.includes(file.type)) {
+                    if (typeof Toast !== 'undefined')
+                        Toast.warning(`${file.name}: png, jpg, jpeg, webp 형식만 지원합니다`);
+                    return;
+                }
+                // 동일 파일 중복 방지 (이름 + 크기 비교)
+                const dup = attachedFiles.some(
+                    item => item.file.name === file.name && item.file.size === file.size
+                );
+                if (dup) return;
+                addImagePreview(file);
+            });
+            e.target.value = ''; // 같은 파일 재선택 허용
+        }
+
+        /** 파일을 attachedFiles 배열에 추가하고 썸네일 렌더링 */
+        function addImagePreview(file) {
+            const id = ++fileIdCounter;
+            attachedFiles.push({ id, file });
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const list = document.getElementById('imagePreviewList');
+                const item = document.createElement('div');
+                item.className = 'image-preview-item';
+                item.dataset.fileId = id;
+                item.innerHTML = `
+                    <img src="${evt.target.result}" alt="${file.name}" title="${file.name}">
+                    <button class="remove-btn" onclick="removeImage(${id})" title="삭제">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+                updatePreviewArea();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /** 개별 이미지 제거 */
+        function removeImage(id) {
+            const idx = attachedFiles.findIndex(item => item.id === id);
+            if (idx !== -1) attachedFiles.splice(idx, 1);
+            const el = document.querySelector(`.image-preview-item[data-file-id="${id}"]`);
+            if (el) el.remove();
+            updatePreviewArea();
+        }
+
+        /** 프리뷰 영역 표시/숨김 및 클립 버튼 상태 동기화 */
+        function updatePreviewArea() {
+            const area = document.getElementById('imagePreviewArea');
+            const btn  = document.getElementById('attachBtn');
+            const hasFiles = attachedFiles.length > 0;
+            area.style.display = hasFiles ? 'block' : 'none';
+            btn.classList.toggle('has-files', hasFiles);
+        }
+
+        // ── 전송 ──────────────────────────────────────────────────
+
+        /** 메시지 + 첨부 이미지를 FormData로 전송 */
         function sendMessage() {
-            const input = document.getElementById('messageInput');
+            const input   = document.getElementById('messageInput');
             const message = input.value.trim();
 
-            if (!message) {
-                if (typeof Toast !== 'undefined') Toast.warning('제품 설명을 입력해주세요');
+            if (!message && attachedFiles.length === 0) {
+                if (typeof Toast !== 'undefined')
+                    Toast.warning('제품 설명을 입력하거나 이미지를 첨부해주세요');
                 return;
             }
 
-            if (typeof Toast !== 'undefined') Toast.info('분석을 시작합니다...');
-            input.value = '';
+            // FormData 구성 (multipart/form-data)
+            const formData = new FormData();
+            if (message) formData.append('message', message);
+            attachedFiles.forEach((item, i) => {
+                formData.append(`image_${i}`, item.file, item.file.name);
+            });
 
+            if (typeof Toast !== 'undefined') Toast.info('분석을 시작합니다...');
+
+            // 입력 초기화
+            input.value = '';
+            attachedFiles.length = 0;
+            document.getElementById('imagePreviewList').innerHTML = '';
+            updatePreviewArea();
+
+            // TODO: fetch('/api/analysis/text', { method: 'POST', body: formData }) 연동
             setTimeout(() => {
                 if (typeof Toast !== 'undefined') Toast.success('분석 완료!');
                 window.location.href = 'results.html';
@@ -594,6 +845,8 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadMockSessions();
+            // 파일 input 이벤트 연결
+            document.getElementById('imageFileInput').addEventListener('change', handleFileInputChange);
         });
 
         // 헤더는 script.js가 자동으로 로드 + updateAuthUI() 처리

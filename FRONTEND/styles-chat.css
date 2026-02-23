@@ -439,6 +439,96 @@
     line-height: 1.6;
 }
 
+/* ── 첨부 기능 ─────────────────────────────────────────────── */
+
+/* 클립(첨부) 버튼 */
+.btn-attach {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-attach:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background-color: var(--bg-secondary);
+}
+
+.btn-attach.has-files {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    background-color: rgba(31, 41, 55, 0.06);
+}
+
+/* 이미지 프리뷰 영역 */
+.image-preview-area {
+    margin-bottom: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.image-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* 개별 썸네일 */
+.image-preview-item {
+    position: relative;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--radius-md);
+    overflow: visible;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.image-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    display: block;
+}
+
+/* 삭제(×) 버튼 */
+.image-preview-item .remove-btn {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: var(--accent-primary);
+    color: white;
+    border: 2px solid var(--bg-secondary);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    padding: 0;
+    line-height: 1;
+    transition: background-color 0.15s ease;
+    z-index: 1;
+}
+
+.image-preview-item .remove-btn:hover {
+    background-color: var(--accent-hover);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .chat-layout {

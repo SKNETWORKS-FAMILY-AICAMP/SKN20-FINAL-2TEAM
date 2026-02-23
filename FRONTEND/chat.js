@@ -7,6 +7,10 @@ let chatContext = {
     type: null
 };
 
+// ── 이미지 첨부 상태 ─────────────────────────────────────────
+let fileIdCounter = 0;
+const attachedFiles = []; // [{ id, file }, ...]
+
 // Initialize chat
 function initializeChat() {
     loadChatSessions();
@@ -23,10 +27,13 @@ function setupEventListeners() {
     const sendBtn = document.getElementById('sendBtn');
     const newChatBtn = document.getElementById('newChatBtn');
     
-    // Input validation
+    // Input validation (텍스트 or 첨부 파일이 있으면 전송 활성화)
     messageInput.addEventListener('input', () => {
-        sendBtn.disabled = !messageInput.value.trim();
+        sendBtn.disabled = !messageInput.value.trim() && attachedFiles.length === 0;
     });
+
+    // 파일 input 이벤트 연결
+    document.getElementById('fileInput').addEventListener('change', handleFileInputChange);
     
     // Send message on button click
     sendBtn.addEventListener('click', sendMessage);
@@ -142,13 +149,25 @@ function sendSuggestedPrompt(prompt) {
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
-    
-    if (!message) return;
-    
+
+    if (!message && attachedFiles.length === 0) return;
+
     // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
     document.getElementById('sendBtn').disabled = true;
+
+    // FormData 구성 (이미지 포함)
+    const formData = new FormData();
+    if (message) formData.append('message', message);
+    attachedFiles.forEach((item, i) => {
+        formData.append(`image_${i}`, item.file, item.file.name);
+    });
+
+    // 첨부 초기화
+    attachedFiles.length = 0;
+    document.getElementById('imagePreviewList').innerHTML = '';
+    updatePreviewArea();
     
     // Hide welcome message if present
     const welcomeMessage = document.querySelector('.welcome-message');
@@ -166,13 +185,12 @@ async function sendMessage() {
         // Get analysis type
         const analysisType = document.getElementById('analysisTypeSelect').value;
         
-        // API call
-        const response = await apiClient.post('/chat/message', {
-            session_id: currentSessionId,
-            message: message,
-            analysis_type: analysisType,
-            context: chatContext
-        });
+        // API call (FormData로 전송 — 이미지 포함)
+        formData.append('session_id', currentSessionId ?? '');
+        formData.append('analysis_type', analysisType);
+        formData.append('context', JSON.stringify(chatContext));
+
+        const response = await apiClient.postForm('/chat/message', formData);
         
         // Remove typing indicator
         removeTypingIndicator();
@@ -340,6 +358,77 @@ function updateContextBar() {
 function scrollToBottom() {
     const container = document.getElementById('messagesContainer');
     container.scrollTop = container.scrollHeight;
+}
+
+// ── 이미지 첨부 헬퍼 ─────────────────────────────────────────
+
+/** 숨겨진 file input 열기 */
+function triggerFileInput() {
+    document.getElementById('fileInput').click();
+}
+
+/** file input change → 유효성 검사 후 썸네일 추가 */
+function handleFileInputChange(e) {
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+    Array.from(e.target.files).forEach(file => {
+        if (!allowed.includes(file.type)) {
+            if (typeof Toast !== 'undefined')
+                Toast.warning(`${file.name}: png, jpg, jpeg, webp 형식만 지원합니다`);
+            return;
+        }
+        const dup = attachedFiles.some(
+            item => item.file.name === file.name && item.file.size === file.size
+        );
+        if (dup) return;
+        addImagePreview(file);
+    });
+    e.target.value = ''; // 같은 파일 재선택 허용
+}
+
+/** 파일을 배열에 추가하고 썸네일 렌더링 */
+function addImagePreview(file) {
+    const id = ++fileIdCounter;
+    attachedFiles.push({ id, file });
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const list = document.getElementById('imagePreviewList');
+        const item = document.createElement('div');
+        item.className = 'image-preview-item';
+        item.dataset.fileId = id;
+        item.innerHTML = `
+            <img src="${evt.target.result}" alt="${file.name}" title="${file.name}">
+            <button class="remove-btn" onclick="removeImage(${id})" title="삭제">✕</button>
+        `;
+        list.appendChild(item);
+        updatePreviewArea();
+        // 파일이 생기면 전송 버튼 활성화
+        document.getElementById('sendBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+/** 개별 이미지 제거 */
+function removeImage(id) {
+    const idx = attachedFiles.findIndex(item => item.id === id);
+    if (idx !== -1) attachedFiles.splice(idx, 1);
+    const el = document.querySelector(`.image-preview-item[data-file-id="${id}"]`);
+    if (el) el.remove();
+    updatePreviewArea();
+    // 텍스트도 없고 파일도 없으면 전송 비활성화
+    const input = document.getElementById('messageInput');
+    if (!input.value.trim() && attachedFiles.length === 0) {
+        document.getElementById('sendBtn').disabled = true;
+    }
+}
+
+/** 프리뷰 영역 표시/숨김 + 클립 버튼 활성 상태 동기화 */
+function updatePreviewArea() {
+    const area = document.getElementById('imagePreviewArea');
+    const btn  = document.getElementById('attachBtn');
+    const has  = attachedFiles.length > 0;
+    area.style.display = has ? 'block' : 'none';
+    if (btn) btn.classList.toggle('has-files', has);
 }
 
 // Escape HTML

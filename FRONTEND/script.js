@@ -1,7 +1,7 @@
 // ==========================
 // 개발 모드 설정 (배포 시 false로 변경!)
 // ==========================
-const DEV_BYPASS_AUTH = false;
+const DEV_BYPASS_AUTH = true;
 
 // ==========================
 // Auth State Management
@@ -218,3 +218,26 @@ function checkAuthAndRedirect(page) {
 window.authManager = authManager;
 window.apiClient = apiClient;
 window.checkAuthAndRedirect = checkAuthAndRedirect;
+
+// ==========================
+// FAQ Toggle
+// ==========================
+function toggleFAQ(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector("svg");
+    const isOpen = button.getAttribute("data-open") === "true";
+
+    if (isOpen) {
+        answer.style.maxHeight = "0px";
+        answer.style.opacity = "0";
+        icon.style.transform = "rotate(0deg)";
+        button.setAttribute("data-open", "false");
+    } else {
+        answer.style.maxHeight = answer.scrollHeight + "px";
+        answer.style.opacity = "1";
+        icon.style.transform = "rotate(180deg)";
+        button.setAttribute("data-open", "true");
+    }
+}
+
+window.toggleFAQ = toggleFAQ;
