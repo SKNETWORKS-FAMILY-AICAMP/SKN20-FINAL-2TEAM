@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL 데이터베이스
-  mysql:
-    image: mysql:8.0
-    container_name: fto-db
-    environment:
-      MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: fto
-      MYSQL_USER: fto
-      MYSQL_PASSWORD: fto1234
-    ports:
-      - "3307:3306"  # 로컬 MySQL과 충돌 방지
-    volumes:
-      - mysql_data:/var/lib/mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # FastAPI 백엔드
   backend:
     build:
@@ -29,13 +8,10 @@ services:
       dockerfile: Dockerfile
     container_name: fto-backend
     environment:
-      DATABASE_URL: mysql+pymysql://fto:fto1234@mysql:3306/fto
+      DATABASE_URL: mysql+pymysql://admin:rmdak20!@fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com:3306/fto
       SECRET_KEY: your-secret-key-change-in-production
     ports:
       - "8000:8000"
-    depends_on:
-      mysql:
-        condition: service_healthy
     restart: unless-stopped
 
   # 프론트엔드 (Nginx)
@@ -46,11 +22,6 @@ services:
     container_name: fto-frontend
     ports:
       - "3000:80"
-    volumes:
-      - ./FRONTEND:/usr/share/nginx/html  # 로컬 파일 변경 즉시 반영 (개발용)
     depends_on:
       - backend
     restart: unless-stopped
-
-volumes:
-  mysql_data:
