@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="toast.css">
+    
+    <title>분석 유형 선택 - FTOGuard</title>
+    
+    <style>
+        /* Pretendard 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --primary: #FF6B35;
+        }
+        
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        
+        /* 카드 스타일 */
+        .analysis-card {
+            background: white;
+            border: 3px solid #FF8C00;
+            border-radius: 20px;
+            padding: 60px 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .analysis-card:hover {
+            background: #FFF5F0;
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(255, 140, 0, 0.2);
+            border-color: #FF8C00;
+        }
+        
+        .analysis-card h3 {
+            color: #FF8C00;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }
+        
+        /* 애니메이션 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.6s ease-out;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+    <!-- 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <main class="min-h-screen flex flex-col justify-center pt-20 pb-20">
+        <div class="max-w-6xl mx-auto px-6 w-full">
+            
+            <!-- 타이틀 섹션 -->
+            <div class="text-center mb-16 animate-fadeIn">
+                <h1 class="text-4xl md:text-5xl font-bold text-black mb-4">
+                    리스크 분석 유형 선택
+                </h1>
+                <p class="text-lg text-neutral-600">
+                    분석하실 지식재산권 유형을 선택해 주세요
+                </p>
+            </div>
+
+            <!-- 카드 그리드 -->
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                
+                <!-- 특허.실용신안 카드 -->
+                <div class="analysis-card animate-fadeIn" onclick="selectType('patent')" style="animation-delay: 0.1s">
+                    <div>
+                        <div class="mb-4 flex justify-center">
+                            <i class="fas fa-file-alt" style="font-size: 3rem; color: #FF8C00;"></i>
+                        </div>
+                        <h3>특허·실용신안</h3>
+                        <p class="text-neutral-600 text-center mt-4 text-sm">
+                            Patent & Utility Model
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 디자인 카드 -->
+                <div class="analysis-card animate-fadeIn" onclick="selectType('design')" style="animation-delay: 0.2s">
+                    <div>
+                        <div class="mb-4 flex justify-center">
+                            <i class="fas fa-palette" style="font-size: 3rem; color: #FF8C00;"></i>
+                        </div>
+                        <h3>디자인</h3>
+                        <p class="text-neutral-600 text-center mt-4 text-sm">
+                            Design
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 안내 문구 -->
+            <div class="mt-12 text-center animate-fadeIn" style="animation-delay: 0.3s">
+                <div class="inline-flex items-center gap-2 px-6 py-3 bg-neutral-50 rounded-xl border border-neutral-200">
+                    <i class="fas fa-info-circle text-primary"></i>
+                    <p class="text-sm text-neutral-700">
+                        카드를 클릭하면 해당 유형의 리스크 분석 페이지로 이동합니다
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="toast.js"></script>
+    <script>
+        function selectType(type) {
+            // Toast 알림 (선택 피드백)
+            const typeName = type === 'patent' ? '특허·실용신안' : '디자인';
+            if (typeof Toast !== 'undefined') {
+                Toast.info(`${typeName} 분석으로 이동합니다...`);
+            }
+            
+            // 0.5초 후 페이지 이동
+            setTimeout(() => {
+                window.location.href = `analysis.html?type=${type}`;
+            }, 500);
+        }
+
+        // 로그아웃 함수
+        function logout() {
+            if (typeof Toast !== 'undefined') Toast.info('로그아웃 중...');
+            setTimeout(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }, 500);
+        }
+
+        // 헤더 로드 (다른 페이지와 동일한 방식)
+        fetch('header.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('app-header').innerHTML = data;
+                
+                // 로그인 상태로 헤더 버튼 업데이트
+                setTimeout(() => {
+                    const authButtons = document.querySelector('.auth-buttons');
+                    if (authButtons) {
+                        authButtons.innerHTML = `
+                            <a href="select-analysis-type.html" class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md">
+                                <i class="fas fa-chart-line mr-2"></i>분석 시작
+                            </a>
+                            <button onclick="logout()" class="px-5 py-2.5 border-2 border-neutral-200 hover:border-primary text-neutral-700 hover:text-primary rounded-xl text-sm font-bold transition-all">
+                                <i class="fas fa-sign-out-alt mr-2"></i>로그아웃
+                            </button>
+                        `;
+                    }
+                }, 100);
+                
+                // 헤더 내부 스크립트 실행
+                const scripts = document.getElementById('app-header').querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) newScript.src = script.src;
+                    else newScript.textContent = script.textContent;
+                    document.body.appendChild(newScript);
+                });
+            })
+            .catch(error => console.log('Header load skipped:', error));
+    </script>
+</body>
+</html>

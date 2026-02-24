@@ -120,13 +120,14 @@
 
         /* 세션 타입 뱃지 (primary 톤 통일) */
         .type-badge {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            padding: 0.25rem 0.625rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 0.5rem;
             border: 1px solid var(--primary-border);
             background: var(--primary-bg);
             color: var(--primary);
+            white-space: nowrap;
         }
 
         .type-badge.tone-mid {
@@ -410,47 +411,19 @@
                         <!-- Title Section - 컴팩트 -->
                         <div class="text-center mb-5">
                             <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-3" style="background: rgba(255, 107, 53, 0.10);">
-                                <i class="fas fa-robot text-lg text-primary"></i>
+                                <i class="fas fa-robot text-lg text-primary" id="titleIcon"></i>
                             </div>
-                            <h1 class="text-xl font-bold text-black mb-1">
+                            <h1 class="text-xl font-bold text-black mb-1" id="analysisTitle">
                                 FTO 리스크 분석 AI
                             </h1>
-                            <p class="text-neutral-500 text-xs">
+                            <p class="text-neutral-500 text-xs" id="analysisDescription">
                                 제품 정보를 입력하면 AI가 자동으로 특허·디자인 침해 리스크를 분석합니다
                             </p>
                         </div>
 
                         <!-- Features Grid - 수평 컴팩트 카드 -->
-                        <div class="grid md:grid-cols-3 gap-2.5 mb-3">
-                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
-                                <div class="feature-icon-sm tone-light">
-                                    <i class="fas fa-search"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-black font-bold text-xs mb-0.5">글로벌 DB 검색</h3>
-                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">KIPRIS, USPTO, EPO 등 420만 건</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
-                                <div class="feature-icon-sm tone-mid">
-                                    <i class="fas fa-brain"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-black font-bold text-xs mb-0.5">법리 기반 분석</h3>
-                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">All Elements Rule, 균등론 등 적용</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
-                                <div class="feature-icon-sm tone-deep">
-                                    <i class="fas fa-route"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-black font-bold text-xs mb-0.5">회피 설계 제안</h3>
-                                    <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">침해 발견 시 구체적 대안 자동 생성</p>
-                                </div>
-                            </div>
+                        <div class="grid md:grid-cols-3 gap-2.5 mb-3" id="featuresGrid">
+                            <!-- JS로 동적 주입 -->
                         </div>
 
                         <!-- 사용 방법 + 빠른 시작: 2컬럼 컴팩트 카드 -->
@@ -462,28 +435,8 @@
                                     <i class="fas fa-lightbulb text-primary"></i>
                                     사용 방법
                                 </p>
-                                <div class="flex flex-col gap-2.5">
-                                    <div class="flex items-start gap-2.5">
-                                        <div class="step-num step-1"><span>1</span></div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-black leading-tight">제품 정보 입력</p>
-                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">텍스트 또는 이미지를 업로드하세요</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-2.5">
-                                        <div class="step-num step-2"><span>2</span></div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-black leading-tight">AI 자동 분석</p>
-                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">분석 유형을 AI가 자동으로 감지합니다</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-2.5">
-                                        <div class="step-num step-3"><span>3</span></div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-black leading-tight">결과 확인</p>
-                                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">실시간으로 분석 진행 상황을 확인하세요</p>
-                                        </div>
-                                    </div>
+                                <div class="flex flex-col gap-2.5" id="stepsGuide">
+                                    <!-- JS로 동적 주입 -->
                                 </div>
                             </div>
 
@@ -493,16 +446,8 @@
                                     <i class="fas fa-bolt text-primary"></i>
                                     빠른 시작 예시
                                 </p>
-                                <div class="flex flex-col gap-2">
-                                    <button onclick="fillSampleQuery('세라마이드/판테놀 기반 피부장벽 강화 크림 조성물')" class="sample-btn">
-                                        <i class="fas fa-pump-soap"></i>세라마이드/판테놀 기반 피부장벽 강화 크림 조성물
-                                    </button>
-                                    <button onclick="fillSampleQuery('마스크프루프 지속력을 향상시키는 립 틴트 조성물')" class="sample-btn">
-                                        <i class="fas fa-palette"></i>마스크프루프 지속력을 향상시키는 립 틴트 조성물
-                                    </button>
-                                    <button onclick="fillSampleQuery('자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물')" class="sample-btn">
-                                        <i class="fas fa-sun"></i>자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물
-                                    </button>
+                                <div class="flex flex-col gap-2" id="sampleButtons">
+                                    <!-- JS로 동적 주입 -->
                                 </div>
                             </div>
 
@@ -521,25 +466,27 @@
 
                         <!-- 입력 행 -->
                         <div class="input-row">
-                            <!-- 숨겨진 파일 입력 -->
-                            <input
-                                type="file"
-                                id="imageFileInput"
-                                accept="image/png,image/jpg,image/jpeg,image/webp"
-                                multiple
-                                style="display: none;"
-                            />
-
-                            <!-- 클립(첨부) 버튼 -->
-                            <button
-                                type="button"
-                                id="attachBtn"
-                                onclick="triggerFileInput()"
-                                class="attach-btn"
-                                title="이미지 첨부 (png, jpg, jpeg, webp)"
-                            >
-                                <i class="fas fa-paperclip"></i>
-                            </button>
+                            <!-- 첨부 버튼 래퍼 (특허에서 숨김) -->
+                            <div id="attachWrap" style="display:none;">
+                                <!-- 숨겨진 파일 입력 -->
+                                <input
+                                    type="file"
+                                    id="imageFileInput"
+                                    accept="image/png,image/jpg,image/jpeg,image/webp"
+                                    multiple
+                                    style="display: none;"
+                                />
+                                <!-- 클립(첨부) 버튼 -->
+                                <button
+                                    type="button"
+                                    id="attachBtn"
+                                    onclick="triggerFileInput()"
+                                    class="attach-btn"
+                                    title="이미지 첨부 (png, jpg, jpeg, webp)"
+                                >
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                            </div>
 
                             <!-- 텍스트 입력 -->
                             <input
@@ -558,6 +505,9 @@
                                 분석 시작
                             </button>
                         </div>
+
+                        <!-- 첨부 힌트 -->
+                        <p id="attachHint" class="text-xs text-neutral-400 mt-2 text-center"></p>
                     </div>
                 </div>
             </div>
@@ -702,19 +652,16 @@
             const toneCls = {
                 fto: '',
                 design: 'tone-mid',
-                multimodal: 'tone-deep'
             }[session.type] || '';
 
             const typeIcon = {
                 fto: 'fa-file-alt',
                 design: 'fa-palette',
-                multimodal: 'fa-layer-group'
             }[session.type];
 
             const typeText = {
-                fto: 'FTO',
-                design: 'Design',
-                multimodal: 'Multi'
+                fto: '특허·실용신안',
+                design: '디자인',
             }[session.type];
 
             // 리스크 컬러는 의미 전달을 위해 유지 (안전/경고/위험)
@@ -794,7 +741,7 @@
                 {
                     id: 'session-001',
                     type: 'fto',
-                    productName: '스마트 머그컵 FTO 특허 침해 분석',
+                    productName: '세라마이드·판테놀 기반 피부장벽 강화 크림 특허 분석',
                     risk: 'safe',
                     date: '오늘',
                     timestamp: new Date()
@@ -802,15 +749,15 @@
                 {
                     id: 'session-002',
                     type: 'design',
-                    productName: '무선 충전 패드 디자인 유사도 검증',
+                    productName: '쿠션 팩트 케이스 타원형 슬림 디자인 유사도 검증',
                     risk: 'warning',
                     date: '어제',
                     timestamp: new Date(Date.now() - 86400000)
                 },
                 {
                     id: 'session-003',
-                    type: 'multimodal',
-                    productName: '세라믹 히터 멀티모달 종합 분석',
+                    type: 'fto',
+                    productName: '무기자차 자외선 차단 선크림 조성물 특허 침해 분석',
                     risk: 'safe',
                     date: '2일 전',
                     timestamp: new Date(Date.now() - 172800000)
@@ -842,8 +789,184 @@
             }
         }
 
+        // URL 파라미터 처리
+        function updateTitleByType() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type');
+
+            const titleEl = document.getElementById('analysisTitle');
+            const descEl = document.getElementById('analysisDescription');
+            const iconEl = document.getElementById('titleIcon');
+            const featuresEl = document.getElementById('featuresGrid');
+            const stepsEl = document.getElementById('stepsGuide');
+            const samplesEl = document.getElementById('sampleButtons');
+            const placeholderEl = document.getElementById('messageInput');
+            const attachBtnEl = document.getElementById('attachBtn');
+            const fileInputEl = document.getElementById('imageFileInput');
+            const attachHintEl = document.getElementById('attachHint');
+            const attachWrapEl = document.getElementById('attachWrap');
+
+            if (type === 'patent') {
+                // ── 특허·실용신안 ─────────────────────────────
+                document.title = '특허·실용신안 분석 - FTOGuard';
+                titleEl.textContent = '특허·실용신안 리스크 분석 AI';
+                descEl.textContent = '화장품 제품의 기술 구성을 입력하면 AI가 특허·실용신안 침해 리스크를 자동으로 분석합니다';
+                iconEl.className = 'fas fa-file-alt text-lg text-primary';
+
+                // 첨부 버튼 완전 숨김, 힌트 없음
+                if (attachWrapEl) attachWrapEl.style.display = 'none';
+                if (attachHintEl) attachHintEl.style.display = 'none';
+
+                featuresEl.innerHTML = `
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-light"><i class="fas fa-search"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">글로벌 특허 DB</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">KIPRIS, USPTO, EPO 등 420만 건+</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-mid"><i class="fas fa-balance-scale"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">청구항 해석</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">All Elements Rule·균등론 적용</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-deep"><i class="fas fa-route"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">회피 설계 제안</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">침해 발견 시 구체적 대안 자동 생성</p>
+                        </div>
+                    </div>
+                `;
+
+                stepsEl.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-1"><span>1</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">기술 설명 입력</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">화장품 성분·제형·기술 구성을 텍스트로 입력하세요</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-2"><span>2</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">AI 청구항 매핑</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">AI가 관련 특허 청구항과 자동으로 비교합니다</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-3"><span>3</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">침해 리스크 확인</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">리스크 등급과 회피 방안을 리포트로 제공합니다</p>
+                        </div>
+                    </div>
+                `;
+
+                samplesEl.innerHTML = `
+                    <button onclick="fillSampleQuery('세라마이드·판테놀 기반 피부장벽 강화 크림 조성물')" class="sample-btn">
+                        <i class="fas fa-flask"></i>세라마이드·판테놀 기반 피부장벽 강화 크림 조성물
+                    </button>
+                    <button onclick="fillSampleQuery('마스크프루프 지속력을 향상시키는 립 틴트 조성물')" class="sample-btn">
+                        <i class="fas fa-prescription-bottle-alt"></i>마스크프루프 지속력을 향상시키는 립 틴트 조성물
+                    </button>
+                    <button onclick="fillSampleQuery('자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물')" class="sample-btn">
+                        <i class="fas fa-sun"></i>자외선 차단 및 톤업 효과를 갖는 무기자차 선크림 조성물
+                    </button>
+                `;
+
+                placeholderEl.placeholder = '화장품 기술 구성을 입력하세요 (예: 히알루론산·나이아신아마이드를 함유한 저자극 수분 앰플 조성물)...';
+
+            } else if (type === 'design') {
+                // ── 디자인 ────────────────────────────────────
+                document.title = '디자인 분석 - FTOGuard';
+                titleEl.textContent = '디자인 리스크 분석 AI';
+                descEl.textContent = '화장품 용기·패키지 외관 이미지를 업로드하면 AI가 디자인권 침해 리스크를 자동으로 분석합니다';
+                iconEl.className = 'fas fa-palette text-lg text-primary';
+
+                // 첨부 버튼 표시 + 강조
+                if (attachWrapEl) attachWrapEl.style.display = '';
+                if (attachBtnEl) {
+                    attachBtnEl.title = '화장품 용기·패키지 이미지 첨부 (필수 권장 - png, jpg, jpeg, webp)';
+                    attachBtnEl.style.borderColor = 'var(--primary)';
+                    attachBtnEl.style.color = 'var(--primary)';
+                    attachBtnEl.style.background = 'var(--primary-bg)';
+                }
+                if (attachHintEl) {
+                    attachHintEl.style.display = '';
+                    attachHintEl.textContent = '📎 화장품 용기·패키지 외관 이미지를 첨부하면 훨씬 정확한 분석이 가능합니다 (강력 권장)';
+                }
+                fileInputEl.accept = 'image/png,image/jpg,image/jpeg,image/webp';
+
+                featuresEl.innerHTML = `
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-light"><i class="fas fa-eye"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">외관 유사도 분석</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">AI 이미지 비교로 용기·패키지 형태 검토</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-mid"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">등록 디자인 DB</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">국내외 화장품 등록 디자인과 자동 대조</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-neutral-200 rounded-xl p-3.5 hover:shadow-sm hover:border-neutral-300 transition-all flex items-center gap-3">
+                        <div class="feature-icon-sm tone-deep"><i class="fas fa-pencil-ruler"></i></div>
+                        <div>
+                            <h3 class="text-black font-bold text-xs mb-0.5">차별화 포인트 제안</h3>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">유사 디자인과의 구분점 자동 도출</p>
+                        </div>
+                    </div>
+                `;
+
+                stepsEl.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-1"><span>1</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">이미지 업로드 (필수)</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">화장품 용기·패키지 사진을 1장 이상 첨부하세요</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-2"><span>2</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">AI 외관 비교</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">등록 디자인과 형태·색채를 자동 비교합니다</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-3"><span>3</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">유사도 리포트 확인</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">유사 등록 디자인과 리스크 등급을 확인하세요</p>
+                        </div>
+                    </div>
+                `;
+
+                samplesEl.innerHTML = `
+                    <button onclick="fillSampleQuery('원통형 에센스 병 - 무광 유리 재질, 골드 캡 적용')" class="sample-btn">
+                        <i class="fas fa-prescription-bottle"></i>원통형 에센스 병 - 무광 유리 재질, 골드 캡 적용
+                    </button>
+                    <button onclick="fillSampleQuery('쿠션 팩트 케이스 - 타원형, 미러 내장 슬림 디자인')" class="sample-btn">
+                        <i class="fas fa-compact-disc"></i>쿠션 팩트 케이스 - 타원형, 미러 내장 슬림 디자인
+                    </button>
+                    <button onclick="fillSampleQuery('립스틱 용기 - 각진 육각형 바디, 무광 메탈 마감')" class="sample-btn">
+                        <i class="fas fa-pen-nib"></i>립스틱 용기 - 각진 육각형 바디, 무광 메탈 마감
+                    </button>
+                `;
+
+                placeholderEl.placeholder = '화장품 용기·패키지 외관을 설명하세요 (예: 각진 사각형 토너 병, 투명 유리 재질, 블랙 펌프 헤드)...';
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            updateTitleByType(); // URL 파라미터에 따라 제목 변경
             loadMockSessions();
             // 파일 input 이벤트 연결
             document.getElementById('imageFileInput').addEventListener('change', handleFileInputChange);
