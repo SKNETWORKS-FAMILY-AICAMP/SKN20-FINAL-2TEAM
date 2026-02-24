@@ -10,7 +10,9 @@
       "Bash(cmd //c:*)",
       "Bash(OPENAI_API_KEY=\"\" python -c \"from rag._backup.eval.evaluate import evaluate; evaluate\\(\\)\")",
       "Bash(OPENAI_API_KEY=\"\" python -c \":*)",
-      "Bash(OPENAI_API_KEY=\"\" PYTHONIOENCODING=utf-8 python -c \":*)"
+      "Bash(OPENAI_API_KEY=\"\" PYTHONIOENCODING=utf-8 python -c \":*)",
+      "Bash(git pull:*)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }
