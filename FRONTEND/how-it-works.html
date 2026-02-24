@@ -16,7 +16,7 @@
     <!-- Toast System -->
     <link rel="stylesheet" href="toast.css">
 
-    <title>작동 원리 - FTOGuard</title>
+    <title>분석 프로세스 - FTOGuard</title>
     
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
@@ -32,63 +32,64 @@
             --primary-light: #FFE5DC;
         }
 
-        /* 애니메이션 */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-
+        .animate-in { animation: fadeInUp 0.6s ease-out forwards; }
         .animate-delay-100 { animation-delay: 0.1s; }
         .animate-delay-200 { animation-delay: 0.2s; }
         .animate-delay-300 { animation-delay: 0.3s; }
 
-        /* 글라스모피즘 헤더 */
         .glass-header {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255,255,255,0.6);
             backdrop-filter: blur(20px) saturate(150%);
             -webkit-backdrop-filter: blur(20px) saturate(150%);
         }
 
-        /* 배지 스타일 */
         .label-badge {
             display: inline-block;
             font-size: 0.75rem;
             font-weight: 600;
             letter-spacing: 0.05em;
-            text-transform: uppercase;
             color: var(--primary);
             padding: 0.5rem 1rem;
             border-radius: 9999px;
-            border: 1px solid rgba(255, 107, 53, 0.2);
-            background: rgba(255, 107, 53, 0.05);
+            border: 1px solid rgba(255,107,53,0.2);
+            background: rgba(255,107,53,0.05);
         }
 
-        /* 프로세스 타임라인 */
-        .process-timeline {
-            position: relative;
+        /* ── 탭 ── */
+        .tab-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+        }
+        .tab-btn:not(.active) {
+            background: white;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+        .tab-btn:not(.active):hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── 프로세스 타임라인 ── */
+        .process-timeline { position: relative; }
         .process-timeline::before {
             content: '';
             position: absolute;
@@ -96,113 +97,74 @@
             top: 3rem;
             bottom: 0;
             width: 1px;
-            background: linear-gradient(180deg, 
-                var(--primary) 0%, 
-                rgba(255, 107, 53, 0.3) 50%,
-                transparent 100%);
+            background: linear-gradient(180deg, var(--primary) 0%, rgba(255,107,53,0.2) 80%, transparent 100%);
         }
 
         .process-step {
             position: relative;
             padding-left: 4rem;
-            margin-bottom: 3rem;
-            opacity: 0;
+            margin-bottom: 2.5rem;
         }
 
         .step-number {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 3rem;
-            height: 3rem;
+            left: 0; top: 0;
+            width: 3rem; height: 3rem;
             border-radius: 50%;
             background: white;
             border: 2px solid var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             font-weight: 700;
             color: var(--primary);
             z-index: 1;
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+            box-shadow: 0 4px 12px rgba(255,107,53,0.15);
         }
 
-        /* 카드 */
+        /* ── 카드 ── */
         .feature-card {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 1rem;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
+            padding: 1.25rem;
+            transition: all 0.25s ease;
         }
-
         .feature-card:hover {
             border-color: var(--primary);
-            box-shadow: 0 8px 24px rgba(255, 107, 53, 0.1);
+            box-shadow: 0 6px 20px rgba(255,107,53,0.09);
             transform: translateY(-2px);
         }
 
-        /* 그라디언트 배경 */
-        .gradient-bg {
-            background: radial-gradient(circle at 30% 20%, 
-                rgba(255, 107, 53, 0.08) 0%, 
-                transparent 50%);
-        }
-
-        /* 테이블 */
-        .comparison-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: white;
-            border: 1px solid #e2e8f0;
+        /* 결과 카드 (결론 단계) */
+        .result-card {
             border-radius: 1rem;
-            overflow: hidden;
+            padding: 1.1rem 1.25rem;
+            border: 1px solid;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
         }
+        .result-card.safe   { background: #f0fdf4; border-color: #86efac; }
+        .result-card.warn   { background: #fffbeb; border-color: #fcd34d; }
+        .result-card.danger { background: #fef2f2; border-color: #fca5a5; }
+        .result-card.info   { background: #f0f9ff; border-color: #7dd3fc; }
 
-        .comparison-table th {
-            background: #f8fafc;
-            padding: 1rem;
-            text-align: left;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #0f172a;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .comparison-table td {
-            padding: 1rem;
-            font-size: 0.875rem;
-            color: #475569;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .comparison-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Stat 카드 */
+        /* stat */
         .stat-card {
             text-align: center;
-            padding: 1.5rem;
+            padding: 1.25rem;
             background: linear-gradient(135deg, #fff 0%, #fef6f4 100%);
             border-radius: 1rem;
-            border: 1px solid rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255,107,53,0.1);
+        }
+        .stat-number { font-size: 1.75rem; font-weight: 800; color: var(--primary); margin-bottom: 0.25rem; }
+        .stat-label  { font-size: 0.8rem; color: #64748b; }
+
+        /* 그라디언트 배경 */
+        .gradient-bg {
+            background: radial-gradient(circle at 30% 20%, rgba(255,107,53,0.07) 0%, transparent 50%);
         }
 
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-
-        /* CTA 버튼 */
+        /* CTA */
         .btn-primary {
             display: inline-block;
             padding: 0.875rem 2rem;
@@ -212,405 +174,484 @@
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+            box-shadow: 0 4px 12px rgba(255,107,53,0.25);
         }
-
         .btn-primary:hover {
             background: #e55a2b;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+            box-shadow: 0 6px 20px rgba(255,107,53,0.35);
         }
 
-        /* 리스트 스타일 */
         .check-list li::before {
             content: '✓';
             color: var(--primary);
             font-weight: bold;
             margin-right: 0.5rem;
         }
+
+        /* 보안 섹션 아이콘 */
+        .security-icon {
+            width: 3rem; height: 3rem;
+            border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 
 <body class="bg-white text-slate-900">
 
-<!-- ✅ 글라스모피즘 헤더 -->
 <div id="app-header"></div>
 
-<!-- ================= MAIN ================= -->
 <main>
 
-    <!-- Hero Section -->
-    <section class="gradient-bg pt-32 pb-16 md:pt-40 md:pb-24">
+    <!-- ── Hero ── -->
+    <section class="gradient-bg pt-32 pb-16 md:pt-40 md:pb-20">
         <div class="max-w-[1200px] mx-auto px-6">
-            <div class="text-center max-w-4xl mx-auto space-y-6 animate-in">
-                <div class="label-badge">System Architecture</div>
+            <div class="text-center max-w-3xl mx-auto space-y-6 animate-in">
+                <div class="label-badge">분석 프로세스</div>
                 
                 <h1 class="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-                    7단계 FTO 판단 파이프라인
+                    FTOGuard는 어떻게 분석하나요?
                 </h1>
                 
-                <p class="text-lg md:text-xl text-slate-600 leading-relaxed">
-                    FTOGuard는 특허 침해 판단의 법리를 AI가 구조적으로 해석할 수 있도록 설계된 전문 시스템입니다. 
-                    단순 유사도 검색이 아닌, All Elements Rule, 균등론, 내재성 등의 법적 원칙을 기반으로 작동합니다.
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    제품 정보를 입력하는 것만으로 AI가 특허 침해 가능성을 단계별로 분석합니다.<br>
+                    분석 유형에 따라 각각 최적화된 프로세스로 결과를 제공합니다.
                 </p>
 
-                <div class="flex flex-wrap justify-center gap-3 pt-4">
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">
-                        All Elements Rule
-                    </span>
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">
-                        균등론
-                    </span>
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">
-                        내재성
-                    </span>
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">
-                        제조방법 특허
-                    </span>
+                <div class="flex flex-wrap justify-center gap-3 pt-2">
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">⚡ 빠른 분석</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">🔒 보안 처리</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">📋 리포트 제공</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">💡 회피 설계 제안</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ============ 7단계 프로세스 ============ -->
+    <!-- ── 탭 + 프로세스 ── -->
     <section class="py-16 md:py-24 bg-white">
         <div class="max-w-[1200px] mx-auto px-6">
-            <div class="mb-12">
-                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                    분석 프로세스
-                </h2>
-                <p class="text-slate-600">
-                    법리 기반 특허 침해 분석을 위한 체계적인 7단계 시스템
-                </p>
+
+            <!-- 탭 선택 -->
+            <div class="flex justify-center gap-4 mb-14">
+                <button class="tab-btn active" onclick="switchTab('patent', this)">
+                    <i class="fas fa-file-alt mr-2"></i>특허·실용신안
+                </button>
+                <button class="tab-btn" onclick="switchTab('design', this)">
+                    <i class="fas fa-palette mr-2"></i>디자인
+                </button>
             </div>
 
-            <div class="process-timeline">
-                <!-- Step 1 -->
-                <div class="process-step animate-in animate-delay-100">
-                    <div class="step-number">1</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            Query Parsing & 구조화
-                        </h3>
-                        <p class="text-slate-600">
-                            사용자 입력을 법리 구조로 분해하고 핵심 구성요소를 추출합니다.
-                        </p>
-                        
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">구성요소 추출</h4>
-                                <p class="text-sm text-slate-600 mb-3">
-                                    제품 설명에서 핵심 구성요소를 계층 구조로 추출
-                                </p>
-                                <div class="bg-slate-50 p-3 rounded-lg font-mono text-xs">
-                                    <div class="text-slate-500">입력: "스마트 보온 머그컵"</div>
-                                    <div class="text-orange-600 mt-1">→ ["세라믹 본체", "내장 가열 소자", ...]</div>
+            <!-- ══ 특허·실용신안 탭 ══ -->
+            <div id="tab-patent" class="tab-panel active">
+
+                <div class="mb-10">
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">특허·실용신안 분석 프로세스</h2>
+                    <p class="text-slate-500">화장품 성분·조성물·기술 구성을 입력하면 등록 특허와 자동으로 비교합니다.</p>
+                </div>
+
+                <div class="process-timeline">
+
+                    <!-- Step 1 -->
+                    <div class="process-step animate-in animate-delay-100">
+                        <div class="step-number">1</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">제품 정보 입력</h3>
+                            <p class="text-slate-600">
+                                출시 예정인 화장품의 성분, 조성 비율, 제형 방식 등을 자유롭게 입력합니다.<br>
+                                전문 용어를 몰라도 괜찮습니다. 아는 만큼 입력하면 AI가 분석을 시작합니다.
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">✍️ 이런 내용을 입력하세요</h4>
+                                    <ul class="text-sm text-slate-600 space-y-1 list-none">
+                                        <li>· 주요 성분 및 함량 (예: 나이아신아마이드 5%)</li>
+                                        <li>· 제품의 목적·효과 (예: 미백, 보습, 자외선 차단)</li>
+                                        <li>· 특이 제조 방식이 있다면 간략히 기재</li>
+                                    </ul>
+                                </div>
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">💡 입력 예시</h4>
+                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 leading-relaxed">
+                                        "나이아신아마이드 5%, 히알루론산 0.5%를 포함한 피부 미백 세럼을 만들려고 합니다."
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">기술 스택</h4>
-                                <ul class="text-sm text-slate-600 space-y-2 check-list list-none">
-                                    <li>GPT-4o (Few-shot Prompting)</li>
-                                    <li>법리 기반 프롬프트 엔지니어링</li>
-                                    <li>JSON 구조화 출력</li>
-                                </ul>
-                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Step 2 -->
-                <div class="process-step animate-in animate-delay-200">
-                    <div class="step-number">2</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            Multi-Modal Embedding
-                        </h3>
-                        <p class="text-slate-600">
-                            이미지와 텍스트를 동일한 벡터 공간에 임베딩하여 유사도 검색 기반을 마련합니다.
-                        </p>
-                        
-                        <div class="feature-card">
-                            <div class="flex items-start gap-4">
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-slate-900 mb-2">CLIP (ViT-B/32)</h4>
-                                    <p class="text-sm text-slate-600">
-                                        이미지-텍스트 멀티모달 인코딩으로 디자인 공보와 제품 설명을 동일 공간에 매핑
-                                    </p>
+                    <!-- Step 2 -->
+                    <div class="process-step animate-in animate-delay-200">
+                        <div class="step-number">2</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">유사 특허 자동 검색</h3>
+                            <p class="text-slate-600">
+                                AI가 국내외 화장품 특허 데이터베이스에서 입력된 제품과 유사한 특허를 자동으로 찾아냅니다.
+                            </p>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="stat-card">
+                                    <div class="stat-number">KIPRIS</div>
+                                    <div class="stat-label">국내 특허 DB</div>
                                 </div>
-                                <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-mono">
-                                    ViT-B/32
-                                </span>
+                                <div class="stat-card">
+                                    <div class="stat-number">USPTO</div>
+                                    <div class="stat-label">미국 특허 DB</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">EPO</div>
+                                    <div class="stat-label">유럽 특허 DB</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Step 3 -->
-                <div class="process-step animate-in animate-delay-300">
-                    <div class="step-number">3</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            Vector DB 검색 (FAISS)
-                        </h3>
-                        <p class="text-slate-600">
-                            420만 건의 특허·디자인 데이터베이스에서 유사 항목을 빠르게 검색합니다.
-                        </p>
-                        
-                        <div class="grid md:grid-cols-3 gap-4">
-                            <div class="stat-card">
-                                <div class="stat-number">420만 건</div>
-                                <div class="stat-label">특허·디자인 DB</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number">Top-10</div>
-                                <div class="stat-label">유사도 검색</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number">&lt;100ms</div>
-                                <div class="stat-label">검색 속도</div>
+                    <!-- Step 3 -->
+                    <div class="process-step animate-in animate-delay-300">
+                        <div class="step-number">3</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">구성요소 비교 분석</h3>
+                            <p class="text-slate-600">
+                                특허의 핵심 보호 범위와 내 제품의 구성요소를 항목별로 대조합니다.<br>
+                                어떤 성분·기술이 특허와 겹치는지 명확하게 확인할 수 있습니다.
+                            </p>
+                            <div class="feature-card overflow-hidden p-0">
+                                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100">
+                                    <span class="text-sm font-semibold text-slate-700">구성요소 대비표 예시</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-slate-100">
+                                                <th class="text-left px-4 py-2.5 text-slate-600 font-semibold">특허 구성요소</th>
+                                                <th class="text-left px-4 py-2.5 text-slate-600 font-semibold">내 제품</th>
+                                                <th class="text-left px-4 py-2.5 text-slate-600 font-semibold">해당 여부</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="px-4 py-2.5 text-slate-700">나이아신아마이드 1~10%</td>
+                                                <td class="px-4 py-2.5 text-slate-700">나이아신아마이드 5%</td>
+                                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-xs font-semibold">해당</span></td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="px-4 py-2.5 text-slate-700">히알루론산 0.01~1%</td>
+                                                <td class="px-4 py-2.5 text-slate-700">히알루론산 0.5%</td>
+                                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-xs font-semibold">해당</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-2.5 text-slate-700">아스코르브산 0.1~5%</td>
+                                                <td class="px-4 py-2.5 text-slate-500">미포함</td>
+                                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-semibold">미해당</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Step 4 -->
-                <div class="process-step animate-in">
-                    <div class="step-number">4</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            청구항 텍스트 임베딩 (SBERT)
-                        </h3>
-                        <p class="text-slate-600">
-                            특허 청구항의 법률적 의미를 보존하면서 벡터화합니다.
-                        </p>
-                        
-                        <div class="feature-card">
-                            <h4 class="font-semibold text-slate-900 mb-3">Fine-tuned Model</h4>
-                            <ul class="text-sm text-slate-600 space-y-2 check-list list-none">
-                                <li>paraphrase-multilingual-MiniLM-L12-v2</li>
-                                <li>한국어 특허 도메인 특화</li>
-                                <li>청구항 구조 보존 학습</li>
-                            </ul>
+                    <!-- Step 4 -->
+                    <div class="process-step animate-in">
+                        <div class="step-number">4</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">침해 가능성 판단</h3>
+                            <p class="text-slate-600">
+                                특허법 원칙에 따라 실질적인 침해 여부를 판단합니다.<br>
+                                단순히 성분이 겹쳐도 모든 구성요소를 충족해야 침해로 판단되기 때문에, 정확한 분석이 가능합니다.
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">🔍 모든 구성요소 충족 원칙</h4>
+                                    <p class="text-sm text-slate-600">특허의 모든 핵심 성분·구성을 내 제품이 포함할 때만 침해로 판단합니다. 하나라도 빠지면 침해가 아닙니다.</p>
+                                </div>
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">⚖️ 유사 범위 검토</h4>
+                                    <p class="text-sm text-slate-600">수치가 약간 다르거나 성분을 살짝 변형해도 실질적으로 같은 효과라면 침해 검토 대상이 될 수 있습니다.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Step 5 -->
-                <div class="process-step animate-in">
-                    <div class="step-number">5</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            Context Retrieval (RAG)
-                        </h3>
-                        <p class="text-slate-600">
-                            검색된 청구항의 전체 문맥을 조회하여 정확한 판단 근거를 확보합니다.
-                        </p>
-                        
-                        <div class="feature-card bg-slate-50">
-                            <pre class="text-xs text-slate-700 overflow-x-auto"><code><span class="text-purple-600">def</span> retrieve_patent_context(patent_id):
-    metadata = db.get_patent(patent_id)
-    claims = metadata['claims']
-    <span class="text-purple-600">return</span> claims, metadata</code></pre>
+                    <!-- Step 5 -->
+                    <div class="process-step animate-in">
+                        <div class="step-number">5</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">결과 및 회피 방안 제공</h3>
+                            <p class="text-slate-600">
+                                분석 결과를 4가지 등급으로 알려주고, 침해 위험이 있을 경우 제품을 안전하게 출시할 수 있는 방향을 제안합니다.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="result-card safe">
+                                    <span class="text-green-600 text-lg">✅</span>
+                                    <div>
+                                        <p class="font-semibold text-green-800 text-sm">침해 가능성이 낮습니다</p>
+                                        <p class="text-green-700 text-xs mt-0.5">현재 구성으로 출시를 진행해도 될 것으로 분석됩니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card warn">
+                                    <span class="text-yellow-600 text-lg">⚠️</span>
+                                    <div>
+                                        <p class="font-semibold text-yellow-800 text-sm">전문가 추가 검토 권고</p>
+                                        <p class="text-yellow-700 text-xs mt-0.5">일부 요소가 특허와 유사합니다. 변리사 검토를 권장합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card danger">
+                                    <span class="text-red-600 text-lg">🚨</span>
+                                    <div>
+                                        <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
+                                        <p class="text-red-700 text-xs mt-0.5">성분·구성을 변경하거나 특허권자와 협의가 필요합니다. AI가 회피 방안을 제안합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card info">
+                                    <span class="text-blue-600 text-lg">ℹ️</span>
+                                    <div>
+                                        <p class="font-semibold text-blue-800 text-sm">추가 정보 필요</p>
+                                        <p class="text-blue-700 text-xs mt-0.5">정확한 판단을 위해 제품 정보를 더 구체적으로 입력해 주세요.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Step 6 -->
-                <div class="process-step animate-in">
-                    <div class="step-number">6</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            법리 기반 FTO 판단
-                        </h3>
-                        <p class="text-slate-600">
-                            All Elements Rule, 균등론 등 특허법 원칙을 적용하여 침해 여부를 판단합니다.
-                        </p>
-                        
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">All Elements Rule</h4>
-                                <p class="text-sm text-slate-600">
-                                    청구항의 모든 구성요소가 제품에 포함되는지 확인
-                                </p>
-                            </div>
-                            
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">균등론</h4>
-                                <p class="text-sm text-slate-600">
-                                    실질적으로 동일한 수단, 방법으로 동일 결과 달성
-                                </p>
-                            </div>
-                            
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">내재성</h4>
-                                <p class="text-sm text-slate-600">
-                                    명시되지 않았으나 필연적으로 포함되는 구성
-                                </p>
-                            </div>
-                            
-                            <div class="feature-card">
-                                <h4 class="font-semibold text-slate-900 mb-2">제조방법 특허</h4>
-                                <p class="text-sm text-slate-600">
-                                    물건 특허와 방법 특허의 구분 및 적용
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 7 -->
-                <div class="process-step animate-in">
-                    <div class="step-number">7</div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-slate-900">
-                            결과 생성 및 시각화
-                        </h3>
-                        <p class="text-slate-600">
-                            분석 결과를 구조화된 리포트와 그래프로 제공합니다.
-                        </p>
-                        
-                        <div class="feature-card">
-                            <h4 class="font-semibold text-slate-900 mb-3">제공 정보</h4>
-                            <div class="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-600">
-                                <ul class="space-y-2 check-list list-none">
-                                    <li>침해 가능성 점수 (0-100)</li>
-                                    <li>유사 특허 목록 (Top-10)</li>
-                                    <li>구성요소별 매칭 현황</li>
-                                </ul>
-                                <ul class="space-y-2 check-list list-none">
-                                    <li>법리 적용 근거</li>
-                                    <li>회피 설계 제안</li>
-                                    <li>PDF 리포트 다운로드</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
+
+            <!-- ══ 디자인 탭 ══ -->
+            <div id="tab-design" class="tab-panel">
+
+                <div class="mb-10">
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">디자인 분석 프로세스</h2>
+                    <p class="text-slate-500">화장품 용기·패키지 이미지를 업로드하면 등록 디자인과 외관을 자동으로 비교합니다.</p>
+                </div>
+
+                <div class="process-timeline">
+
+                    <!-- Step 1 -->
+                    <div class="process-step animate-in animate-delay-100">
+                        <div class="step-number">1</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">제품 이미지 업로드</h3>
+                            <p class="text-slate-600">
+                                출시 예정인 화장품 용기·패키지의 사진을 업로드합니다.<br>
+                                여러 각도의 사진을 첨부할수록 더 정확한 분석이 가능합니다.
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">📸 권장 이미지</h4>
+                                    <ul class="text-sm text-slate-600 space-y-1 list-none">
+                                        <li>· 정면·측면·상단 등 다각도 촬영</li>
+                                        <li>· 용기 전체 형태가 잘 보이는 사진</li>
+                                        <li>· PNG, JPG, JPEG, WEBP 형식</li>
+                                    </ul>
+                                </div>
+                                <div class="feature-card">
+                                    <h4 class="font-semibold text-slate-900 mb-2">✍️ 외관 설명 (선택)</h4>
+                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 leading-relaxed">
+                                        "각진 사각형 토너 병, 투명 유리 재질, 블랙 펌프 헤드"처럼 특징을 함께 입력하면 더욱 정확합니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="process-step animate-in animate-delay-200">
+                        <div class="step-number">2</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">외관 특징 자동 인식</h3>
+                            <p class="text-slate-600">
+                                AI가 업로드된 이미지에서 형태, 색채, 모양, 장식 요소 등 디자인의 핵심 특징을 자동으로 파악합니다.
+                            </p>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="feature-card text-center">
+                                    <div class="text-2xl mb-2">🔲</div>
+                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">전체 형태</h4>
+                                    <p class="text-xs text-slate-500">원통형, 사각형, 타원형 등 실루엣 분석</p>
+                                </div>
+                                <div class="feature-card text-center">
+                                    <div class="text-2xl mb-2">🎨</div>
+                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">색채·재질</h4>
+                                    <p class="text-xs text-slate-500">표면 색상, 투명도, 재질감 분석</p>
+                                </div>
+                                <div class="feature-card text-center">
+                                    <div class="text-2xl mb-2">✨</div>
+                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">장식 요소</h4>
+                                    <p class="text-xs text-slate-500">패턴, 라인, 캡 형태 등 세부 요소</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="process-step animate-in animate-delay-300">
+                        <div class="step-number">3</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">등록 디자인 DB 검색</h3>
+                            <p class="text-slate-600">
+                                국내외 등록 디자인 데이터베이스에서 유사한 디자인을 자동으로 검색합니다.<br>
+                                화장품 용기·패키지에 특화된 DB를 활용합니다.
+                            </p>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="stat-card">
+                                    <div class="stat-number">KIPRIS</div>
+                                    <div class="stat-label">국내 등록 디자인</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">USPTO</div>
+                                    <div class="stat-label">미국 등록 디자인</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">EUIPO</div>
+                                    <div class="stat-label">유럽 등록 디자인</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="process-step animate-in">
+                        <div class="step-number">4</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">외관 유사도 비교</h3>
+                            <p class="text-slate-600">
+                                AI가 내 제품과 유사한 등록 디자인을 나란히 비교하고, 어떤 부분이 얼마나 유사한지 항목별로 분석합니다.
+                            </p>
+                            <div class="feature-card overflow-hidden p-0">
+                                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100">
+                                    <span class="text-sm font-semibold text-slate-700">유사도 비교 항목 예시</span>
+                                </div>
+                                <div class="p-4 space-y-3">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-slate-700">전체 형태 (실루엣)</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full bg-red-400 rounded-full" style="width:85%"></div>
+                                            </div>
+                                            <span class="text-red-500 font-semibold text-xs">85% 유사</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-slate-700">캡·뚜껑 형태</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full bg-yellow-400 rounded-full" style="width:55%"></div>
+                                            </div>
+                                            <span class="text-yellow-600 font-semibold text-xs">55% 유사</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-slate-700">표면 패턴·장식</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full bg-green-400 rounded-full" style="width:20%"></div>
+                                            </div>
+                                            <span class="text-green-600 font-semibold text-xs">20% 유사</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="process-step animate-in">
+                        <div class="step-number">5</div>
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-bold text-slate-900">결과 및 차별화 포인트 제안</h3>
+                            <p class="text-slate-600">
+                                전체 유사도를 종합하여 디자인권 침해 가능성을 판단하고, 안전하게 출시할 수 있는 디자인 변경 방향을 제안합니다.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="result-card safe">
+                                    <span class="text-green-600 text-lg">✅</span>
+                                    <div>
+                                        <p class="font-semibold text-green-800 text-sm">침해 가능성이 낮습니다</p>
+                                        <p class="text-green-700 text-xs mt-0.5">기존 등록 디자인과 충분히 구별됩니다. 현재 디자인으로 진행 가능합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card warn">
+                                    <span class="text-yellow-600 text-lg">⚠️</span>
+                                    <div>
+                                        <p class="font-semibold text-yellow-800 text-sm">전문가 추가 검토 권고</p>
+                                        <p class="text-yellow-700 text-xs mt-0.5">일부 외관이 유사합니다. 디자인 전문가나 변리사 확인을 권장합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card danger">
+                                    <span class="text-red-600 text-lg">🚨</span>
+                                    <div>
+                                        <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
+                                        <p class="text-red-700 text-xs mt-0.5">등록 디자인과 외관이 매우 유사합니다. AI가 구체적인 차별화 포인트를 제안합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="result-card info">
+                                    <span class="text-blue-600 text-lg">ℹ️</span>
+                                    <div>
+                                        <p class="font-semibold text-blue-800 text-sm">추가 이미지 필요</p>
+                                        <p class="text-blue-700 text-xs mt-0.5">더 명확한 분석을 위해 다른 각도의 이미지를 추가로 업로드해 주세요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </section>
 
-    <!-- ============ 이미지 vs 텍스트 분석 ============ -->
-    <section class="py-16 md:py-24 bg-white">
+    <!-- ── 데이터 보안 ── -->
+    <section class="py-16 md:py-20 bg-slate-50">
         <div class="max-w-[1200px] mx-auto px-6">
-            <div class="mb-12">
-                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                    이미지 vs 텍스트 분석 역할
+            <div class="mb-10 text-center">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+                    입력한 정보는 안전하게 보호됩니다
                 </h2>
-                <p class="text-slate-600">
-                    평가위원 피드백을 반영하여 이미지와 텍스트 분석의 역할을 명확히 구분합니다.
-                </p>
-            </div>
-
-            <div class="overflow-hidden rounded-xl border border-slate-200">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>분석 대상</th>
-                            <th>사용 모델</th>
-                            <th>목적</th>
-                            <th>FTO 판단 역할</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="font-semibold">디자인 공보</td>
-                            <td>
-                                <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-mono">
-                                    CLIP (ViT-B/32)
-                                </span>
-                            </td>
-                            <td>외관 유사도 검색</td>
-                            <td class="text-slate-500">참고용 (판단 근거 아님)</td>
-                        </tr>
-                        <tr>
-                            <td class="font-semibold">특허 청구항</td>
-                            <td>
-                                <span class="px-3 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs font-mono">
-                                    SBERT + GPT-4o
-                                </span>
-                            </td>
-                            <td>법리 기반 FTO 판단</td>
-                            <td class="text-orange-600 font-semibold">✓ 최종 판단 근거</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-6 bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg">
-                <p class="text-sm text-amber-900 leading-relaxed">
-                    <strong>중요:</strong> 이미지 검색 결과만으로는 FTO 판단의 근거가 충분하지 않습니다. 
-                    특허 도면은 유사한 형태를 가질 수 있으나, 청구항의 기술적 범위는 텍스트에 의해 결정됩니다. 
-                    따라서 최종 FTO 판단은 <strong>청구항 텍스트 기반 법리 분석</strong>으로 수행됩니다.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============ 데이터 보안 ============ -->
-    <section class="py-16 md:py-24 bg-white">
-        <div class="max-w-[1200px] mx-auto px-6">
-            <div class="mb-12">
-                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                    데이터 보안 및 프라이버시
-                </h2>
-                <p class="text-slate-600">
-                    민감한 제품 정보를 다루는 만큼 철저한 보안 체계를 갖추고 있습니다.
+                <p class="text-slate-500 max-w-xl mx-auto">
+                    출시 전 제품 정보는 매우 민감합니다. FTOGuard는 처음부터 보안을 최우선으로 설계했습니다.
                 </p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6">
                 <div class="feature-card">
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <div class="security-icon bg-green-100">
                         <i class="fas fa-shield-alt text-xl text-green-600"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3">Small LLM 사용</h3>
-                    <ul class="text-sm text-slate-600 space-y-2 check-list list-none">
-                        <li>DistilBERT Fine-tuned</li>
-                        <li>온프레미스 배포 가능</li>
-                        <li>외부 API 의존도 최소화</li>
-                    </ul>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">외부 유출 없음</h3>
+                    <p class="text-sm text-slate-600">분석에 사용된 AI는 외부 서버로 데이터를 전송하지 않습니다. 입력 정보가 타사로 넘어갈 걱정이 없습니다.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                        <i class="fas fa-lock text-xl text-blue-600"></i>
+                    <div class="security-icon bg-blue-100">
+                        <i class="fas fa-trash-alt text-xl text-blue-600"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3">데이터 보호 정책</h3>
-                    <ul class="text-sm text-slate-600 space-y-2 check-list list-none">
-                        <li>세션 종료 시 즉시 삭제</li>
-                        <li>검색 이력 암호화 저장</li>
-                        <li>GPT-4o ZDR 모드 사용</li>
-                    </ul>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">분석 후 즉시 삭제</h3>
+                    <p class="text-sm text-slate-600">세션이 종료되면 입력된 제품 정보는 즉시 삭제됩니다. 데이터가 서버에 남지 않습니다.</p>
                 </div>
 
                 <div class="feature-card">
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                        <i class="fas fa-server text-xl text-purple-600"></i>
+                    <div class="security-icon bg-orange-100">
+                        <i class="fas fa-building text-xl text-orange-600"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3">기업용 배포</h3>
-                    <ul class="text-sm text-slate-600 space-y-2 check-list list-none">
-                        <li>완전 오프라인 모드 지원</li>
-                        <li>내부 DB 연동 가능</li>
-                        <li>데이터 외부 유출 없음</li>
-                    </ul>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">기업 전용 환경 지원</h3>
+                    <p class="text-sm text-slate-600">완전 내부망 환경에서의 운용도 가능합니다. 인터넷과 완전히 차단된 상태에서도 사용할 수 있습니다.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
+    <!-- ── CTA ── -->
     <section class="py-16 md:py-24 bg-slate-900">
         <div class="max-w-[1200px] mx-auto px-6 text-center">
             <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                FTO 분석을 직접 체험해보세요
+                지금 바로 분석을 시작해보세요
             </h2>
-            <p class="text-slate-300 mb-8 max-w-2xl mx-auto">
-                420만 건의 특허 데이터와 법리 기반 판단 시스템으로 제품 출시 전 특허 리스크를 정확하게 분석합니다.
+            <p class="text-slate-300 mb-8 max-w-xl mx-auto">
+                화장품 특허·디자인 침해 걱정 없이 제품을 출시할 수 있도록, FTOGuard가 함께합니다.
             </p>
-            <a href="analysis.html" class="btn-primary">
+            <a href="select-analysis-type.html" class="btn-primary">
                 무료로 시작하기 →
             </a>
         </div>
@@ -620,51 +661,49 @@
 
 <div id="app-footer"></div>
 
-
 <script src="toast.js"></script>
 <script src="script.js"></script>
 
 <script>
-// Load header.html
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('app-header').innerHTML = data;
-        
-        // Re-execute scripts in loaded header
-        const scripts = document.getElementById('app-header').querySelectorAll('script');
-        scripts.forEach(script => {
-            const newScript = document.createElement('script');
-            if (script.src) {
-                newScript.src = script.src;
-            } else {
-                newScript.textContent = script.textContent;
+    // 탭 전환
+    function switchTab(type, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + type).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // 헤더 로드
+    fetch('header.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('app-header').innerHTML = data;
+            const scripts = document.getElementById('app-header').querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) newScript.src = script.src;
+                else newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch(error => console.log('Header load skipped:', error));
+
+    // 스크롤 애니메이션
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
             }
-            document.body.appendChild(newScript);
         });
-    })
-    .catch(error => console.error('Error loading header:', error));
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-// 스크롤 애니메이션
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
+    document.querySelectorAll('.process-step').forEach(step => {
+        step.style.opacity = '0';
+        step.style.transform = 'translateY(20px)';
+        step.style.transition = 'all 0.6s ease-out';
+        observer.observe(step);
     });
-}, observerOptions);
-
-document.querySelectorAll('.process-step').forEach(step => {
-    step.style.opacity = '0';
-    step.style.transform = 'translateY(20px)';
-    step.style.transition = 'all 0.6s ease-out';
-    observer.observe(step);
-});
 </script>
 
 </body>

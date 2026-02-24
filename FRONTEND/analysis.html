@@ -194,6 +194,7 @@
         .step-num.step-1 { background: var(--primary); }
         .step-num.step-2 { background: var(--primary-light); }
         .step-num.step-3 { background: var(--primary-dark); }
+        .step-num.step-4 { background: #C2410C; } /* Purple for design step 4 */
 
         /* 빠른시작 버튼 */
         .sample-btn {
@@ -416,9 +417,23 @@
                             <h1 class="text-xl font-bold text-black mb-1" id="analysisTitle">
                                 FTO 리스크 분석 AI
                             </h1>
-                            <p class="text-neutral-500 text-xs" id="analysisDescription">
+                            <p class="text-neutral-500 text-xs mb-3" id="analysisDescription">
                                 제품 정보를 입력하면 AI가 자동으로 특허·디자인 침해 리스크를 분석합니다
                             </p>
+                            
+                            <!-- 유형 전환 버튼 -->
+                            <div class="inline-flex items-center gap-2 p-1 bg-neutral-100 rounded-lg" id="typeSwitcher">
+                                <button onclick="switchAnalysisType('patent')" 
+                                        id="patentTypeBtn"
+                                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                                    <i class="fas fa-file-alt mr-1"></i>특허·실용신안
+                                </button>
+                                <button onclick="switchAnalysisType('design')" 
+                                        id="designTypeBtn"
+                                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all">
+                                    <i class="fas fa-palette mr-1"></i>디자인
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Features Grid - 수평 컴팩트 카드 -->
@@ -805,6 +820,14 @@
             const fileInputEl = document.getElementById('imageFileInput');
             const attachHintEl = document.getElementById('attachHint');
             const attachWrapEl = document.getElementById('attachWrap');
+            
+            // 유형 전환 버튼
+            const patentBtn = document.getElementById('patentTypeBtn');
+            const designBtn = document.getElementById('designTypeBtn');
+            
+            // 버튼 스타일 정의
+            const inactiveStyle = 'bg-transparent text-neutral-600 hover:text-black';
+            const activeStyle = 'bg-white text-primary shadow-sm';
 
             if (type === 'patent') {
                 // ── 특허·실용신안 ─────────────────────────────
@@ -812,6 +835,10 @@
                 titleEl.textContent = '특허·실용신안 리스크 분석 AI';
                 descEl.textContent = '화장품 제품의 기술 구성을 입력하면 AI가 특허·실용신안 침해 리스크를 자동으로 분석합니다';
                 iconEl.className = 'fas fa-file-alt text-lg text-primary';
+                
+                // 버튼 스타일 업데이트
+                if (patentBtn) patentBtn.className = `px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${activeStyle}`;
+                if (designBtn) designBtn.className = `px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inactiveStyle}`;
 
                 // 첨부 버튼 완전 숨김, 힌트 없음
                 if (attachWrapEl) attachWrapEl.style.display = 'none';
@@ -885,6 +912,10 @@
                 titleEl.textContent = '디자인 리스크 분석 AI';
                 descEl.textContent = '화장품 용기·패키지 외관 이미지를 업로드하면 AI가 디자인권 침해 리스크를 자동으로 분석합니다';
                 iconEl.className = 'fas fa-palette text-lg text-primary';
+                
+                // 버튼 스타일 업데이트
+                if (patentBtn) patentBtn.className = `px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inactiveStyle}`;
+                if (designBtn) designBtn.className = `px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${activeStyle}`;
 
                 // 첨부 버튼 표시 + 강조
                 if (attachWrapEl) attachWrapEl.style.display = '';
@@ -942,8 +973,15 @@
                     <div class="flex items-start gap-2.5">
                         <div class="step-num step-3"><span>3</span></div>
                         <div>
-                            <p class="text-xs font-semibold text-black leading-tight">유사도 리포트 확인</p>
-                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">유사 등록 디자인과 리스크 등급을 확인하세요</p>
+                            <p class="text-xs font-semibold text-black leading-tight">유사도 비교한 TOP-10 리스트 출력</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">가장 유사한 등록 디자인 상위 10개를 확인하세요</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <div class="step-num step-4"><span>4</span></div>
+                        <div>
+                            <p class="text-xs font-semibold text-black leading-tight">유사도 리포트 작성 및 확인</p>
+                            <p class="text-neutral-500 leading-snug" style="font-size: 0.68rem;">상세 분석 리포트로 리스크 등급을 파악하세요</p>
                         </div>
                     </div>
                 `;
@@ -962,6 +1000,11 @@
 
                 placeholderEl.placeholder = '화장품 용기·패키지 외관을 설명하세요 (예: 각진 사각형 토너 병, 투명 유리 재질, 블랙 펌프 헤드)...';
             }
+        }
+        
+        // 분석 유형 전환 함수
+        function switchAnalysisType(type) {
+            window.location.href = `analysis.html?type=${type}`;
         }
 
         // Initialize

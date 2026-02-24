@@ -1,0 +1,130 @@
+<!-- ============================================ -->
+<!-- Official Data Partners Section -->
+<!-- 비즈벨 스타일: 흑백 → 컬러 전환 효과 -->
+<!-- ============================================ -->
+
+<section class="py-16 bg-white border-t border-neutral-100">
+    <div class="max-w-6xl mx-auto px-6">
+        <!-- 타이틀 -->
+        <div class="text-center mb-12">
+            <p class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+                Official Data Partners
+            </p>
+            <h2 class="text-2xl font-bold text-black">
+                신뢰할 수 있는 글로벌 데이터베이스 연동
+            </h2>
+        </div>
+        
+        <!-- 로고 그리드 (7개) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-8 items-center">
+            <!-- KIPRIS - 한국 -->
+            <div class="partner-logo-wrapper">
+                <img src="kipris.png" 
+                     alt="KIPRIS - 한국 특허청" 
+                     class="partner-logo"
+                     title="한국특허정보원 (KIPRIS)">
+            </div>
+            
+            <!-- USPTO - 미국 -->
+            <div class="partner-logo-wrapper">
+                <img src="uspto.png" 
+                     alt="USPTO - 미국 특허청" 
+                     class="partner-logo"
+                     title="미국 특허상표청 (USPTO)">
+            </div>
+            
+            <!-- EPO - 유럽 -->
+            <div class="partner-logo-wrapper">
+                <img src="europeanpatentoffice.png" 
+                     alt="EPO - 유럽 특허청" 
+                     class="partner-logo"
+                     title="유럽 특허청 (EPO)">
+            </div>
+            
+            <!-- Google Patents -->
+            <div class="partner-logo-wrapper">
+                <img src="googlepatent.png" 
+                     alt="Google Patents" 
+                     class="partner-logo"
+                     title="Google Patents">
+            </div>
+            
+            <!-- J-PlatPat - 일본 -->
+            <div class="partner-logo-wrapper">
+                <img src="jplatpat.png" 
+                     alt="J-PlatPat - 일본 특허청" 
+                     class="partner-logo"
+                     title="일본 특허정보플랫폼 (J-PlatPat)">
+            </div>
+            
+            <!-- 중국 특허 검색 분석 -->
+            <div class="partner-logo-wrapper">
+                <img src="patentsearchandanalysis.png" 
+                     alt="중국 특허 검색 분석" 
+                     class="partner-logo"
+                     title="중국 특허검색분석">
+            </div>
+            
+            <!-- DESIGNview - 디자인 -->
+            <div class="partner-logo-wrapper">
+                <img src="designview.png" 
+                     alt="DESIGNview - 디자인 DB" 
+                     class="partner-logo"
+                     title="DESIGNview">
+            </div>
+        </div>
+        
+        <!-- 통계 (선택사항) -->
+        <div class="mt-12 flex justify-center gap-8 flex-wrap">
+            <div class="text-center">
+                <p class="text-3xl font-bold text-primary">420만+</p>
+                <p class="text-sm text-neutral-600">검색 가능 특허</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-bold text-primary">7개국</p>
+                <p class="text-sm text-neutral-600">글로벌 데이터베이스</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-bold text-primary">실시간</p>
+                <p class="text-sm text-neutral-600">데이터 업데이트</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================ -->
+<!-- CSS 스타일 (head 태그 안에 추가) -->
+<!-- ============================================ -->
+
+<style>
+/* Official Data Partners - 비즈벨 스타일 */
+.partner-logo-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.partner-logo {
+    max-height: 50px;
+    width: auto;
+    max-width: 160px;
+    
+    /* 기본 상태: 흑백 + 어두움 */
+    filter: grayscale(100%) brightness(0.4);
+    opacity: 0.5;
+    
+    /* 부드러운 전환 효과 */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.partner-logo:hover {
+    /* 마우스 오버: 컬러 복원 + 밝게 */
+    filter: grayscale(0%) brightness(1);
+    opacity: 1;
+    
+    /* 살짝 확대 */
+    transform: scale(1.08);
+}
+</style>
