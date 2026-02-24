@@ -4,8 +4,10 @@
 
 ## 프로젝트 목적
 
-**상품 출시 전 특허 침해 여부 사전 검증 서비스 (FTO: Freedom To Operate)**
-- 사용자가 출시하려는 제품이 기존 특허를 침해하는지 AI로 사전 판단
+**상품 출시 전 특허/디자인 침해 여부 사전 검증 서비스 (FTO: Freedom To Operate)**
+- 사용자가 출시하려는 제품이 기존 특허/디자인을 침해하는지 AI로 사전 판단
+- 팀명: 긍마 / SKN20-FINAL-2TEAM
+- 개발기간: 2026.01.09 ~ 2026.03.11
 
 ---
 
@@ -13,50 +15,78 @@
 
 ```
 SKN20-FINAL-2TEAM/
-├── SLLM_model/                 # sLLM 학습 모듈 (구 bini/)
+├── SLLM_model/                 # sLLM 학습 모듈
 │   ├── training/               # 학습 스크립트
-│   │   └── train_compare.py    # Gemma3 1B vs Qwen2.5 1.5B 비교 학습
-│   ├── data/                   # 기존 학습 데이터 (35개, 레거시)
+│   │   ├── train_qwen_v2.py    # 1.5B 학습
+│   │   ├── train_qwen3b.py     # 3B 학습
+│   │   ├── train_qwen14b.py    # 14B 학습
+│   │   └── upload_hf.py        # HuggingFace 업로드
+│   ├── data/sllm_qwen_data/    # 학습 데이터 (17,377건 / 4,317건)
 │   ├── outputs/                # 학습된 모델 저장소
-│   │   ├── gemma3-1b-v2/       # Gemma3 1B (2869개 데이터 학습)
-│   │   └── qwen2.5-1.5b-lora/  # Qwen2.5 1.5B
-│   └── docs/                   # 문서
+│   │   ├── qwen2.5-1.5b-v2/
+│   │   ├── qwen2.5-3b-lora/
+│   │   └── qwen2.5-14b-lora/   # 학습 완료
+│   └── sllm_smalltrain_dj/eval/ # 추론 및 평가 스크립트
 │
-├── backend/                    # FastAPI 백엔드 (MySQL 연결)
+├── backend/                    # FastAPI 백엔드
 │   ├── app/
-│   │   ├── routers/            # API 라우터 (auth, chat, analysis, search)
-│   │   ├── services/           # 비즈니스 로직 (search_service.py)
+│   │   ├── routers/            # auth, chat, analysis, search
+│   │   ├── services/           # 비즈니스 로직
 │   │   └── models/             # SQLAlchemy 모델
-│   ├── Dockerfile
-│   └── README.md
+│   └── Dockerfile
 │
-├── rag/                        # RAG 검색 모듈
-│   ├── config.py               # 설정
-│   ├── search.py               # 검색 (Dense + Sparse + 필터링)
-│   ├── indexer.py              # 인덱싱 (MySQL → ChromaDB + BM25)
-│   └── index/                  # 인덱스 저장소
-│
-├── FRONTEND/                   # 정적 HTML/JS 프론트엔드
-│
-├── scripts/                    # 유틸리티 스크립트
-│
-├── docker-compose.yml
-├── fto_dump.sql
-└── jsons_backup.zip
+├── rag/                        # RAG 검색 모듈 (Dense+Sparse+RRF)
+├── FRONTEND/                   # Nginx 정적 HTML/JS 프론트엔드
+├── design/                     # 디자인 유사도 분석 챗봇 (CLIP + VLM)
+└── docker-compose.yml          # EC2 배포용 (RDS 연결)
 ```
 
-### 외부 데이터 (별도 repo)
+---
+
+## AWS 인프라 (2026-02-24 구성)
+
+| 항목 | 값 |
+|------|-----|
+| EC2 퍼블릭 IP | `52.78.233.64` |
+| EC2 인스턴스 ID | `i-025ca49992ebcd3cc` |
+| EC2 OS | Ubuntu 24.04 LTS (t2.micro) |
+| RDS 엔드포인트 | `fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com` |
+| RDS 엔진 | MySQL 8.4 (db.t3.micro) |
+| RDS DB명 | `fto` |
+| RDS 유저 | `admin` |
+| 리전 | ap-northeast-2 (서울) |
+| SSH 키 | `fto-key.pem` |
+
+### EC2 접속
+```bash
+ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
 ```
-/workspace/patent-data/GEMINI/sllm_1st_test/
-├── data/
-│   ├── sllm_train_2869.xlsx    # 학습 데이터 (2,869건)
-│   └── sllm_test_718.xlsx      # 테스트 데이터 (718건)
-└── eval/
-    ├── 01_infer.py             # 모델 추론
-    ├── 02_evaluate.py          # 개별 평가
-    ├── 03_compare.py           # 모델 비교
-    └── common.py               # 공통 유틸 (라벨 매핑, 법리 체크)
-```
+
+---
+
+## sLLM 모델 학습 현황
+
+### 목표: 파인튜닝된 작은 모델 > 파인튜닝 안 된 큰 모델 입증
+
+| 모델 | 파인튜닝 | 정확도 | 구조성공률 | 법리일관성 | 행수일치율 | HuggingFace |
+|------|----------|--------|-----------|-----------|-----------|-------------|
+| Qwen 1.5B | ✅ | 86.2% | 97.3% | 99.6% | 97.5% | itsbini/qwen2.5-1.5b-fto |
+| Qwen 3B | ❌ 베이스 | 30.1% | 85.2% | 91.3% | 29.3% | - |
+| Qwen 3B | ✅ | 89.5% | 98.9% | 99.6% | 99.3% | itsbini/qwen2.5-3b-fto |
+| Qwen 7B | ❌ 베이스 | 31.8% | 98.0% | 48.1% | 70.8% | - |
+| Qwen 7B | ✅ | 평가 예정 | - | - | - | 업로드 완료 |
+| Qwen 14B | ✅ | 평가 예정 | - | - | - | itsbini/qwen2.5-14b-fto |
+
+### 입증 완료
+- ✅ 학습된 1.5B (86.2%) > 학습 안 한 3B (30.1%)
+- ✅ 학습된 3B (89.5%) > 학습 안 한 7B (31.8%)
+
+### 추론 완료 파일 (`sllm_smalltrain_dj/eval/output/`)
+- `infer_qwen_v2.xlsx` / `eval_detail_qwen_v2.xlsx` — 1.5B FT
+- `infer_qwen3b_base.xlsx` / `eval_detail_qwen3b_base.xlsx` — 3B 베이스
+- `infer_qwen3b_ft.xlsx` / `eval_detail_qwen3b_ft.xlsx` — 3B FT
+- `infer_qwen7b_base.xlsx` / `eval_detail_qwen7b_base.xlsx` — 7B 베이스
+- `infer_qwen14b_ft.xlsx` — 14B FT 추론 완료 (평가 미완료)
 
 ---
 
@@ -65,217 +95,80 @@ SKN20-FINAL-2TEAM/
 ```
 사용자 Query
     ↓
-[RAG 검색] rag/search.py
+[RAG 검색] rag/pipeline.py
+    ├── 멀티쿼리 생성 (최대 8개)
     ├── Dense 검색 (KURE-v1 + ChromaDB)
     ├── Sparse 검색 (BM25 + kiwipiepy)
-    └── RRF 점수 합산
+    └── RRF 점수 합산 → 상위 10개
     ↓
-[MySQL 필터링]
-    ├── 등록 상태 확인 (REGISTERED_ONLY)
-    ├── 금반언 표시 (ESTOPPEL_ENABLED)
-    └── 청구항 정보 보강
+[필터링] 등록 상태 확인 + 금반언 표시
     ↓
-[sLLM 분석] → 침해 여부 판단
+[sLLM 분석] → 침해/비침해/애매/침해_전문가 판단
 ```
 
 ---
 
-## sLLM 비교 학습
-
-### 모델 비교
-
-| 항목 | Gemma3 1B | Qwen2.5 1.5B |
-|------|-----------|---------------|
-| 모델 ID | `google/gemma-3-1b-it` | `Qwen/Qwen2.5-1.5B-Instruct` |
-| 파라미터 | 1B | 1.5B |
-| HF 토큰 필요 | **필요** (gated repo) | 불필요 |
-
-### 학습 데이터 (2,869건 학습 / 718건 테스트)
-
-| 라벨 | 학습 | 테스트 |
-|------|------|--------|
-| 침해 | 760 | 190 |
-| 비침해 | 760 | 190 |
-| 애매 | 589 | 148 |
-| 침해_전문가 | 760 | 190 |
-
-### 학습 실행 방법
-
-```bash
-# 0. HuggingFace 로그인 (Gemma3 접근용, 최초 1회)
-pip install transformers>=4.48.0 datasets accelerate peft trl bitsandbytes pyyaml python-dotenv pandas openpyxl
-huggingface-cli login --token <YOUR_HF_TOKEN>
-
-# 1. 프로젝트 루트로 이동
-cd /workspace/SKN20-FINAL-2TEAM
-
-# 2. Gemma3 1B 학습
-python -m SLLM_model.training.train_compare --model gemma
-
-# 3. Qwen2.5 1.5B 학습
-python -m SLLM_model.training.train_compare --model qwen
-
-# 4. 둘 다 순차 학습 (gemma → qwen)
-python -m SLLM_model.training.train_compare --model both
-
-# 옵션: 에폭/배치/학습률 조정
-python -m SLLM_model.training.train_compare --model both --epochs 5 --batch_size 4 --lr 3e-5
-```
-
-### 학습 설정 (기본값)
-
-| 항목 | 값 |
-|------|-----|
-| 방법 | QLoRA (4-bit NF4) |
-| LoRA r / alpha | 16 / 32 |
-| max_seq_length | 4096 |
-| batch_size | 2 |
-| gradient_accumulation | 4 (effective batch = 8) |
-| learning_rate | 2e-5 |
-| epochs | 3 |
-| optimizer | paged_adamw_8bit |
-| precision | bf16 |
-
-### 학습 완료 후 평가
-
-```bash
-cd /workspace/patent-data/GEMINI/sllm_1st_test/eval
-
-# Gemma 추론
-python 01_infer.py \
-    --model_path /workspace/SKN20-FINAL-2TEAM/SLLM_model/outputs/gemma3-1b-v2 \
-    --model_name gemma \
-    --test_data ../data/sllm_test_718.xlsx
-
-# Qwen 추론
-python 01_infer.py \
-    --model_path /workspace/SKN20-FINAL-2TEAM/SLLM_model/outputs/qwen2.5-1.5b-lora \
-    --model_name qwen \
-    --test_data ../data/sllm_test_718.xlsx
-
-# 개별 평가
-python 02_evaluate.py --input output/infer_gemma.xlsx --model_name gemma
-python 02_evaluate.py --input output/infer_qwen.xlsx --model_name qwen
-
-# 두 모델 비교
-python 03_compare.py \
-    --model_a output/eval_detail_gemma.xlsx \
-    --model_b output/eval_detail_qwen.xlsx
-```
-
-### 평가 지표
-
-| # | 항목 | 설명 |
-|---|------|------|
-| 1 | 라벨 정확도 | ◆결론◆ 키워드 → 라벨 추출 → 정답 비교 (F1) |
-| 2 | 구조 완성도 | ◆구성 대비◆, ◆판단◆, ◆결론◆ 3섹션 존재 여부 |
-| 3 | 행 수 일치 | 구성대비표 행 수 비교 |
-| 4 | 법리 일관성 | 라벨 vs 대응분석표 논리 정합성 |
-
-### 산출물
-
-```
-SLLM_model/outputs/
-├── gemma3-1b-v2/              # Gemma3 1B LoRA adapter
-└── qwen2.5-1.5b-lora/         # Qwen2.5 1.5B LoRA adapter
-```
-
----
-
-## MySQL 데이터베이스
-
-### 연결 정보
-
-| 환경 | Host | Port | Database | User | Password |
-|------|------|------|----------|------|----------|
-| 로컬 | localhost | 3306 | fto | root | newpassword123 |
-| Docker | fto-db | 3306 | fto | root | root1234 |
-
-### 테이블 구조
+## 데이터베이스 스키마
 
 | 테이블 | 건수 | 용도 |
 |--------|------|------|
 | `patents` | 3,271 | 특허 기본 정보 |
-| `patent_ipc` | 17,273 | IPC 분류코드 (1:N) |
-| `claims` | 158,584 | 청구항 (first/last 버전, 금반언 지원) |
-| `claim_elements` | 635,201 | 키워드 검색용 요소 (kiwipiepy 형태소 분석) |
-
----
-
-## 현재 상태 (2026-02-15 업데이트)
-
-### 완료
-
-| 항목 | 상태 |
-|------|------|
-| MySQL 설정 및 데이터 import | ✅ 완료 |
-| 특허 RDB 검색 (키워드/전문) | ✅ 완료 |
-| 금반언 지원 | ✅ 완료 |
-| 회원가입/로그인 (JWT) | ✅ 완료 |
-| Docker 설정 | ✅ 완료 |
-| 프론트엔드-백엔드 API 연동 | ✅ 완료 |
-| claim_elements 형태소 분석 재처리 (kiwipiepy) | ✅ 완료 |
-| RAG 구조 단순화 (search.py, indexer.py 통합) | ✅ 완료 |
-| bini/ → SLLM_model/ 리네이밍 | ✅ 완료 |
-| sLLM 비교 학습 스크립트 작성 | ✅ 완료 |
-| 학습 데이터 clone (patent-data repo) | ✅ 완료 |
-
-### 진행 필요 (TODO)
-
-| 항목 | 설명 | 우선순위 |
-|------|------|----------|
-| **sLLM 비교 학습 실행** | `train_compare.py` 실행 (Gemma3 1B / Qwen2.5 1.5B) | 🔴 높음 |
-| **sLLM 평가** | 학습 완료 후 eval 스크립트로 비교 | 🔴 높음 |
-| **RAG 인덱스 재빌드** | GPU 환경에서 `python -m rag.indexer` 실행 | 🔴 높음 |
-| **백엔드-sLLM 연동** | 선택된 모델을 text_analyzer.py에 연결 | 🟡 중간 |
-| **백엔드-RAG 연동** | search_service.py에서 rag.search() 호출 | 🟡 중간 |
-| 디자인 분석 | 이미지 기반 검색 | 🟢 낮음 |
+| `patent_ipc` | 17,273 | IPC 분류코드 |
+| `claims` | 158,584 | 청구항 (금반언 지원) |
+| `claim_elements` | 763,719 | 키워드 검색용 요소 |
 
 ---
 
 ## 백엔드 API
 
-### 인증 (`/api/auth`)
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| POST | `/signup` | 회원가입 |
-| POST | `/login` | 로그인 (JWT) |
-| POST | `/check-email` | 이메일 중복 확인 |
-| GET | `/me` | 현재 사용자 정보 |
-
-### 검색 (`/api/search`)
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| GET | `/keywords?q=` | 키워드 기반 특허 검색 |
-| GET | `/fulltext?q=` | 전문 검색 |
-| POST | `/hybrid` | 하이브리드 검색 (RDB + RAG) |
-
-### 분석 (`/api/analysis`)
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| POST | `/text` | 텍스트 기반 FTO 분석 |
-| POST | `/image` | 이미지 기반 디자인 분석 |
+| POST | `/api/auth/signup` | 회원가입 |
+| POST | `/api/auth/login` | 로그인 (JWT) |
+| POST | `/api/analysis/text` | 텍스트 FTO 분석 |
+| POST | `/api/analysis/image` | 이미지 디자인 분석 |
+| GET | `/api/search/keywords` | 키워드 검색 |
+| POST | `/api/search/hybrid` | 하이브리드 검색 |
 
 ---
 
-## 환경 설정
+## TODO (남은 작업)
 
-### backend/.env (로컬)
-```
-DATABASE_URL=mysql+pymysql://root:newpassword123@localhost:3306/fto
-SECRET_KEY=your-secret-key
-HF_TOKEN=your-huggingface-token
-```
+### 🔴 높음
+- [ ] **14B FT 평가 실행**
+  ```bash
+  cd /root/SKN20-FINAL-2TEAM/SLLM_model/sllm_smalltrain_dj/eval
+  python 02_evaluate.py --input output/infer_qwen14b_ft.xlsx --model_name qwen14b_ft
+  ```
+- [ ] **팀원 DB 데이터 취합 → RDS import**
+  - 각 팀원: `mysqldump -u root -p fto > fto_dump.sql`
+  - EC2로 전송: `scp -i ~/Downloads/fto-key.pem fto_dump.sql ubuntu@52.78.233.64:~/`
+  - RDS import: `mysql -h fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com -u admin -p fto < fto_dump.sql`
+- [ ] **EC2 배포 실행**
+  ```bash
+  # EC2에서
+  cd SKN20-FINAL-2TEAM
+  git pull origin main
+  sudo docker-compose up --build -d
+  ```
 
-### rag/config.py
-```python
-DATABASE_URL = "mysql+pymysql://root:newpassword123@localhost:3306/fto"
-EMBED_MODEL = "nlpai-lab/KURE-v1"
-```
+### 🟡 중간
+- [ ] **14B 베이스 추론 및 비교** (7B FT vs 14B 베이스 입증)
+  ```bash
+  python 01_infer_vllm.py --model_path Qwen/Qwen2.5-14B-Instruct --model_name qwen14b_base --gpu_memory 0.85
+  ```
+- [ ] **백엔드 .env 파일 분리** (docker-compose.yml에 비밀번호 노출됨)
+- [ ] **백엔드-sLLM 연동** (`text_analyzer.py`에 실제 모델 호출 구현)
+- [ ] **백엔드-RAG 연동** (`search_service.py`에서 RAG 파이프라인 호출)
+- [ ] **CORS 설정** (EC2 퍼블릭 IP `52.78.233.64` 추가)
+
+### 🟢 낮음
+- [ ] **테스트 계획 및 결과 보고서 완성** (`GPT_prompt_테스트계획및결과보고서.md` 활용)
+- [ ] **LLM 활용 소프트웨어 산출물 완성** (`GPT_prompt_llm_산출물.md` 활용)
 
 ---
 
 ## 팀 정보
 
-- 프로젝트: SKN20-FINAL-2TEAM (FTO)
-- GitHub: SKNETWORKS-FAMILY-AICAMP/SKN20-FINAL-2TEAM
+- GitHub: https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN20-FINAL-2TEAM
+- RunPod 작업 경로: `/root/SKN20-FINAL-2TEAM`
