@@ -75,7 +75,7 @@ ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
 | Qwen 3B | ✅ | 89.5% | 98.9% | 99.6% | 99.3% | itsbini/qwen2.5-3b-fto |
 | Qwen 7B | ❌ 베이스 | 31.8% | 98.0% | 48.1% | 70.8% | - |
 | Qwen 7B | ✅ | 평가 예정 | - | - | - | 업로드 완료 |
-| Qwen 14B | ✅ | 평가 예정 | - | - | - | itsbini/qwen2.5-14b-fto |
+| Qwen 14B | ✅ | **94.3%** | 99.7% | 99.6% | 100.0% | itsbini/qwen2.5-14b-fto |
 
 ### 입증 완료
 - ✅ 학습된 1.5B (86.2%) > 학습 안 한 3B (30.1%)
@@ -135,11 +135,7 @@ ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
 ## TODO (남은 작업)
 
 ### 🔴 높음
-- [ ] **14B FT 평가 실행**
-  ```bash
-  cd /root/SKN20-FINAL-2TEAM/SLLM_model/sllm_smalltrain_dj/eval
-  python 02_evaluate.py --input output/infer_qwen14b_ft.xlsx --model_name qwen14b_ft
-  ```
+- [x] **14B FT 평가 실행** → 94.3% 달성 (`output/eval_detail_qwen14b_ft.xlsx`)
 - [ ] **팀원 DB 데이터 취합 → RDS import**
   - 각 팀원: `mysqldump -u root -p fto > fto_dump.sql`
   - EC2로 전송: `scp -i ~/Downloads/fto-key.pem fto_dump.sql ubuntu@52.78.233.64:~/`
