@@ -8,7 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="toast.css">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
         
@@ -243,6 +245,74 @@
         .reveal:nth-child(6) { animation-delay: 0.5s; }
 
         .break-keep { word-break: keep-all; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 6mm 8mm;
+            }
+
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* 헤더·푸터·로딩·버튼 숨김 */
+            #app-header,
+            #app-footer,
+            #loadingOverlay,
+            .no-print {
+                display: none !important;
+            }
+
+            /* 결과 영역 표시 */
+            #resultsMain {
+                display: block !important;
+                padding: 0 !important;
+            }
+
+            /* 애니메이션 제거 */
+            .reveal {
+                opacity: 1 !important;
+                transform: none !important;
+                animation: none !important;
+            }
+
+            /* 전체 보고서 축소 → A4 1장 맞춤 */
+            #report-content {
+                zoom: 0.68;
+                max-width: none !important;
+                padding: 0 !important;
+            }
+
+            /* 카드 패딩 축소 */
+            .section-card {
+                padding: 14px !important;
+                margin-bottom: 6px !important;
+                box-shadow: none !important;
+                border-radius: 10px !important;
+            }
+            .verdict-banner {
+                padding: 14px 18px !important;
+                margin-bottom: 8px !important;
+            }
+            .stat-card {
+                padding: 10px !important;
+            }
+            .section-sub {
+                margin-bottom: 8px !important;
+            }
+
+            /* 페이지 나눔 방지 */
+            .section-card,
+            .verdict-banner,
+            .patent-row {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
     </style>
 </head>
 
@@ -293,10 +363,10 @@
          RESULTS MAIN
     ══════════════════════════════════════ -->
     <main id="resultsMain" class="pt-24 pb-24" style="display:none;">
-        <div class="max-w-5xl mx-auto px-6">
+        <div class="max-w-5xl mx-auto px-6" id="report-content">
 
             <!-- Breadcrumb -->
-            <div class="flex items-center gap-2 text-sm text-neutral-500 mb-8 reveal">
+            <div class="flex items-center gap-2 text-sm text-neutral-500 mb-8 reveal no-print">
                 <a href="index.html" class="hover:text-primary transition-colors">홈</a>
                 <span class="text-neutral-300">/</span>
                 <a href="analysis.html" class="hover:text-primary transition-colors">분석 입력</a>
@@ -412,7 +482,7 @@
             </div>
 
             <!-- ── 7. Action Buttons ── -->
-            <div class="flex flex-wrap gap-3 justify-center mt-8 reveal">
+            <div class="flex flex-wrap gap-3 justify-center mt-8 reveal no-print">
                 <button
                     onclick="window.location.href='graph-rag.html'"
                     class="px-6 py-3 bg-white hover:bg-neutral-50 border border-neutral-200 hover:border-primary rounded-xl text-neutral-700 hover:text-primary font-semibold transition-all shadow-sm hover:shadow-md inline-flex items-center gap-2 text-sm"
@@ -623,12 +693,53 @@
         `).join('');
     }
 
-    function downloadPDF() {
-        if (typeof Toast !== 'undefined') {
-            Toast.info('PDF 생성 중...');
-            setTimeout(() => Toast.success('PDF 다운로드 완료!'), 1500);
-        } else {
-            alert('PDF 다운로드 기능은 실제 서비스에서 이용 가능합니다.');
+    async function downloadPDF() {
+        if (typeof Toast !== 'undefined') Toast.info('PDF 생성 중...');
+
+        // 캡처 전 no-print 요소 숨김
+        const noPrintEls = document.querySelectorAll('.no-print');
+        noPrintEls.forEach(el => { el._prevDisplay = el.style.display; el.style.display = 'none'; });
+
+        const content = document.getElementById('report-content');
+
+        try {
+            const canvas = await html2canvas(content, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#fafafa',
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+            const pageW = pdf.internal.pageSize.getWidth();   // 210mm
+            const pageH = pdf.internal.pageSize.getHeight();  // 297mm
+            const margin = 8;
+            const availW = pageW - margin * 2;
+            const availH = pageH - margin * 2;
+
+            const naturalH = (canvas.height / canvas.width) * availW;
+
+            let x = margin, y = margin, w = availW, h = naturalH;
+            if (naturalH > availH) {
+                // 콘텐츠가 1장을 초과할 경우 → 비율 유지하며 1장에 맞춤
+                const fitScale = availH / naturalH;
+                w = availW * fitScale;
+                h = availH;
+                x = margin + (availW - w) / 2;
+            }
+
+            pdf.addImage(imgData, 'JPEG', x, y, w, h);
+            pdf.save('FTO_분석결과.pdf');
+            if (typeof Toast !== 'undefined') Toast.success('PDF 다운로드 완료!');
+        } catch (err) {
+            console.error(err);
+            if (typeof Toast !== 'undefined') Toast.error('PDF 생성에 실패했습니다.');
+        } finally {
+            // no-print 요소 복원
+            noPrintEls.forEach(el => { el.style.display = el._prevDisplay || ''; delete el._prevDisplay; });
         }
     }
 
