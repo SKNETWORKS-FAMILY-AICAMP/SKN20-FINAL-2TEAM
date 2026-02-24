@@ -1,0 +1,4 @@
+2026-02-24 12:40:14.959 | INFO     | __main__:main:173 - === 다중 모델 비교: qwen1.5b_ft vs qwen3b_ft vs qwen7b_ft vs qwen14b_ft ===
+2026-02-24 12:40:16.072 | INFO     | __main__:main:178 - qwen1.5b_ft: 4317건
+2026-02-24 12:40:17.101 | INFO     | __main__:main:178 - qwen3b_ft: 4317건
+2026-02-24 12:40:17.935 | INFO     | __main__:main:178 - qwen7b_ft: 4317건

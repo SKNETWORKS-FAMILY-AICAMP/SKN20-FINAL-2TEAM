@@ -12,8 +12,9 @@ output/
 ├── s2_1.5b_ft_vs_3b_b/             # Stage 2: 1.5B FT vs 3B Base (4,317건 테스트)
 ├── s3_3b_ft_vs_7b_b/               # Stage 3: 3B FT vs 7B Base (4,317건 테스트)
 ├── s4_7b_ft_4096_vs_over4096/      # Stage 4: 7B FT 장문 성능 비교
-├── s5_7b_ft_vs_14b_b/              # Stage 5: 7B FT vs 14B Base (대기중)
-└── README.md
+├── s5_7b_ft_vs_14b_b/              # Stage 5: 7B FT vs 14B Base
+├── s6_ft_all/                      # Stage 6: FT 모델 전체 비교 (1.5B/3B/7B/14B)
+└── test_result.md
 ```
 
 ---
@@ -107,28 +108,50 @@ output/
 ## Stage 5: `s5_7b_ft_vs_14b_b/`
 
 **목적**: 파인튜닝 7B가 베이스 14B를 이길 수 있는가?
-**상태**: 팀원 14B 추론 대기중
+**테스트 데이터**: `sllm_test.xlsx` (4,317건)
 
-**실행 방법** (RunPod, A6000 48GB 이상):
-```bash
-cd /root/SKN20-FINAL-2TEAM/SLLM_model/sllm_smalltrain_dj/eval
-export HF_HOME=/workspace/.cache/huggingface
-python 01_infer_vllm_v2.py --model_path Qwen/Qwen2.5-14B-Instruct --model_name qwen14b_base --test_data ../../data/sllm_qwen_data/sllm_test.xlsx
-```
+| 파일 | 설명 |
+|------|------|
+| `infer_qwen7b_ft.xlsx` | Qwen 7B FT 추론 결과 |
+| `infer_qwen14b_base.xlsx` | Qwen 14B Base 추론 결과 |
+| `eval_detail_qwen7b_ft.xlsx` | Qwen 7B FT 평가 상세 |
+| `eval_detail_qwen14b_base.xlsx` | Qwen 14B Base 평가 상세 |
+| `eval_summary_7b_ft_vs_14b_base.md` | 7B FT vs 14B Base 비교 결과 |
 
-**예상 파일**:
-- `infer_qwen14b_base.xlsx`
-- `eval_detail_qwen14b_base.xlsx`
-- 7B FT eval_detail은 s4에서 복사 필요
+**학습 정보**:
+- FT 모델: `77eileen/qwen2.5-7b-patent-fto` (17,377건 학습)
+- Base 모델: `Qwen/Qwen2.5-14B-Instruct`
+- RunPod A100 PCIe 사용
+
+---
+
+## Stage 6: `s6_ft_all/`
+
+**목적**: 파인튜닝 모델 크기별 성능 비교 (1.5B / 3B / 7B / 14B)
+**테스트 데이터**: `sllm_test.xlsx` (4,317건)
+
+| 파일 | 설명 |
+|------|------|
+| `infer_qwen14b_ft.xlsx` | Qwen 14B FT 추론 결과 |
+| `eval_detail_qwen14b_ft.xlsx` | Qwen 14B FT 평가 상세 |
+| `eval_summary_7b_ft_vs_14b_ft.md` | 7B FT vs 14B FT 비교 |
+| `eval_summary_ft_all.md` | 1.5B/3B/7B/14B FT 전체 비교 |
+
+**학습 정보**:
+- 1.5B FT: `77eileen/qwen2.5-1.5b-patent-fto`
+- 3B FT: `itsbini/qwen2.5-3b-fto`
+- 7B FT: `77eileen/qwen2.5-7b-patent-fto`
+- 14B FT: `itsbini/qwen2.5-14b-fto`
 
 ---
 
 ## 실험 전체 흐름
 
 ```
-학습 규모 증가 →  2,869건(s1)  →  17,377건(s2~s5)
+학습 규모 증가 →  2,869건(s1)  →  17,377건(s2~s6)
 모델 크기 비교 →  1B vs 1.5B(s1) → 1.5B vs 3B(s2) → 3B vs 7B(s3) → 7B vs 14B(s5)
 장문 성능 검증 →  s4 (4096이하 vs 4096초과)
+FT 모델 종합  →  s6 (1.5B/3B/7B/14B FT 전체 비교)
 ```
 
 **핵심 질문**: "작은 모델을 파인튜닝하면 한 단계 위 베이스 모델을 이길 수 있는가?"
@@ -138,16 +161,22 @@ python 01_infer_vllm_v2.py --model_path Qwen/Qwen2.5-14B-Instruct --model_name q
 ## 평가 스크립트
 
 ```bash
-# 추론
+# 추론 (vLLM, GPU 필요)
 python 01_infer_vllm_v2.py --model_path <모델경로|HF_repo> --model_name <이름> --test_data <테스트파일>
+
+# 추론 (Gemini API, GPU 불필요)
+python 01_infer_gemini.py --model gemini-2.5-pro-preview-05-06 --model_name gemini25pro
 
 # 개별 평가
 python 02_evaluate.py --input output/<infer파일> --model_name <이름>
 
 # 두 모델 비교 (주의: eval_summary.md 덮어쓰기됨 → 수동 rename 필요)
 python 03_compare.py --model_a output/<eval_detail_A> --model_b output/<eval_detail_B>
+
+# 다중 모델 비교
+python 04_compare_multi.py --models <파일1> <파일2> <파일3> --names <이름1> <이름2> <이름3> --output <출력경로>
 ```
 
 ---
 
-*최종 업데이트: 2026-02-23*
+*최종 업데이트: 2026-02-24*
