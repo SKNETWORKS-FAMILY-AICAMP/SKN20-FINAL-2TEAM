@@ -1,9 +1,0 @@
-2026-02-19 07:22:37.661 | INFO     | __main__:main:156 - ============================================================
-2026-02-19 07:22:37.661 | INFO     | __main__:main:157 - 모델: Qwen/Qwen2.5-7B-Instruct
-2026-02-19 07:22:37.661 | INFO     | __main__:main:158 - 출력 경로: /root/SKN20-FINAL-2TEAM/SLLM_model/outputs/qwen2.5-7b
-2026-02-19 07:22:37.662 | INFO     | __main__:main:159 - epochs=2, batch_size=2, lr=3e-05
-2026-02-19 07:22:37.662 | INFO     | __main__:main:160 - ============================================================
-2026-02-19 07:22:42.382 | INFO     | __main__:load_sft_data:129 - 데이터 로드: 17377건 (/root/SKN20-FINAL-2TEAM/SLLM_model/data/sllm_qwen_data/sllm_train.xlsx)
-2026-02-19 07:22:45.062 | INFO     | __main__:load_sft_data:145 - 유효 샘플: 17377건
-2026-02-19 07:22:47.386 | INFO     | __main__:load_sft_data:129 - 데이터 로드: 4317건 (/root/SKN20-FINAL-2TEAM/SLLM_model/data/sllm_qwen_data/sllm_test.xlsx)
-2026-02-19 07:22:48.070 | INFO     | __main__:load_sft_data:145 - 유효 샘플: 4317건

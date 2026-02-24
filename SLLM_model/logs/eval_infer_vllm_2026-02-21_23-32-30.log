@@ -1,6 +1,0 @@
-2026-02-21 23:32:30.183 | INFO     | __main__:main:102 - === 모델 추론 (vLLM): qwen7b_base ===
-2026-02-21 23:32:30.183 | INFO     | __main__:main:125 - 머지 모델 로드: Qwen/Qwen2.5-7B-Instruct
-2026-02-21 23:33:49.363 | INFO     | __main__:main:143 - 테스트: 4317건
-2026-02-21 23:33:50.249 | INFO     | __main__:main:156 - vLLM 배치 추론 시작 (4317건)
-2026-02-21 23:52:51.441 | INFO     | __main__:main:160 - 추론 완료: 4317건
-2026-02-21 23:52:55.764 | SUCCESS  | __main__:main:168 - 추론 완료! 저장: output/infer_qwen7b_base.xlsx

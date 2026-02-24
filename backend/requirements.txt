@@ -18,10 +18,8 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 email-validator==2.1.0
 
-# ML/AI (sLLM 연동용)
-torch>=2.0.0
-transformers>=4.36.0
-peft>=0.7.0
+# ML/AI (HuggingFace API 사용)
+huggingface_hub>=0.20.0
 
 # Utils
 python-dotenv==1.0.0

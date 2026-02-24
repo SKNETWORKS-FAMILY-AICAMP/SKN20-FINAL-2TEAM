@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
 
-    # 모델 설정
-    SLLM_MODEL_PATH: str = "../SLLM_model/outputs/gemma3-1b-v2"
+    # 모델 설정 (HuggingFace API 사용)
+    HF_MODEL_ID: str = "itsbini/qwen2.5-14b-fto"
 
     # 개발 모드 (배포 시 False로 변경!)
     DEV_BYPASS_AUTH: bool = True
