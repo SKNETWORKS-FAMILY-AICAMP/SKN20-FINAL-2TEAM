@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+
+    <title>디자인 유사성 분석 - FTOGuard</title>
+
+    <style>
+        /* Pretendard 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --primary: #FF6B35;
+            --primary-dark: #E55A2B;
+            --primary-light: #FF8C5A;
+            --primary-bg: rgba(255, 107, 53, 0.06);
+            --primary-bg-hover: rgba(255, 107, 53, 0.10);
+            --primary-border: rgba(255, 107, 53, 0.18);
+        }
+
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+
+        /* 사이드바 */
+        #sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar.sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        #sidebarOpenBtn {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease 0.15s;
+        }
+        #sidebarOpenBtn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 통일 아이콘 버튼 */
+        .icon-btn {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #A3A3A3;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        .icon-btn:hover {
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        /* Session Card */
+        .session-card {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.75rem;
+        }
+        .session-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.08);
+            transform: translateY(-2px);
+        }
+        .session-card.active {
+            background: #FFF5F0;
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.12);
+        }
+
+        /* 스크롤바 */
+        #chatSessions::-webkit-scrollbar { width: 6px; }
+        #chatSessions::-webkit-scrollbar-track { background: transparent; }
+        #chatSessions::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+        #chatSessions::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        #messagesArea::-webkit-scrollbar { width: 6px; }
+        #messagesArea::-webkit-scrollbar-track { background: transparent; }
+        #messagesArea::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+        #messagesArea::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* 타입 뱃지 */
+        .type-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--primary-border);
+            background: var(--primary-bg);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        /* 이미지 프리뷰 */
+        .image-preview-area {
+            margin-bottom: 0.625rem;
+            padding: 0.625rem 0.75rem;
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: 0.75rem;
+        }
+        .image-preview-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .image-preview-item {
+            position: relative;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.5rem;
+            overflow: visible;
+            border: 1px solid var(--primary-border);
+            flex-shrink: 0;
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            display: block;
+        }
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: -0.35rem;
+            right: -0.35rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            padding: 0;
+            line-height: 1;
+            transition: background 0.15s ease;
+            z-index: 1;
+        }
+        .image-preview-item .remove-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* 첨부 버튼 */
+        .attach-btn {
+            width: 2.75rem;
+            height: 2.75rem;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #D4D4D4;
+            border-radius: 0.75rem;
+            background: white;
+            color: #737373;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .attach-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+        .attach-btn.has-files {
+            color: var(--primary);
+            background: var(--primary-bg);
+            border-color: var(--primary);
+        }
+
+        /* 메시지 스타일 */
+        .msg { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .msg.user { flex-direction: row-reverse; }
+
+        .msg-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+        .msg.assistant .msg-avatar {
+            background: var(--primary);
+            color: white;
+        }
+        .msg.user .msg-avatar {
+            background: #10B981;
+            color: white;
+        }
+
+        .msg-content { flex: 1; max-width: 80%; }
+        .msg.user .msg-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 0.875rem 1.125rem;
+            border-radius: 1rem;
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .msg.assistant .msg-bubble {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-top-left-radius: 0.25rem;
+        }
+        .msg.user .msg-bubble {
+            background: var(--primary);
+            color: white;
+            border-top-right-radius: 0.25rem;
+        }
+
+        /* 타이핑 인디케이터 */
+        .typing-indicator { display: flex; gap: 0.25rem; padding: 0.75rem; }
+        .typing-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #A3A3A3;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* 디자인 카드 */
+        .design-card {
+            border: 1px solid #E5E5E5;
+            border-radius: 0.75rem;
+            padding: 0.875rem;
+            margin-bottom: 0.625rem;
+            background: #FAFAFA;
+            transition: box-shadow 0.2s;
+        }
+        .design-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* 리포트 박스 */
+        .report-box {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            background: #FFF7F2;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* 컨텍스트 배너 */
+        .context-banner {
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .context-banner button {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 9999px;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+        .context-banner button:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 검색 이미지 그리드 */
+        .search-images-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .search-image-card {
+            border: 1px solid #E5E5E5;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        .search-image-card img {
+            max-width: 160px;
+            border-radius: 4px;
+        }
+
+        /* 스텝 넘버 */
+        .step-num {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(255, 107, 53, 0.15);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        .step-num.step-1 { background: var(--primary); }
+        .step-num.step-2 { background: var(--primary-light); }
+        .step-num.step-3 { background: var(--primary-dark); }
+        .step-num.step-4 { background: #C2410C; }
+    </style>
+</head>
+
+<body style="background-color: #FFF7F2;">
+    <!-- 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- 사이드바 열기 버튼 -->
+    <button
+        id="sidebarOpenBtn"
+        onclick="toggleSidebar()"
+        class="fixed left-3 top-24 z-50 icon-btn bg-white border border-neutral-200 shadow-md"
+        title="사이드바 열기"
+        style="width: 2rem; height: 2rem;"
+    >
+        <i class="fas fa-chevron-right text-xs"></i>
+    </button>
+
+    <div class="flex h-screen">
+        <!-- 사이드바 -->
+        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col hidden lg:flex fixed left-0 top-20 bottom-0 z-40">
+            <!-- Header -->
+            <div class="p-6 border-b border-neutral-200">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-neutral-900 text-sm font-bold">디자인 분석 기록</h3>
+                    <div class="flex items-center gap-2">
+                        <button onclick="startNewDesignChat()" class="icon-btn" title="새 분석">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                        <button onclick="toggleSidebar()" class="icon-btn" title="사이드바 접기" id="toggleSidebarBtn">
+                            <i class="fas fa-chevron-left text-xs" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+                        <div class="text-2xl font-bold text-black" id="totalCount">0</div>
+                        <div class="text-xs text-neutral-600 mt-1">Total</div>
+                    </div>
+                    <div class="rounded-xl p-4 border" style="background: var(--primary-bg); border-color: var(--primary-border);">
+                        <div class="text-2xl font-bold text-primary" id="sessionStatus">대기</div>
+                        <div class="text-xs text-neutral-600 mt-1">상태</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session List -->
+            <div class="flex-1 overflow-y-auto p-4" id="chatSessions">
+                <div class="text-center py-8">
+                    <div class="w-14 h-14 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-neutral-200">
+                        <i class="fas fa-palette text-xl text-neutral-400"></i>
+                    </div>
+                    <p class="text-neutral-500 text-xs">이미지를 업로드하여<br>디자인 분석을 시작하세요</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 메인 영역 -->
+        <main id="mainContent" class="flex-1 ml-0 lg:ml-72 transition-all duration-300" style="margin-left: 18rem; background-color: #FFF7F2;">
+            <div class="h-screen flex flex-col" style="padding-top: 80px;">
+
+                <!-- 메시지 영역 -->
+                <div class="flex-1 overflow-y-auto p-5" id="messagesArea">
+                    <div class="max-w-4xl mx-auto" id="messagesWrapper">
+
+                        <!-- Welcome -->
+                        <div id="welcomeMessage" class="text-center py-10">
+                            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background: rgba(255, 107, 53, 0.10);">
+                                <i class="fas fa-palette text-2xl text-primary"></i>
+                            </div>
+                            <h1 class="text-xl font-bold text-black mb-2">디자인 유사성 분석</h1>
+                            <p class="text-neutral-500 text-sm mb-6">
+                                제품 이미지를 업로드하면 유사한 등록 디자인을 검색하고<br>FTO 리포트를 생성합니다
+                            </p>
+
+                            <!-- 분석 프로세스 -->
+                            <div class="border rounded-xl p-4 mb-5 max-w-md mx-auto" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04)); border-color: var(--primary-border);">
+                                <p class="text-xs font-bold text-black mb-3 flex items-center justify-center gap-1.5">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                    분석 프로세스
+                                </p>
+                                <div class="flex flex-col gap-2.5 text-left">
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-1"><span>1</span></div>
+                                        <span class="text-xs text-neutral-700">이미지 업로드 &rarr; VLM 형상 분석</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-2"><span>2</span></div>
+                                        <span class="text-xs text-neutral-700">CLIP + ChromaDB &rarr; 유사 디자인 검색</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-3"><span>3</span></div>
+                                        <span class="text-xs text-neutral-700">디자인 선택 &rarr; 상세 비교 분석</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-4"><span>4</span></div>
+                                        <span class="text-xs text-neutral-700">FTO 리포트 생성</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 빠른 시작 -->
+                            <div class="flex justify-center gap-3">
+                                <button onclick="document.getElementById('imageFileInput').click()"
+                                    class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i class="fas fa-upload"></i>
+                                    이미지 업로드
+                                </button>
+                                <button onclick="fillQuery('이 제품과 유사한 디자인을 분석해줘')"
+                                    class="px-5 py-2.5 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-full font-semibold text-sm transition-all">
+                                    <i class="fas fa-comment-dots mr-1"></i>
+                                    질문하기
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 입력 영역 -->
+                <div class="border-t border-neutral-200 bg-white p-6 shadow-sm">
+                    <div class="max-w-4xl mx-auto">
+
+                        <!-- 컨텍스트 배너 -->
+                        <div class="context-banner" id="contextBanner" style="display: none;">
+                            <i class="fas fa-link"></i>
+                            이미지 분석 결과를 기억하고 있어요. 추가 질문을 해보세요!
+                            <button onclick="clearContext()">초기화</button>
+                        </div>
+
+                        <!-- 이미지 프리뷰 -->
+                        <div id="imagePreviewArea" class="image-preview-area" style="display: none;">
+                            <div id="imagePreviewList" class="image-preview-list"></div>
+                        </div>
+
+                        <!-- 입력 행 -->
+                        <div class="flex items-center gap-3">
+                            <!-- 숨겨진 파일 input -->
+                            <input type="file" id="imageFileInput" accept="image/png,image/jpg,image/jpeg,image/webp" style="display: none;" />
+
+                            <!-- 첨부 버튼 -->
+                            <button type="button" id="attachBtn" onclick="triggerFileInput()" class="attach-btn" title="이미지 첨부">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+
+                            <!-- 텍스트 입력 -->
+                            <textarea
+                                id="messageInput"
+                                placeholder="이미지를 첨부하거나 질문을 입력하세요..."
+                                rows="1"
+                                class="flex-1 px-5 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm resize-none"
+                                style="max-height: 120px; min-height: 44px;"
+                            ></textarea>
+
+                            <!-- 전송 버튼 -->
+                            <button id="sendBtn" disabled
+                                class="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                                <i class="fas fa-paper-plane"></i>
+                                전송
+                            </button>
+                        </div>
+
+                        <!-- 힌트 -->
+                        <p class="text-xs text-neutral-400 mt-2 text-center">
+                            <span id="fileName"></span>
+                            Shift + Enter로 줄바꿈 &middot; Enter로 전송
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 개발 환경 인증 우회 -->
+    <script>
+        (function() {
+            const header  = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({ sub: 'dev', exp: Math.floor(Date.now() / 1000) + 86400 * 365 }));
+            const devToken = `${header}.${payload}.dev_signature`;
+            const devUser  = JSON.stringify({ id: 'dev', name: '개발자', email: 'dev@ftoguard.com' });
+            if (!localStorage.getItem('authToken')) {
+                localStorage.setItem('authToken', devToken);
+                localStorage.setItem('user', devUser);
+            }
+        })();
+    </script>
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+    // ==================== 설정 ====================
+    const API_BASE = 'http://localhost:8000/api/analysis';
+
+    // ==================== 상태 ====================
+    let selectedFile = null;
+    let designThreadId = null;
+    let conversationThreadId = null;
+    let imageContextThreadId = null;
+    let sessionCount = 0;
+
+    // ==================== DOM ====================
+    const messagesWrapper = document.getElementById('messagesWrapper');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const imageFileInput = document.getElementById('imageFileInput');
+    const fileNameEl = document.getElementById('fileName');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+
+    // ==================== 파일 첨부 ====================
+    let fileIdCounter = 0;
+    const attachedFiles = [];
+
+    function triggerFileInput() {
+        imageFileInput.click();
+    }
+
+    imageFileInput.addEventListener('change', (e) => {
+        const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+        Array.from(e.target.files).forEach(file => {
+            if (!allowed.includes(file.type)) {
+                if (typeof Toast !== 'undefined') Toast.warning(`${file.name}: png, jpg, webp 형식만 지원합니다`);
+                return;
+            }
+            const dup = attachedFiles.some(item => item.file.name === file.name && item.file.size === file.size);
+            if (dup) return;
+            addImagePreview(file);
+        });
+        e.target.value = '';
+    });
+
+    function addImagePreview(file) {
+        const id = ++fileIdCounter;
+        attachedFiles.push({ id, file });
+        selectedFile = file; // 마지막 파일을 선택 파일로
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const list = document.getElementById('imagePreviewList');
+            const item = document.createElement('div');
+            item.className = 'image-preview-item';
+            item.dataset.fileId = id;
+            item.innerHTML = `
+                <img src="${evt.target.result}" alt="${file.name}" title="${file.name}">
+                <button class="remove-btn" onclick="removeImage(${id})" title="삭제">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            list.appendChild(item);
+            updatePreviewArea();
+            updateSendButton();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage(id) {
+        const idx = attachedFiles.findIndex(item => item.id === id);
+        if (idx !== -1) attachedFiles.splice(idx, 1);
+        const el = document.querySelector(`.image-preview-item[data-file-id="${id}"]`);
+        if (el) el.remove();
+        selectedFile = attachedFiles.length > 0 ? attachedFiles[attachedFiles.length - 1].file : null;
+        updatePreviewArea();
+        updateSendButton();
+    }
+
+    function updatePreviewArea() {
+        const area = document.getElementById('imagePreviewArea');
+        const btn = document.getElementById('attachBtn');
+        const hasFiles = attachedFiles.length > 0;
+        area.style.display = hasFiles ? 'block' : 'none';
+        btn.classList.toggle('has-files', hasFiles);
+        fileNameEl.textContent = hasFiles ? `${attachedFiles.length}개 파일 첨부됨 · ` : '';
+    }
+
+    // ==================== 이벤트 ====================
+
+    messageInput.addEventListener('input', () => {
+        updateSendButton();
+        autoResize();
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendBtn.disabled) handleSend();
+        }
+    });
+
+    sendBtn.addEventListener('click', handleSend);
+
+    function autoResize() {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    }
+
+    function updateSendButton() {
+        sendBtn.disabled = attachedFiles.length === 0 && !messageInput.value.trim();
+    }
+
+    function fillQuery(text) {
+        messageInput.value = text;
+        updateSendButton();
+        messageInput.focus();
+    }
+
+    // ==================== 메인 전송 ====================
+
+    async function handleSend() {
+        if (attachedFiles.length > 0) {
+            await handleImageAnalysis();
+        } else if (messageInput.value.trim()) {
+            await handleTextChat();
+        }
+    }
+
+    // ==================== 1단계: 이미지 분석 ====================
+
+    async function handleImageAnalysis() {
+        const query = messageInput.value.trim() || '이 제품과 유사한 디자인을 분석해줘';
+        const file = attachedFiles[0].file; // 첫 번째 파일 사용
+
+        // 이전 컨텍스트 초기화
+        imageContextThreadId = null;
+        conversationThreadId = null;
+        hideContextBanner();
+
+        if (welcomeMessage) welcomeMessage.remove();
+
+        // 사용자 메시지 표시
+        addUserMessage(query, file);
+        setStatus('분석 중');
+        addLoadingMessage();
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('user_query', query);
+
+        // 입력 초기화
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        attachedFiles.length = 0;
+        selectedFile = null;
+        document.getElementById('imagePreviewList').innerHTML = '';
+        updatePreviewArea();
+        updateSendButton();
+
+        try {
+            const response = await fetch(`${API_BASE}/design/image`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            removeLoadingMessage();
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                designThreadId = result.thread_id;
+                addAnalysisResultMessage(result);
+                setStatus('선택 대기');
+                sessionCount++;
+                updateTotalCount();
+            } else {
+                addBotMessage('분석 중 오류가 발생했습니다.');
+                setStatus('오류');
+            }
+        } catch (error) {
+            removeLoadingMessage();
+            addBotMessage(`오류: ${error.message}`);
+            setStatus('오류');
+        }
+    }
+
+    // ==================== 2단계: 디자인 선택 ====================
+
+    async function selectDesign(index) {
+        if (!designThreadId) return;
+
+        document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = true);
+
+        addUserMessage(`#${index} 디자인 상세 비교 요청`);
+        setStatus('상세 비교 중');
+        addLoadingMessage();
+
+        const formData = new FormData();
+        formData.append('thread_id', designThreadId);
+        formData.append('selected_index', index);
+
+        try {
+            const response = await fetch(`${API_BASE}/design/select`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            removeLoadingMessage();
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                addReportMessage(result);
+                imageContextThreadId = designThreadId;
+                designThreadId = null;
+                setStatus('완료');
+                showContextBanner();
+            } else {
+                addBotMessage('상세 비교 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            removeLoadingMessage();
+            addBotMessage(`오류: ${error.message}`);
+        }
+    }
+
+    // ==================== 텍스트 채팅 ====================
+
+    async function handleTextChat() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+
+        if (welcomeMessage) welcomeMessage.remove();
+
+        addUserMessage(text);
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        updateSendButton();
+        setStatus('답변 생성 중');
+        addLoadingMessage();
+
+        const formData = new FormData();
+        formData.append('text_query', text);
+        if (conversationThreadId) formData.append('thread_id', conversationThreadId);
+        if (imageContextThreadId) formData.append('image_thread_id', imageContextThreadId);
+
+        try {
+            const response = await fetch(`${API_BASE}/design/text`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            removeLoadingMessage();
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                conversationThreadId = result.thread_id;
+                addBotMessage(result.answer);
+
+                if (result.search_images && result.search_images.length > 0) {
+                    addSearchImagesMessage(result.search_images);
+                }
+                setStatus('완료');
+            } else {
+                addBotMessage('답변 생성 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            removeLoadingMessage();
+            addBotMessage(`오류: ${error.message}`);
+            setStatus('오류');
+        }
+    }
+
+    // ==================== 메시지 렌더링 ====================
+
+    function addUserMessage(text, file) {
+        const div = document.createElement('div');
+        div.className = 'msg user';
+
+        let imageHtml = '';
+        if (file) {
+            imageHtml = `<img src="${URL.createObjectURL(file)}" alt="업로드 이미지" style="max-width:280px; border-radius:0.75rem; margin-bottom:8px; display:block; border: 1px solid #E5E5E5;" />`;
+        }
+
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-user text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">
+                    ${imageHtml}
+                    ${escapeHtml(text)}
+                </div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addBotMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble" style="white-space:pre-wrap;">${escapeHtml(text)}</div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addAnalysisResultMessage(result) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+
+        let cardsHtml = '';
+        if (result.similar_designs && result.similar_designs.length > 0) {
+            cardsHtml = result.similar_designs.map(d => `
+                <div class="design-card">
+                    <div class="flex gap-3 items-start">
+                        ${d.image_base64
+                            ? `<img src="data:image/jpeg;base64,${d.image_base64}" alt="${escapeHtml(d.article_name)}" style="width:120px; height:90px; object-fit:cover; border-radius:0.5rem; border:1px solid #E5E5E5;" />`
+                            : `<div style="width:120px; height:90px; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3;">No Image</div>`
+                        }
+                        <div class="flex-1">
+                            <div class="font-bold text-sm text-black">#${d.index} ${escapeHtml(d.article_name)}</div>
+                            <div class="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                출원번호: ${escapeHtml(d.application_number)}<br/>
+                                상태: ${escapeHtml(d.admst_stat)}<br/>
+                                유사도: ${d.distance.toFixed(4)}
+                            </div>
+                            <button class="design-select-btn mt-2 px-4 py-1.5 bg-primary hover:bg-primary/90 text-white border-none rounded-lg cursor-pointer text-xs font-semibold transition-all" onclick="selectDesign(${d.index})">
+                                상세 비교
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">
+                    <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-search text-primary mr-1"></i>입력 디자인 분석</h4>
+                    <div style="white-space:pre-wrap; font-size:0.85rem; background:#FFF7F2; padding:0.75rem; border-radius:0.5rem; color:#525252;">${escapeHtml(result.input_analysis || '')}</div>
+                </div>
+                ${cardsHtml ? `
+                <div class="msg-bubble mt-2">
+                    <h4 class="font-bold text-sm text-black mb-1"><i class="fas fa-images text-primary mr-1"></i>유사 디자인 ${result.similar_designs.length}개 발견</h4>
+                    <p class="text-xs text-neutral-500 mb-3">상세 비교할 디자인을 선택하세요:</p>
+                    ${cardsHtml}
+                </div>` : ''}
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addReportMessage(result) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">
+                    <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-file-alt text-primary mr-1"></i>FTO 분석 리포트</h4>
+                    <div class="report-box">${escapeHtml(result.final_report || '리포트 생성 실패')}</div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
+                        새 분석 시작
+                    </button>
+                </div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addSearchImagesMessage(images) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        const imagesHtml = images.map(img => `
+            <div class="search-image-card">
+                <img src="data:image/jpeg;base64,${img.image_base64}" />
+                <p class="text-xs text-neutral-500 mt-1">${escapeHtml(img.application_number)}</p>
+            </div>
+        `).join('');
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">
+                    <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-drafting-compass text-primary mr-1"></i>관련 도면 (${images.length}개)</h4>
+                    <div class="search-images-grid">${imagesHtml}</div>
+                </div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    // ==================== 로딩 ====================
+
+    function addLoadingMessage() {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.id = 'loadingMessage';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                <div class="text-xs text-neutral-400 mt-1">분석 중... (약 10-30초 소요)</div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function removeLoadingMessage() {
+        const el = document.getElementById('loadingMessage');
+        if (el) el.remove();
+    }
+
+    // ==================== 컨텍스트 배너 ====================
+
+    function showContextBanner() {
+        document.getElementById('contextBanner').style.display = 'flex';
+    }
+
+    function hideContextBanner() {
+        document.getElementById('contextBanner').style.display = 'none';
+    }
+
+    function clearContext() {
+        imageContextThreadId = null;
+        conversationThreadId = null;
+        hideContextBanner();
+        if (typeof Toast !== 'undefined') Toast.info('컨텍스트가 초기화되었습니다.');
+    }
+
+    // ==================== 유틸 ====================
+
+    function setStatus(text) {
+        document.getElementById('sessionStatus').textContent = text;
+    }
+
+    function updateTotalCount() {
+        document.getElementById('totalCount').textContent = sessionCount;
+    }
+
+    function scrollToBottom() {
+        const area = document.getElementById('messagesArea');
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return String(str ?? '');
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function startNewDesignChat() {
+        designThreadId = null;
+        conversationThreadId = null;
+        imageContextThreadId = null;
+        selectedFile = null;
+        attachedFiles.length = 0;
+        document.getElementById('imagePreviewList').innerHTML = '';
+        updatePreviewArea();
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        updateSendButton();
+        hideContextBanner();
+        setStatus('대기');
+
+        messagesWrapper.innerHTML = `
+            <div id="welcomeMessage" class="text-center py-10">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background: rgba(255, 107, 53, 0.10);">
+                    <i class="fas fa-palette text-2xl text-primary"></i>
+                </div>
+                <h1 class="text-xl font-bold text-black mb-2">디자인 유사성 분석</h1>
+                <p class="text-neutral-500 text-sm mb-6">
+                    제품 이미지를 업로드하면 유사한 등록 디자인을 검색하고<br>FTO 리포트를 생성합니다
+                </p>
+                <div class="flex justify-center gap-3">
+                    <button onclick="document.getElementById('imageFileInput').click()"
+                        class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                        <i class="fas fa-upload"></i>
+                        이미지 업로드
+                    </button>
+                    <button onclick="fillQuery('이 제품과 유사한 디자인을 분석해줘')"
+                        class="px-5 py-2.5 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-full font-semibold text-sm transition-all">
+                        <i class="fas fa-comment-dots mr-1"></i>
+                        질문하기
+                    </button>
+                </div>
+            </div>
+        `;
+
+        if (typeof Toast !== 'undefined') Toast.success('새 분석을 시작합니다.');
+    }
+
+    // ==================== 사이드바 토글 ====================
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const openBtn = document.getElementById('sidebarOpenBtn');
+
+        sidebar.classList.toggle('sidebar-hidden');
+
+        if (sidebar.classList.contains('sidebar-hidden')) {
+            mainContent.style.marginLeft = '0';
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+            openBtn.classList.add('visible');
+        } else {
+            mainContent.style.marginLeft = '18rem';
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+            openBtn.classList.remove('visible');
+        }
+    }
+    </script>
+</body>
+</html>

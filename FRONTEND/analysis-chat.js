@@ -1,7 +1,12 @@
 // Analysis Chat JavaScript - Workflow Based
 
+const DESIGN_API_BASE = 'http://localhost:8000/api/analysis';
+
 let currentAnalysisId = null;
 let attachedFiles = [];
+let designThreadId = null;         // 디자인 분석 2단계용
+let designConversationId = null;   // 디자인 텍스트 멀티턴용
+let designImageContextId = null;   // 이미지 분석 후 후속 질문용
 let analysisContext = {
     product_name: null,
     main_features: null,
@@ -175,63 +180,278 @@ async function sendAnalysisMessage() {
     }
 }
 
-// Simulate workflow (replace with actual API calls)
+// 실제 API 호출 워크플로우
 async function simulateWorkflow(message, files, hasImages, hasText) {
-    // Show workflow progress
     document.getElementById('workflowProgress').style.display = 'block';
-    
-    // Step 1: Extract keywords
-    await updateWorkflowStep('extract');
-    await sleep(1500);
-    updateAgentProgress('orchestrator', 40, '키워드 추출 완료');
-    
-    // Check if information is sufficient
-    const needsMoreInfo = checkInformationSufficiency(message);
-    
-    if (needsMoreInfo) {
-        removeTypingIndicator();
-        await updateWorkflowStep('extract', false); // Reset
-        addInfoRequestMessage(needsMoreInfo);
-        updateAgentStatus('ready');
-        return;
-    }
-    
-    // Step 2: Vector search
-    await updateWorkflowStep('search');
-    
-    if (hasText) {
-        addAgentActivityCard('text-agent', '텍스트 에이전트', 'Vector DB 검색 중...', 30);
-    }
+
     if (hasImages) {
-        addAgentActivityCard('design-agent', '디자인 에이전트', 'CLIP 임베딩 & 검색 중...', 30);
+        // ===== 디자인 이미지 분석 (실제 API) =====
+        await updateWorkflowStep('extract');
+        addAgentActivityCard('design-agent', '디자인 에이전트', 'VLM 이미지 분석 중...', 20);
+
+        const formData = new FormData();
+        formData.append('image', files[0].file);
+        formData.append('user_query', message || '이 제품과 유사한 디자인을 분석해줘');
+
+        try {
+            await updateWorkflowStep('search');
+            updateAgentProgress('design-agent', 50, 'CLIP + ChromaDB 유사 디자인 검색 중...');
+
+            const response = await fetch(`${DESIGN_API_BASE}/design/image`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            await updateWorkflowStep('analyze');
+            updateAgentProgress('design-agent', 80, '분석 결과 정리 중...');
+
+            await updateWorkflowStep('complete');
+            updateAgentProgress('design-agent', 100, '검색 완료');
+            removeTypingIndicator();
+
+            if (result.success) {
+                designThreadId = result.thread_id;
+                addDesignAnalysisResult(result);
+            } else {
+                addAnalysisMessage('assistant', '디자인 분석 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            removeTypingIndicator();
+            addAnalysisMessage('assistant', `오류: ${error.message}`);
+        }
+
+        updateAgentStatus('complete');
+
+    } else if (hasText) {
+        // ===== 디자인 텍스트 질문 (실제 API) =====
+        await updateWorkflowStep('extract');
+        addAgentActivityCard('text-agent', '텍스트 에이전트', 'LLM + Tools 답변 생성 중...', 30);
+
+        const formData = new FormData();
+        formData.append('text_query', message);
+        if (designConversationId) formData.append('thread_id', designConversationId);
+        if (designImageContextId) formData.append('image_thread_id', designImageContextId);
+
+        try {
+            await updateWorkflowStep('search');
+            updateAgentProgress('text-agent', 60, '검색 및 답변 생성 중...');
+
+            const response = await fetch(`${DESIGN_API_BASE}/design/text`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            await updateWorkflowStep('complete');
+            updateAgentProgress('text-agent', 100, '답변 완료');
+            removeTypingIndicator();
+
+            if (result.success) {
+                designConversationId = result.thread_id;
+                addAnalysisMessage('assistant', result.answer);
+
+                // DB 검색 결과 이미지 표시
+                if (result.search_images && result.search_images.length > 0) {
+                    addDesignSearchImages(result.search_images);
+                }
+            } else {
+                addAnalysisMessage('assistant', '답변 생성 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            removeTypingIndicator();
+            addAnalysisMessage('assistant', `오류: ${error.message}`);
+        }
+
+        updateAgentStatus('complete');
     }
-    
-    await sleep(2000);
-    updateAgentProgress('text-agent', 60, 'Top-K 특허 검색 완료');
-    
-    // Step 3: Analyze with SLLM/VLM
-    await updateWorkflowStep('analyze');
-    updateAgentProgress('text-agent', 80, '위험도 분석 중...');
-    
-    await sleep(2500);
-    
-    // Step 4: Verify results
-    await updateWorkflowStep('verify');
-    updateAgentProgress('text-agent', 95, '결과 검증 중...');
-    
-    await sleep(1500);
-    
-    // Step 5: Complete
-    await updateWorkflowStep('complete');
-    updateAgentProgress('orchestrator', 100, '분석 완료');
-    
-    removeTypingIndicator();
-    
-    // Generate final response
-    const riskLevel = Math.random() > 0.7 ? 'warning' : Math.random() > 0.4 ? 'safe' : 'danger';
-    addFinalAnalysisResult(riskLevel);
-    
-    updateAgentStatus('complete');
+}
+
+// 디자인 선택 → 상세비교 + 리포트 (2단계)
+async function selectDesignForComparison(index) {
+    if (!designThreadId) return;
+
+    // 선택 메시지 표시
+    addAnalysisMessage('user', `#${index} 디자인 상세 비교 요청`);
+
+    // 선택 버튼 비활성화
+    document.querySelectorAll('.design-select-btn').forEach(btn => btn.disabled = true);
+
+    showTypingIndicator();
+    addAgentActivityCard('vlm-agent', 'VLM 비교 에이전트', '두 이미지 상세 비교 중...', 30);
+
+    const formData = new FormData();
+    formData.append('thread_id', designThreadId);
+    formData.append('selected_index', index);
+
+    try {
+        updateAgentProgress('vlm-agent', 60, 'FTO 리포트 생성 중...');
+
+        const response = await fetch(`${DESIGN_API_BASE}/design/select`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        updateAgentProgress('vlm-agent', 100, '리포트 완료');
+        removeTypingIndicator();
+
+        if (result.success) {
+            addDesignReport(result);
+            // 후속 질문을 위해 thread_id 보관
+            designImageContextId = designThreadId;
+            designThreadId = null;
+        } else {
+            addAnalysisMessage('assistant', '상세 비교 중 오류가 발생했습니다.');
+        }
+    } catch (error) {
+        removeTypingIndicator();
+        addAnalysisMessage('assistant', `오류: ${error.message}`);
+    }
+}
+
+// 유사 디자인 검색 결과를 채팅에 표시
+function addDesignAnalysisResult(result) {
+    const messagesWrapper = document.querySelector('.messages-wrapper');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+
+    let html = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                <h4 style="margin-bottom:8px;">입력 디자인 분석</h4>
+                <p style="white-space:pre-wrap; font-size:0.9rem;">${escapeHtml(result.input_analysis || '')}</p>
+            </div>
+    `;
+
+    if (result.similar_designs && result.similar_designs.length > 0) {
+        html += `<div class="message-bubble" style="margin-top:8px;">
+            <h4 style="margin-bottom:8px;">유사 디자인 ${result.similar_designs.length}개 발견</h4>
+            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:12px;">상세 비교할 디자인을 선택하세요:</p>`;
+
+        result.similar_designs.forEach(design => {
+            html += `
+                <div style="border:1px solid var(--border-color, #e2e8f0); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--bg-secondary, #f8fafc);">
+                    <div style="display:flex; gap:12px; align-items:start;">
+                        ${design.image_base64
+                            ? `<img src="data:image/jpeg;base64,${design.image_base64}" style="width:120px; height:90px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;" />`
+                            : `<div style="width:120px; height:90px; background:#e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#94a3b8;">No Image</div>`
+                        }
+                        <div style="flex:1;">
+                            <div style="font-weight:700; font-size:0.9rem;">#${design.index} ${escapeHtml(design.article_name)}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary, #64748b); margin-top:4px;">
+                                출원번호: ${escapeHtml(design.application_number)}<br/>
+                                상태: ${escapeHtml(design.admst_stat)}<br/>
+                                유사도: ${design.distance.toFixed(4)}
+                            </div>
+                            <button class="design-select-btn" onclick="selectDesignForComparison(${design.index})"
+                                style="margin-top:8px; padding:6px 16px; background:var(--color-primary, #3B82F6); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:600;">
+                                상세 비교
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        html += `</div>`;
+    }
+
+    html += `</div>`;
+    messageDiv.innerHTML = html;
+    messagesWrapper.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+// 상세비교 + FTO 리포트 표시
+function addDesignReport(result) {
+    const messagesWrapper = document.querySelector('.messages-wrapper');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                <h4 style="margin-bottom:8px;">FTO 분석 리포트</h4>
+                <div style="white-space:pre-wrap; font-size:0.9rem; line-height:1.6; background:var(--bg-secondary, #fffbeb); padding:12px; border-radius:8px; border-left:4px solid var(--color-primary, #3B82F6);">
+                    ${escapeHtml(result.final_report || '리포트 생성 실패')}
+                </div>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+                <button class="btn-secondary" onclick="startNewAnalysis()" style="padding:8px 16px; border:1px solid var(--border-color, #e2e8f0); border-radius:8px; cursor:pointer; font-size:0.85rem;">
+                    새 분석 시작
+                </button>
+            </div>
+        </div>
+    `;
+
+    messagesWrapper.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+// DB 검색 결과 이미지 표시
+function addDesignSearchImages(images) {
+    const messagesWrapper = document.querySelector('.messages-wrapper');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message assistant';
+
+    let imagesHtml = images.map(img => `
+        <div style="border:1px solid var(--border-color, #e2e8f0); border-radius:8px; padding:8px; text-align:center;">
+            <img src="data:image/jpeg;base64,${img.image_base64}" style="max-width:180px; border-radius:6px;" />
+            <div style="font-size:0.75rem; color:var(--text-secondary, #64748b); margin-top:4px;">
+                ${escapeHtml(img.application_number)}
+            </div>
+        </div>
+    `).join('');
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <div class="message-bubble">
+                <h4 style="margin-bottom:8px;">관련 도면 (${images.length}개)</h4>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    ${imagesHtml}
+                </div>
+            </div>
+        </div>
+    `;
+
+    messagesWrapper.appendChild(messageDiv);
+    scrollToBottom();
 }
 
 // Check information sufficiency

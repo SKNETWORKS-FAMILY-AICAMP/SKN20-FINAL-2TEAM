@@ -423,180 +423,230 @@
 
                 <div class="mb-10">
                     <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">디자인 분석 프로세스</h2>
-                    <p class="text-slate-500">화장품 용기·패키지 이미지를 업로드하면 등록 디자인과 외관을 자동으로 비교합니다.</p>
+                    <p class="text-slate-500">입력 방식에 따라 AI가 최적의 분석 경로를 자동으로 선택합니다.</p>
                 </div>
 
-                <div class="process-timeline">
-
-                    <!-- Step 1 -->
-                    <div class="process-step animate-in animate-delay-100">
-                        <div class="step-number">1</div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">제품 이미지 업로드</h3>
-                            <p class="text-slate-600">
-                                출시 예정인 화장품 용기·패키지의 사진을 업로드합니다.<br>
-                                여러 각도의 사진을 첨부할수록 더 정확한 분석이 가능합니다.
-                            </p>
-                            <div class="grid md:grid-cols-2 gap-4">
-                                <div class="feature-card">
-                                    <h4 class="font-semibold text-slate-900 mb-2">📸 권장 이미지</h4>
-                                    <ul class="text-sm text-slate-600 space-y-1 list-none">
-                                        <li>· 정면·측면·상단 등 다각도 촬영</li>
-                                        <li>· 용기 전체 형태가 잘 보이는 사진</li>
-                                        <li>· PNG, JPG, JPEG, WEBP 형식</li>
-                                    </ul>
-                                </div>
-                                <div class="feature-card">
-                                    <h4 class="font-semibold text-slate-900 mb-2">✍️ 외관 설명 (선택)</h4>
-                                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 leading-relaxed">
-                                        "각진 사각형 토너 병, 투명 유리 재질, 블랙 펌프 헤드"처럼 특징을 함께 입력하면 더욱 정확합니다.
-                                    </div>
-                                </div>
-                            </div>
+                <!-- 두 경로 안내 배너 -->
+                <div class="grid md:grid-cols-2 gap-4 mb-12">
+                    <div class="rounded-2xl p-5 border-2 border-orange-200 bg-orange-50 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-camera text-orange-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 mb-1">📸 사진 입력</p>
+                            <p class="text-sm text-slate-600">제품 이미지를 업로드하면 VLM이 시각적으로 분석하여 유사 디자인을 검색하고 FTO 리포트를 생성합니다.</p>
                         </div>
                     </div>
-
-                    <!-- Step 2 -->
-                    <div class="process-step animate-in animate-delay-200">
-                        <div class="step-number">2</div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">외관 특징 자동 인식</h3>
-                            <p class="text-slate-600">
-                                AI가 업로드된 이미지에서 형태, 색채, 모양, 장식 요소 등 디자인의 핵심 특징을 자동으로 파악합니다.
-                            </p>
-                            <div class="grid md:grid-cols-3 gap-4">
-                                <div class="feature-card text-center">
-                                    <div class="text-2xl mb-2">🔲</div>
-                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">전체 형태</h4>
-                                    <p class="text-xs text-slate-500">원통형, 사각형, 타원형 등 실루엣 분석</p>
-                                </div>
-                                <div class="feature-card text-center">
-                                    <div class="text-2xl mb-2">🎨</div>
-                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">색채·재질</h4>
-                                    <p class="text-xs text-slate-500">표면 색상, 투명도, 재질감 분석</p>
-                                </div>
-                                <div class="feature-card text-center">
-                                    <div class="text-2xl mb-2">✨</div>
-                                    <h4 class="font-semibold text-slate-900 text-sm mb-1">장식 요소</h4>
-                                    <p class="text-xs text-slate-500">패턴, 라인, 캡 형태 등 세부 요소</p>
-                                </div>
-                            </div>
+                    <div class="rounded-2xl p-5 border-2 border-slate-200 bg-slate-50 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-keyboard text-slate-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 mb-1">✍️ 텍스트 입력</p>
+                            <p class="text-sm text-slate-600">질문이나 설명을 입력하면 AI Agent가 의도를 파악하여 이미지 검색, 일반 답변, 웹 검색 중 적절한 도구로 응답합니다.</p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Step 3 -->
-                    <div class="process-step animate-in animate-delay-300">
-                        <div class="step-number">3</div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">등록 디자인 DB 검색</h3>
-                            <p class="text-slate-600">
-                                국내외 등록 디자인 데이터베이스에서 유사한 디자인을 자동으로 검색합니다.<br>
-                                화장품 용기·패키지에 특화된 DB를 활용합니다.
-                            </p>
-                            <div class="grid md:grid-cols-3 gap-4">
-                                <div class="stat-card">
-                                    <div class="stat-number">KIPRIS</div>
-                                    <div class="stat-label">국내 등록 디자인</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">USPTO</div>
-                                    <div class="stat-label">미국 등록 디자인</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">EUIPO</div>
-                                    <div class="stat-label">유럽 등록 디자인</div>
-                                </div>
-                            </div>
+                <!-- ─── 경로 1: 사진 입력 ─── -->
+                <div class="mb-14">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-camera text-white text-xs"></i>
                         </div>
+                        <h3 class="text-lg font-bold text-slate-900">사진 입력 경로</h3>
+                        <div class="flex-1 h-px bg-slate-200"></div>
                     </div>
 
-                    <!-- Step 4 -->
-                    <div class="process-step animate-in">
-                        <div class="step-number">4</div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">외관 유사도 비교</h3>
-                            <p class="text-slate-600">
-                                AI가 내 제품과 유사한 등록 디자인을 나란히 비교하고, 어떤 부분이 얼마나 유사한지 항목별로 분석합니다.
-                            </p>
-                            <div class="feature-card overflow-hidden p-0">
-                                <div class="bg-slate-50 px-4 py-3 border-b border-slate-100">
-                                    <span class="text-sm font-semibold text-slate-700">유사도 비교 항목 예시</span>
-                                </div>
-                                <div class="p-4 space-y-3">
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-slate-700">전체 형태 (실루엣)</span>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div class="h-full bg-red-400 rounded-full" style="width:85%"></div>
-                                            </div>
-                                            <span class="text-red-500 font-semibold text-xs">85% 유사</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-slate-700">캡·뚜껑 형태</span>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div class="h-full bg-yellow-400 rounded-full" style="width:55%"></div>
-                                            </div>
-                                            <span class="text-yellow-600 font-semibold text-xs">55% 유사</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-slate-700">표면 패턴·장식</span>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div class="h-full bg-green-400 rounded-full" style="width:20%"></div>
-                                            </div>
-                                            <span class="text-green-600 font-semibold text-xs">20% 유사</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="process-timeline">
 
-                    <!-- Step 5 -->
-                    <div class="process-step animate-in">
-                        <div class="step-number">5</div>
-                        <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">결과 및 차별화 포인트 제안</h3>
-                            <p class="text-slate-600">
-                                전체 유사도를 종합하여 디자인권 침해 가능성을 판단하고, 안전하게 출시할 수 있는 디자인 변경 방향을 제안합니다.
-                            </p>
+                        <!-- Step 1 -->
+                        <div class="process-step animate-in animate-delay-100">
+                            <div class="step-number">1</div>
                             <div class="space-y-3">
-                                <div class="result-card safe">
-                                    <span class="text-green-600 text-lg">✅</span>
-                                    <div>
-                                        <p class="font-semibold text-green-800 text-sm">침해 가능성이 낮습니다</p>
-                                        <p class="text-green-700 text-xs mt-0.5">기존 등록 디자인과 충분히 구별됩니다. 현재 디자인으로 진행 가능합니다.</p>
+                                <h3 class="text-xl font-bold text-slate-900">사진 업로드</h3>
+                                <p class="text-slate-600">
+                                    출시 예정인 화장품 용기·패키지 사진을 업로드합니다.<br>
+                                    여러 각도의 사진을 첨부할수록 더 정확한 분석이 가능합니다.
+                                </p>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 mb-2">📸 권장 이미지</h4>
+                                        <ul class="text-sm text-slate-600 space-y-1 list-none">
+                                            <li>· 정면·측면·상단 등 다각도 촬영</li>
+                                            <li>· 용기 전체 형태가 잘 보이는 사진</li>
+                                            <li>· PNG, JPG, JPEG, WEBP 형식</li>
+                                        </ul>
                                     </div>
-                                </div>
-                                <div class="result-card warn">
-                                    <span class="text-yellow-600 text-lg">⚠️</span>
-                                    <div>
-                                        <p class="font-semibold text-yellow-800 text-sm">전문가 추가 검토 권고</p>
-                                        <p class="text-yellow-700 text-xs mt-0.5">일부 외관이 유사합니다. 디자인 전문가나 변리사 확인을 권장합니다.</p>
-                                    </div>
-                                </div>
-                                <div class="result-card danger">
-                                    <span class="text-red-600 text-lg">🚨</span>
-                                    <div>
-                                        <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
-                                        <p class="text-red-700 text-xs mt-0.5">등록 디자인과 외관이 매우 유사합니다. AI가 구체적인 차별화 포인트를 제안합니다.</p>
-                                    </div>
-                                </div>
-                                <div class="result-card info">
-                                    <span class="text-blue-600 text-lg">ℹ️</span>
-                                    <div>
-                                        <p class="font-semibold text-blue-800 text-sm">추가 이미지 필요</p>
-                                        <p class="text-blue-700 text-xs mt-0.5">더 명확한 분석을 위해 다른 각도의 이미지를 추가로 업로드해 주세요.</p>
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 mb-2">✍️ 외관 설명 (선택)</h4>
+                                        <div class="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 leading-relaxed">
+                                            "각진 사각형 토너 병, 투명 유리 재질, 블랙 펌프 헤드"처럼 특징을 함께 입력하면 더욱 정확합니다.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Step 2 -->
+                        <div class="process-step animate-in animate-delay-200">
+                            <div class="step-number">2</div>
+                            <div class="space-y-3">
+                                <h3 class="text-xl font-bold text-slate-900">VLM 이미지 분석 → 유사 디자인 10개 반환</h3>
+                                <p class="text-slate-600">
+                                    VLM(Vision Language Model)이 업로드된 사진의 형태·색채·장식 요소를 분석하고,
+                                    등록 디자인 DB에서 가장 유사한 10개를 추출하여 썸네일로 제시합니다.
+                                </p>
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="feature-card text-center">
+                                        <div class="text-2xl mb-2">🔲</div>
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">전체 형태</h4>
+                                        <p class="text-xs text-slate-500">원통형, 사각형, 타원형 등 실루엣 분석</p>
+                                    </div>
+                                    <div class="feature-card text-center">
+                                        <div class="text-2xl mb-2">🎨</div>
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">색채·재질</h4>
+                                        <p class="text-xs text-slate-500">표면 색상, 투명도, 재질감 분석</p>
+                                    </div>
+                                    <div class="feature-card text-center">
+                                        <div class="text-2xl mb-2">✨</div>
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">장식 요소</h4>
+                                        <p class="text-xs text-slate-500">패턴, 라인, 캡 형태 등 세부 요소</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="process-step animate-in animate-delay-300">
+                            <div class="step-number">3</div>
+                            <div class="space-y-3">
+                                <h3 class="text-xl font-bold text-slate-900">유사 디자인 1개 선택</h3>
+                                <p class="text-slate-600">
+                                    반환된 10개의 유사 디자인 중 내 제품과 가장 비슷하다고 판단되는 1개를 선택합니다.
+                                    선택한 디자인이 심층 비교 분석의 기준이 됩니다.
+                                </p>
+                                <div class="feature-card">
+                                    <div class="flex items-center gap-3 text-sm text-slate-600">
+                                        <span class="w-7 h-7 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center flex-shrink-0 text-xs">i</span>
+                                        출원번호, 등록일, 유사도 수치가 함께 표시되어 선택에 참고할 수 있습니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="process-step animate-in">
+                            <div class="step-number">4</div>
+                            <div class="space-y-3">
+                                <h3 class="text-xl font-bold text-slate-900">상세 비교 분석 → FTO 리포트 생성</h3>
+                                <p class="text-slate-600">
+                                    업로드한 사진과 선택한 등록 디자인을 항목별로 정밀 비교하여 침해 가능성을 판단하고,
+                                    차별화 포인트와 회피 방향이 포함된 FTO 리포트를 생성합니다.
+                                </p>
+                                <div class="space-y-3">
+                                    <div class="result-card safe">
+                                        <span class="text-green-600 text-lg">✅</span>
+                                        <div>
+                                            <p class="font-semibold text-green-800 text-sm">침해 가능성이 낮습니다</p>
+                                            <p class="text-green-700 text-xs mt-0.5">기존 등록 디자인과 충분히 구별됩니다. 현재 디자인으로 진행 가능합니다.</p>
+                                        </div>
+                                    </div>
+                                    <div class="result-card warn">
+                                        <span class="text-yellow-600 text-lg">⚠️</span>
+                                        <div>
+                                            <p class="font-semibold text-yellow-800 text-sm">전문가 추가 검토 권고</p>
+                                            <p class="text-yellow-700 text-xs mt-0.5">일부 외관이 유사합니다. 디자인 전문가나 변리사 확인을 권장합니다.</p>
+                                        </div>
+                                    </div>
+                                    <div class="result-card danger">
+                                        <span class="text-red-600 text-lg">🚨</span>
+                                        <div>
+                                            <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
+                                            <p class="text-red-700 text-xs mt-0.5">등록 디자인과 외관이 매우 유사합니다. AI가 구체적인 차별화 포인트를 제안합니다.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ─── 경로 2: 텍스트 입력 ─── -->
+                <div>
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-8 h-8 rounded-full bg-slate-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-keyboard text-white text-xs"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">텍스트 입력 경로</h3>
+                        <div class="flex-1 h-px bg-slate-200"></div>
                     </div>
 
+                    <div class="process-timeline">
+
+                        <!-- Step 1 -->
+                        <div class="process-step animate-in animate-delay-100">
+                            <div class="step-number">1</div>
+                            <div class="space-y-3">
+                                <h3 class="text-xl font-bold text-slate-900">텍스트 입력</h3>
+                                <p class="text-slate-600">
+                                    디자인 검색 요청, 일반 질문, 또는 관련 정보 검색 등 자유롭게 텍스트로 입력합니다.
+                                </p>
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">🔍 이미지 찾기 요청</h4>
+                                        <div class="bg-slate-50 p-2.5 rounded-lg text-xs text-slate-600">"원통형 에센스 병과 유사한 등록 디자인 찾아줘"</div>
+                                    </div>
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">💬 일반 질문</h4>
+                                        <div class="bg-slate-50 p-2.5 rounded-lg text-xs text-slate-600">"디자인권 침해 판단 기준이 뭐야?"</div>
+                                    </div>
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">🌐 웹 검색 요청</h4>
+                                        <div class="bg-slate-50 p-2.5 rounded-lg text-xs text-slate-600">"최근 화장품 용기 디자인 분쟁 사례 찾아줘"</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="process-step animate-in animate-delay-200">
+                            <div class="step-number">2</div>
+                            <div class="space-y-3">
+                                <h3 class="text-xl font-bold text-slate-900">AI Agent 의도 파악 → 적절한 도구로 응답</h3>
+                                <p class="text-slate-600">
+                                    Agent가 입력된 텍스트의 의도를 자동으로 분류하고, 가장 적합한 도구를 선택하여 응답합니다.
+                                </p>
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="feature-card border-orange-200" style="border-color: rgba(255,107,53,0.25);">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-xs">🔍</span>
+                                            <h4 class="font-semibold text-slate-900 text-sm">이미지 검색 도구</h4>
+                                        </div>
+                                        <p class="text-xs text-slate-500">유사 디자인 찾기 요청으로 판단되면 등록 디자인 DB를 검색하여 관련 이미지를 반환합니다.</p>
+                                    </div>
+                                    <div class="feature-card">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs">💬</span>
+                                            <h4 class="font-semibold text-slate-900 text-sm">일반 응답</h4>
+                                        </div>
+                                        <p class="text-xs text-slate-500">디자인권·FTO에 관한 일반 질문이면 AI가 학습된 지식을 바탕으로 직접 답변합니다.</p>
+                                    </div>
+                                    <div class="feature-card">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-xs">🌐</span>
+                                            <h4 class="font-semibold text-slate-900 text-sm">웹 검색 도구</h4>
+                                        </div>
+                                        <p class="text-xs text-slate-500">최신 정보나 외부 사례 검색이 필요하다고 판단되면 웹을 검색하여 관련 내용을 정리해 제공합니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
+
             </div>
 
         </div>

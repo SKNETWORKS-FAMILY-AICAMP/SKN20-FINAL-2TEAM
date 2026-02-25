@@ -146,7 +146,11 @@
             
             // 0.5초 후 페이지 이동
             setTimeout(() => {
-                window.location.href = `analysis.html?type=${type}`;
+                if (type === 'design') {
+                    window.location.href = 'design-chat.html';
+                } else {
+                    window.location.href = `analysis.html?type=${type}`;
+                }
             }, 500);
         }
 

@@ -107,13 +107,31 @@ document.addEventListener("DOMContentLoaded", () => {
 function setActiveNav() {
     const currentPage = location.pathname.split("/").pop() || "index.html";
 
+    // 드롭다운 하위 페이지 → 부모 "리스크 분석" 링크를 active 처리
+    const analysisPages = ["analysis.html", "design-chat.html", "select-analysis-type.html"];
+
     document.querySelectorAll("[data-nav]").forEach(link => {
-        const target = link.getAttribute("data-nav") || link.getAttribute("href");
+        const target = link.getAttribute("data-nav");
 
         link.classList.remove("text-primary", "font-semibold");
 
-        if (target === currentPage) {
+        const isActive = target === currentPage ||
+            (target === "select-analysis-type.html" && analysisPages.includes(currentPage));
+
+        if (isActive) {
             link.classList.add("text-primary", "font-semibold");
+        }
+    });
+
+    // 드롭다운 아이템 active 표시
+    document.querySelectorAll(".dropdown-nav-item").forEach(item => {
+        const href = item.getAttribute("href")?.split("?")[0];
+        item.classList.remove("bg-primary/5", "text-primary");
+        if (href === currentPage) {
+            item.classList.add("bg-primary/5");
+            // 아이콘 컨테이너 강조
+            const iconWrap = item.querySelector(".dropdown-icon-wrap");
+            if (iconWrap) iconWrap.classList.add("ring-1", "ring-primary/30");
         }
     });
 }
@@ -165,7 +183,7 @@ function requireAuth() {
 // API Helper
 // ==========================
 class APIClient {
-    constructor(baseURL = "/api") {
+    constructor(baseURL = "http://localhost:8000/api") {
         this.baseURL = baseURL;
     }
 

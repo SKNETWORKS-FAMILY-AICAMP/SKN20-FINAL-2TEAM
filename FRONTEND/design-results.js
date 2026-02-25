@@ -1,152 +1,7 @@
 // Design Results Page JavaScript
 
-// Mock data for demonstration
-const mockDesignResults = {
-    query_image: '/assets/query-design.jpg',
-    total_count: 12,
-    high_similarity: 3,
-    low_similarity: 9,
-    results: [
-        {
-            id: 1,
-            patent_number: 'KR30-2021-0012345',
-            title: '스마트폰 케이스 디자인',
-            image_url: 'https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=Design+1',
-            similarity_score: 0.94,
-            similarity_level: 'high', // high, medium, low
-            status: 'similar', // similar, not_similar
-            applicant: '삼성전자',
-            filing_date: '2021-03-15'
-        },
-        {
-            id: 2,
-            patent_number: 'KR30-2020-0098765',
-            title: '노트북 외관 디자인',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+2',
-            similarity_score: 0.31,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: 'LG전자',
-            filing_date: '2020-08-22'
-        },
-        {
-            id: 3,
-            patent_number: 'KR30-2022-0045678',
-            title: '태블릿 PC 디자인',
-            image_url: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Design+3',
-            similarity_score: 0.68,
-            similarity_level: 'medium',
-            status: 'similar',
-            applicant: '애플코리아',
-            filing_date: '2022-03-10'
-        },
-        {
-            id: 4,
-            patent_number: 'KR30-2021-0067890',
-            title: '무선 이어폰 케이스',
-            image_url: 'https://via.placeholder.com/400x300/EF4444/FFFFFF?text=Design+4',
-            similarity_score: 0.89,
-            similarity_level: 'high',
-            status: 'similar',
-            applicant: '삼성전자',
-            filing_date: '2021-11-20'
-        },
-        {
-            id: 5,
-            patent_number: 'KR30-2020-0023456',
-            title: '스마트워치 디스플레이',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+5',
-            similarity_score: 0.25,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: '구글코리아',
-            filing_date: '2020-05-15'
-        },
-        {
-            id: 6,
-            patent_number: 'KR30-2022-0012789',
-            title: '게이밍 키보드 디자인',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+6',
-            similarity_score: 0.42,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: '로지텍',
-            filing_date: '2022-01-30'
-        },
-        {
-            id: 7,
-            patent_number: 'KR30-2021-0089012',
-            title: '충전 도킹 스테이션',
-            image_url: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Design+7',
-            similarity_score: 0.72,
-            similarity_level: 'medium',
-            status: 'similar',
-            applicant: '벨킨',
-            filing_date: '2021-12-05'
-        },
-        {
-            id: 8,
-            patent_number: 'KR30-2020-0034567',
-            title: 'USB 허브 디자인',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+8',
-            similarity_score: 0.19,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: '앤커',
-            filing_date: '2020-07-12'
-        },
-        {
-            id: 9,
-            patent_number: 'KR30-2022-0056789',
-            title: '마우스 패드 디자인',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+9',
-            similarity_score: 0.38,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: '레이저',
-            filing_date: '2022-04-20'
-        },
-        {
-            id: 10,
-            patent_number: 'KR30-2021-0045612',
-            title: '모니터 스탠드',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+10',
-            similarity_score: 0.33,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: '델',
-            filing_date: '2021-08-15'
-        },
-        {
-            id: 11,
-            patent_number: 'KR30-2022-0078901',
-            title: '노트북 거치대',
-            image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Design+11',
-            similarity_score: 0.27,
-            similarity_level: 'low',
-            status: 'not_similar',
-            applicant: 'HP',
-            filing_date: '2022-06-10'
-        },
-        {
-            id: 12,
-            patent_number: 'KR30-2021-0012348',
-            title: '스마트폰 거치대',
-            image_url: 'https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=Design+12',
-            similarity_score: 0.91,
-            similarity_level: 'high',
-            status: 'similar',
-            applicant: '소니',
-            filing_date: '2021-02-28'
-        }
-    ],
-    llm_evaluation: {
-        accuracy: 87.3,
-        recall: 91.2,
-        f1_score: 89.1,
-        processing_time: 2.3
-    }
-};
+// localStorage에서 실제 분석 결과를 읽거나, 없으면 빈 상태로 표시
+let designResultsData = null;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
@@ -155,18 +10,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Load design results
 function loadDesignResults() {
-    const data = mockDesignResults;
-    
+    // localStorage에서 디자인 분석 결과 읽기
+    const stored = localStorage.getItem('designAnalysisResult');
+    if (stored) {
+        try {
+            const apiResult = JSON.parse(stored);
+            designResultsData = convertApiResultToPageFormat(apiResult);
+        } catch (e) {
+            console.error('디자인 분석 결과 파싱 실패:', e);
+        }
+    }
+
+    if (!designResultsData) {
+        // 데이터 없으면 안내 메시지
+        const grid = document.getElementById('imageGrid');
+        if (grid) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #64748b;">
+                    <h3>분석 결과가 없습니다</h3>
+                    <p style="margin-top: 8px;">분석 페이지에서 이미지를 업로드하여 디자인 분석을 먼저 수행해주세요.</p>
+                    <a href="design-chat.html" style="display:inline-block; margin-top:16px; padding:10px 24px; background:#FF6B35; color:white; border-radius:8px; text-decoration:none;">디자인 분석 시작</a>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    const data = designResultsData;
+
     // Update summary
-    document.getElementById('totalCount').textContent = `${data.total_count}건`;
-    document.getElementById('highSimilarityCount').textContent = `${data.high_similarity}건`;
-    document.getElementById('lowSimilarityCount').textContent = `${data.low_similarity}건`;
-    
+    const totalEl = document.getElementById('totalCount');
+    const highEl = document.getElementById('highSimilarityCount');
+    const lowEl = document.getElementById('lowSimilarityCount');
+    if (totalEl) totalEl.textContent = `${data.total_count}건`;
+    if (highEl) highEl.textContent = `${data.high_similarity}건`;
+    if (lowEl) lowEl.textContent = `${data.low_similarity}건`;
+
     // Render image grid
     renderImageGrid(data.results);
-    
+
     // Render human validation inputs
     renderHumanValidation(data.results);
+}
+
+// API 응답 형식 → 페이지 표시 형식으로 변환
+function convertApiResultToPageFormat(apiResult) {
+    const designs = apiResult.similar_designs || [];
+    const results = designs.map((d, i) => {
+        const score = 1 - d.distance; // distance → similarity (0~1)
+        const level = score >= 0.7 ? 'high' : score >= 0.4 ? 'medium' : 'low';
+        return {
+            id: d.index || (i + 1),
+            patent_number: d.application_number || 'N/A',
+            title: d.article_name || 'N/A',
+            image_url: d.image_base64 ? `data:image/jpeg;base64,${d.image_base64}` : '',
+            similarity_score: Math.max(0, Math.min(1, score)),
+            similarity_level: level,
+            status: score >= 0.5 ? 'similar' : 'not_similar',
+            applicant: d.admst_stat || 'N/A',
+            filing_date: d.last_disposition_date || '',
+        };
+    });
+
+    const highCount = results.filter(r => r.similarity_level === 'high').length;
+    return {
+        total_count: results.length,
+        high_similarity: highCount,
+        low_similarity: results.length - highCount,
+        input_analysis: apiResult.input_analysis || '',
+        results: results,
+    };
 }
 
 // Render image grid
@@ -330,9 +243,10 @@ function validateHuman(itemId, judgment) {
 
 // Check for mismatches between AI and human
 function checkMismatches() {
+    if (!designResultsData) return;
     const mismatches = [];
-    
-    mockDesignResults.results.forEach(item => {
+
+    designResultsData.results.forEach(item => {
         const humanJudgment = humanValidations[item.id];
         if (humanJudgment && humanJudgment !== item.status) {
             mismatches.push({
@@ -341,7 +255,7 @@ function checkMismatches() {
             });
         }
     });
-    
+
     if (mismatches.length > 0) {
         renderMismatches(mismatches);
     }
@@ -395,10 +309,10 @@ function renderMismatches(mismatches) {
 
 // View details
 function viewDetails(itemId) {
-    const item = mockDesignResults.results.find(r => r.id === itemId);
+    if (!designResultsData) return;
+    const item = designResultsData.results.find(r => r.id === itemId);
     if (item) {
         Toast.info(`${item.patent_number} 상세 정보를 불러오는 중...`);
-        // In production, navigate to detail page or show modal
     }
 }
 
