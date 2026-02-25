@@ -9,11 +9,11 @@ from app.models.patent import Claim, Patent
 from app.config import settings
 
 
-# HuggingFace 모델 ID
+# HuggingFace 모델 ID (Inference API 지원 모델)
 HF_MODELS = {
-    "1.5b": "itsbini/qwen2.5-1.5b-fto",
-    "3b": "itsbini/qwen2.5-3b-fto",
-    "14b": "itsbini/qwen2.5-14b-fto",
+    "llama-3b": "meta-llama/Llama-3.2-3B-Instruct",
+    "mistral-7b": "mistralai/Mistral-7B-Instruct-v0.3",
+    "default": "meta-llama/Llama-3.2-3B-Instruct",
 }
 
 

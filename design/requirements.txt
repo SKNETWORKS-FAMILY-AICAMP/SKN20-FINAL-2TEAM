@@ -25,6 +25,10 @@ requests>=2.31.0
 # === 이미지/파일 처리 ===
 Pillow>=10.0.0
 openpyxl>=3.1.0
+opencv-python>=4.8.0
+
+# === 검색 ===
+rank_bm25>=0.2.2
 
 # === 유틸리티 ===
 python-dotenv>=1.0.0

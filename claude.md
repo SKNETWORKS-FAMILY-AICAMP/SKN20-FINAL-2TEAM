@@ -227,6 +227,133 @@ tar -xzvf chroma_claims.tar.gz -C /data/chroma/claims/
 
 ---
 
+## 🔥 긴급 TODO: LoRA 모델 병합 및 재업로드 (Colab)
+
+> **Claude에게**: 사용자가 Colab에서 이 작업을 요청하면 아래 스크립트 실행해줘.
+
+### 배경
+- 현재 HuggingFace에 업로드된 모델들은 **LoRA 어댑터**임
+- HuggingFace Inference API는 LoRA 어댑터 직접 호출 불가
+- **베이스 모델 + LoRA 어댑터 → 전체 모델로 병합** 후 재업로드 필요
+
+### 대상 모델
+
+| LoRA 어댑터 | 베이스 모델 | 병합 후 업로드 |
+|-------------|-------------|----------------|
+| `itsbini/qwen2.5-1.5b-fto` | `Qwen/Qwen2.5-1.5B-Instruct` | `itsbini/qwen2.5-1.5b-fto-merged` |
+| `itsbini/qwen2.5-3b-fto` | `Qwen/Qwen2.5-3B-Instruct` | `itsbini/qwen2.5-3b-fto-merged` |
+| `itsbini/qwen2.5-14b-fto` | `Qwen/Qwen2.5-14B-Instruct` | `itsbini/qwen2.5-14b-fto-merged` |
+
+### Colab 실행 스크립트 (GPU 필수, A100 권장)
+
+```python
+# 1. 패키지 설치
+!pip install -q transformers peft accelerate bitsandbytes huggingface_hub
+
+# 2. HuggingFace 로그인
+from huggingface_hub import login
+login(token="YOUR_HF_TOKEN_HERE")
+
+# 3. 모델 병합 함수
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+def merge_and_upload(
+    base_model_id: str,
+    adapter_id: str,
+    merged_model_id: str,
+    use_4bit: bool = False
+):
+    print(f"=== {adapter_id} 병합 시작 ===")
+
+    # 베이스 모델 로드
+    print(f"베이스 모델 로드: {base_model_id}")
+    if use_4bit:
+        from transformers import BitsAndBytesConfig
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+        )
+        base_model = AutoModelForCausalLM.from_pretrained(
+            base_model_id,
+            quantization_config=bnb_config,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+    else:
+        base_model = AutoModelForCausalLM.from_pretrained(
+            base_model_id,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            trust_remote_code=True,
+        )
+
+    tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
+
+    # LoRA 어댑터 로드 및 병합
+    print(f"LoRA 어댑터 로드: {adapter_id}")
+    model = PeftModel.from_pretrained(base_model, adapter_id)
+
+    print("모델 병합 중...")
+    merged_model = model.merge_and_unload()
+
+    # HuggingFace에 업로드
+    print(f"업로드 중: {merged_model_id}")
+    merged_model.push_to_hub(merged_model_id, private=False)
+    tokenizer.push_to_hub(merged_model_id)
+
+    print(f"✅ 완료: https://huggingface.co/{merged_model_id}")
+
+    # 메모리 정리
+    del base_model, model, merged_model
+    torch.cuda.empty_cache()
+
+# 4. 실행 (하나씩 순차적으로)
+
+# 1.5B 모델 (Colab 무료 가능)
+merge_and_upload(
+    base_model_id="Qwen/Qwen2.5-1.5B-Instruct",
+    adapter_id="itsbini/qwen2.5-1.5b-fto",
+    merged_model_id="itsbini/qwen2.5-1.5b-fto-merged"
+)
+
+# 3B 모델 (Colab Pro 권장)
+merge_and_upload(
+    base_model_id="Qwen/Qwen2.5-3B-Instruct",
+    adapter_id="itsbini/qwen2.5-3b-fto",
+    merged_model_id="itsbini/qwen2.5-3b-fto-merged"
+)
+
+# 14B 모델 (A100 40GB 필요, 4bit로 로드)
+merge_and_upload(
+    base_model_id="Qwen/Qwen2.5-14B-Instruct",
+    adapter_id="itsbini/qwen2.5-14b-fto",
+    merged_model_id="itsbini/qwen2.5-14b-fto-merged",
+    use_4bit=True  # VRAM 부족 시
+)
+```
+
+### 병합 후 백엔드 설정 업데이트
+
+병합 완료 후 `backend/app/services/text_analyzer.py` 수정:
+
+```python
+HF_MODELS = {
+    "1.5b": "itsbini/qwen2.5-1.5b-fto-merged",
+    "3b": "itsbini/qwen2.5-3b-fto-merged",
+    "14b": "itsbini/qwen2.5-14b-fto-merged",
+}
+```
+
+### HuggingFace 토큰 (Inference 권한 포함)
+```
+YOUR_HF_TOKEN_HERE
+```
+
+---
+
 ## 팀 정보
 
 - GitHub: https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN20-FINAL-2TEAM
