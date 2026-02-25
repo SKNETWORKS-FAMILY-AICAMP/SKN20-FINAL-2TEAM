@@ -10,7 +10,7 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://admin:rmdak20!@fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com:3306/fto
       SECRET_KEY: your-secret-key-change-in-production
-      HF_TOKEN: ${HF_TOKEN:-your_huggingface_token_here}
+      HF_TOKEN: ${HF_TOKEN:-YOUR_HF_TOKEN_HERE}
     ports:
       - "8000:8000"
     restart: unless-stopped
