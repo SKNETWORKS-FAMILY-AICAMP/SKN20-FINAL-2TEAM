@@ -80,7 +80,17 @@ load_dotenv()
 
 # ==================== LLM & ChromaDB 초기화 ====================
 
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+# sLLM: 텍스트 전용 (리포트 생성 / 일반 질문)
+llm = ChatOpenAI(
+    model="fto",
+    openai_api_base="http://localhost:8000/v1",
+    openai_api_key="EMPTY",
+    temperature=0,
+)
+
+# VLM: 이미지 분석/비교 노드 전용 (비전 미지원 → GPT-4o 유지)
+llm_vision = ChatOpenAI(model="gpt-4o", temperature=0)
+
 output_parser = StrOutputParser()
 
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
@@ -199,7 +209,7 @@ def route_by_type(state: GraphState) -> str:
 # ===== 이미지 경로: VLM 분석 + 벡터 검색 =====
 
 def analyze_image_node(state: GraphState) -> GraphState:
-    """이미지를 VLM(GPT-4O)으로 형상 분석"""
+    """이미지를 VLM으로 형상 분석"""
     print("[VLM분석] 입력 이미지 분석 중 ~")
 
     # 이미지 → base64
@@ -208,7 +218,7 @@ def analyze_image_node(state: GraphState) -> GraphState:
     url = f"data:image/jpeg;base64,{b64}"
 
     # VLM 분석 (IMAGE_ANALYSIS_PROMPT 사용)
-    chain = IMAGE_ANALYSIS_PROMPT | llm | output_parser
+    chain = IMAGE_ANALYSIS_PROMPT | llm_vision | output_parser
     analysis = chain.invoke({"image_url": url}) # vlm 분석 결과가 나올것
 
     # 상태 update
@@ -314,7 +324,7 @@ def detailed_compare_node(state: GraphState) -> GraphState:
     comp_url = f"data:image/jpeg;base64,{b64}"
 
     # 두 이미지 VLM 비교 (IMAGE_COMPARISON_PROMPT 사용)
-    chain = IMAGE_COMPARISON_PROMPT | llm | output_parser
+    chain = IMAGE_COMPARISON_PROMPT | llm_vision | output_parser
     result = chain.invoke({
         "input_image_url": state['base64_image'], # 입력 이미지
         "comparison_image_url": comp_url # 비교 대상 이미지
