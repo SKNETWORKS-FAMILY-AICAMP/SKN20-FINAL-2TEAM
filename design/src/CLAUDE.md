@@ -3,20 +3,23 @@
 ## 개요
 
 기존 `design_chatbot.py`에서 사용하던 OpenAI GPT-4o를 팀이 직접 학습시킨 sLLM으로 교체한다.
-- **모델**: `itsbini/qwen2.5-14b-fto` (HuggingFace)
+- **모델**: `Qwen/Qwen2.5-VL-7B-Instruct` (HuggingFace)
 - **서빙**: vLLM OpenAI-compatible server
 - **목적**: 비용 절감 + 자체 호스팅
+- **비고**: Qwen2.5-VL-7B은 Vision-Language 모델로, 텍스트와 이미지 입력을 단일 모델로 처리 가능 (dual-LLM 구조 불필요)
 
 ---
 
 ## 1. vLLM 서버 실행
 
 ```bash
-vllm serve "itsbini/qwen2.5-14b-fto" \
+vllm serve "Qwen/Qwen2.5-VL-7B-Instruct" \
   --host 0.0.0.0 \
   --port 8000 \
   --dtype auto \
-  --max-model-len 8192
+  --max-model-len 8192 \
+  --enable-auto-tool-choice \
+  --tool-call-parser hermes
 ```
 
 서버가 뜨면 `http://localhost:8000/v1` 엔드포인트로 OpenAI API 형식 요청이 가능하다.
@@ -44,7 +47,7 @@ llm = ChatOpenAI(model="gpt-4o", temperature=0)
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="itsbini/qwen2.5-14b-fto",
+    model="Qwen/Qwen2.5-VL-7B-Instruct",
     openai_api_base="http://localhost:8000/v1",
     openai_api_key="EMPTY",          # vLLM은 key 불필요, 빈 문자열 아무거나 넣으면 됨
     temperature=0,
@@ -59,41 +62,28 @@ llm = ChatOpenAI(
 llm_with_tools = llm.bind_tools(tools)
 ```
 
-Qwen2.5는 tool calling을 지원하지만, vLLM 서빙 시 `--enable-auto-tool-choice` 플래그가 필요할 수 있다.
-
-```bash
-vllm serve "itsbini/qwen2.5-14b-fto" \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --dtype auto \
-  --max-model-len 8192 \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes   # Qwen2.5는 hermes parser 사용
-```
+Qwen2.5-VL은 tool calling을 지원하며, vLLM 서빙 시 `--enable-auto-tool-choice` 플래그가 필요하다. (서버 실행 명령에 이미 포함됨)
 
 tool calling이 제대로 작동하지 않는다면 `general_question_node`의 `response.tool_calls` 분기를 테스트해볼 것.
 
-### 2-3. VLM 노드 주의사항 (이미지 입력)
+### 2-3. VLM 노드 (이미지 입력)
 
 `analyze_image_node`와 `detailed_compare_node`는 base64 이미지를 LLM에 직접 넘긴다.
-`itsbini/qwen2.5-14b-fto`가 **비전 기능을 지원하는지 확인** 필요.
+`Qwen2.5-VL-7B-Instruct`는 **Vision-Language 모델**이므로 이미지 입력을 네이티브로 지원한다.
 
-- 지원한다면 → 코드 변경 없이 그대로 동작
-- 지원하지 않는다면 → VLM 노드(`analyze_image_node`, `detailed_compare_node`)에만 별도 비전 모델(예: GPT-4o-mini 또는 별도 VLM 서버)을 사용하는 **dual-LLM 구조**로 분리해야 함
+→ **기존 VLM 노드 코드 변경 없이 그대로 동작**, dual-LLM 구조 불필요.
 
 ```python
-# dual-LLM 구조 예시
-llm_text = ChatOpenAI(
-    model="itsbini/qwen2.5-14b-fto",
+# 단일 LLM으로 텍스트 + 이미지 모두 처리 가능
+llm = ChatOpenAI(
+    model="Qwen/Qwen2.5-VL-7B-Instruct",
     openai_api_base="http://localhost:8000/v1",
     openai_api_key="EMPTY",
     temperature=0,
 )
 
-llm_vision = ChatOpenAI(model="gpt-4o-mini", temperature=0)  # 비전 전용
-
-# analyze_image_node, detailed_compare_node → llm_vision 사용
-# general_question_node, generate_report_node → llm_text 사용
+# analyze_image_node, detailed_compare_node, general_question_node, generate_report_node
+# → 모두 동일한 llm 인스턴스 사용
 ```
 
 ---
@@ -117,7 +107,7 @@ import os
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="itsbini/qwen2.5-14b-fto",
+    model="Qwen/Qwen2.5-VL-7B-Instruct",
     openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
     openai_api_key="EMPTY",
     temperature=0,
@@ -130,11 +120,11 @@ llm = ChatOpenAI(
 
 | 항목 | 상태 | 비고 |
 |---|---|---|
-| `llm` 초기화 교체 | ☐ | `openai_api_base` 변경 |
-| vLLM 서버 실행 | ☐ | `--enable-auto-tool-choice --tool-call-parser hermes` 포함 |
-| tool calling 동작 확인 | ☐ | `general_question_node` 테스트 |
-| 비전 기능 지원 여부 확인 | ☐ | VLM 노드 분리 여부 결정 |
-| `.env` 업데이트 | ☐ | `VLLM_API_BASE` 추가 |
+| `llm` 초기화 교체 | ☑ | `openai_api_base` 변경, 단일 llm 인스턴스로 통합 |
+| vLLM 서버 실행 | ☑ | `--enable-auto-tool-choice --tool-call-parser hermes` 포함 |
+| tool calling 동작 확인 | ☑ | `general_question_node` 테스트 |
+| 비전 기능 동작 확인 | ☑ | VLM 노드(이미지 입력) 테스트 — dual-LLM 구조 제거 |
+| `.env` 업데이트 | ☑ | `VLLM_API_BASE` 추가 |
 | 프롬프트 튜닝 | ☐ | 모델 변경 시 프롬프트 응답 품질 재검증 |
 
 ---
@@ -151,5 +141,9 @@ print(result['general_answer'])
 
 # DB 검색 tool 테스트
 result = run_chatbot(text_query="둥근 펌프 용기 디자인 찾아줘")
+print(result['general_answer'])
+
+# 이미지 입력 테스트 (VLM 노드)
+result = run_chatbot(image_path="test_image.jpg")
 print(result['general_answer'])
 ```
