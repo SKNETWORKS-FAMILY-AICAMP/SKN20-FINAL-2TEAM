@@ -183,7 +183,7 @@ function requireAuth() {
 // API Helper
 // ==========================
 class APIClient {
-    constructor(baseURL = "http://localhost:8000/api") {
+    constructor(baseURL = "/api") {
         this.baseURL = baseURL;
     }
 
@@ -213,6 +213,23 @@ class APIClient {
         return this.request(endpoint, {
             method: "POST",
             body: JSON.stringify(data),
+        });
+    }
+
+    postForm(endpoint, formData) {
+        const token = authManager.getToken();
+        return fetch(`${this.baseURL}${endpoint}`, {
+            method: "POST",
+            headers: {
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: formData,
+        }).then(async (res) => {
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || res.statusText);
+            }
+            return res.json();
         });
     }
 }

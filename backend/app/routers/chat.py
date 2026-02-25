@@ -1,17 +1,51 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
+from openai import OpenAI
+import os
 
 from app.database import get_db
 from app.schemas.chat import ChatCreate, ChatResponse, ChatListResponse, MessageCreate, MessageResponse
 from app.services.chat_service import ChatService
 from app.services.auth_service import AuthService
-from app.services.text_analyzer import TextAnalyzerService
 from app.models.user import User
-from app.utils.response_formatter import format_response
 
 router = APIRouter()
+
+# vLLM 클라이언트
+VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
+VLLM_MODEL = os.getenv("VLLM_MODEL", "/workspace/qwen2.5-14b-fto-merged")
+
+SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
+
+[문구 규칙]
+- "판단"이라는 단어 사용 금지 → "분석"으로 대체
+- "리스크" 사용 금지 → "가능성"으로 대체
+
+[분석 규칙]
+- 구성요소 완비의 원칙: 모든 구성요소를 포함해야 침해
+- 균등론: 특허 구성 수치가 경미하게 이탈 시 전문가 검토 대상
+- 금반언: 공개청구항에는 있었지만, 등록청구항에는 삭제된 구성은 침해 주장 불가
+- 내재성: 성분 동일 + 용도/효과 미언급 시 "미대응(내재성)"
+
+[대응 여부]
+- 대응: 동일/포함
+- 미대응: 해당 구성 없음
+- 미대응(균등): 수치 경미 이탈
+- 미대응(내재성): 용도/효과 미언급
+- 확인불가: 정보 부족
+
+[출력 형식]
+◆구성 대비◆ → 테이블
+◆분석◆ → 분석 설명 (결론성 문구 금지)
+◆결론◆ → 아래 4개 중 하나만:
+- "침해 가능성이 높은 것으로 분석됩니다."
+- "침해 가능성이 낮은 것으로 분석됩니다."
+- "전문가의 추가 검토가 권고됩니다."
+- "침해 여부 분석을 위해 보다 구체적인 실시 정보가 필요합니다."
+
+사용자가 제품 설명을 하면 FTO 분석에 필요한 정보를 대화로 수집하고, 특허 청구항이 제공되면 침해 분석을 수행하세요."""
 
 
 # ==================== 프론트엔드용 스키마 ====================
@@ -120,77 +154,68 @@ async def add_message(
 
 @router.post("/message", response_model=ChatMessageResponse)
 async def send_chat_message(
-    request: ChatMessageRequest,
+    message: str = Form(""),
+    session_id: Optional[str] = Form(None),
+    analysis_type: str = Form("fto"),
+    context: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(AuthService.get_current_user_dependency)
 ):
     """
     프론트엔드 채팅 인터페이스용 메시지 API
-
-    - session_id가 없으면 새 채팅 생성
-    - 메시지 분석 후 AI 응답 반환
-    - 분석 완료 시 analysis_id 포함
+    - FormData로 수신 (이미지 첨부 포함 가능)
+    - 대화 히스토리를 DB에서 불러와 vLLM에 전달
+    - vLLM(14B) 응답 반환
     """
     chat_service = ChatService(db)
 
-    # session_id(chat_id)가 없으면 새 채팅 생성
-    if request.session_id:
-        chat = chat_service.get_chat(request.session_id, current_user.id)
-        if not chat:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="채팅을 찾을 수 없습니다."
-            )
-        chat_id = request.session_id
-    else:
-        # 새 채팅 생성
-        title = request.message[:30] + "..." if len(request.message) > 30 else request.message
+    # session_id 처리
+    chat_id = None
+    if session_id and session_id.strip() and session_id not in ("null", "undefined", ""):
+        try:
+            chat_id = int(session_id)
+            chat = chat_service.get_chat(chat_id, current_user.id)
+            if not chat:
+                chat_id = None
+        except (ValueError, TypeError):
+            chat_id = None
+
+    if not chat_id:
+        title = message[:30] + "..." if len(message) > 30 else message
         chat = chat_service.create_chat(current_user.id, title)
         chat_id = chat.id
 
-    # 사용자 메시지 저장
-    user_message = chat_service.add_message(
+    # 사용자 메시지 DB 저장
+    chat_service.add_message(
         chat_id=chat_id,
         role="user",
-        content=request.message,
+        content=message,
         message_type="text"
     )
 
-    # 컨텍스트 분석하여 응답 생성
-    context = request.context or {}
-    analysis_complete = False
-    analysis_id = None
-    response_message = ""
+    # 대화 히스토리 불러오기 (최근 20개)
+    chat = chat_service.get_chat(chat_id, current_user.id)
+    history = []
+    if chat and hasattr(chat, "messages"):
+        for msg in list(chat.messages)[-20:]:
+            if msg.role in ("user", "assistant"):
+                history.append({"role": msg.role, "content": msg.content})
 
-    # 간단한 대화 로직 (실제로는 LLM 연동)
-    message_lower = request.message.lower()
-
-    if "제품" in request.message or "정보" in request.message:
-        response_message = "제품 정보를 확인했습니다. 출시 예정 국가와 제품의 주요 기능을 알려주시겠어요?"
-        context["step"] = "product_info"
-
-    elif "한국" in request.message or "대한민국" in request.message:
-        response_message = "한국 시장을 타겟으로 하시는군요. 제품의 핵심 기능이나 구성 요소에 대해 좀 더 자세히 설명해주시겠어요?"
-        context["country"] = "대한민국"
-        context["step"] = "country_set"
-
-    elif len(request.message) > 50:  # 상세 설명으로 판단
-        # 분석 수행
-        analyzer = TextAnalyzerService(db)
-        analysis = analyzer.analyze(
-            message_id=user_message.id,
-            product_description=request.message
+    # vLLM 호출
+    try:
+        client = OpenAI(base_url=VLLM_BASE_URL, api_key="dummy", timeout=120)
+        messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
+        resp = client.chat.completions.create(
+            model=VLLM_MODEL,
+            messages=messages_payload,
+            max_tokens=2048,
+            temperature=0.1,
         )
+        response_message = resp.choices[0].message.content
+    except Exception as e:
+        response_message = f"모델 호출 중 오류가 발생했습니다: {str(e)}"
 
-        formatted = format_response(analysis.result_json) if analysis.result_json else "분석이 완료되었습니다."
-        response_message = formatted
-        analysis_complete = True
-        analysis_id = analysis.id
-
-    else:
-        response_message = "질문을 잘 이해했습니다. 제품에 대해 좀 더 자세히 설명해주시면 특허 침해 리스크를 분석해드리겠습니다."
-
-    # 어시스턴트 응답 저장
+    # 어시스턴트 응답 DB 저장
     chat_service.add_message(
         chat_id=chat_id,
         role="assistant",
@@ -201,7 +226,7 @@ async def send_chat_message(
     return ChatMessageResponse(
         message=response_message,
         session_id=chat_id,
-        context=context if context else None,
-        analysis_complete=analysis_complete,
-        analysis_id=analysis_id
+        context=None,
+        analysis_complete=False,
+        analysis_id=None
     )
