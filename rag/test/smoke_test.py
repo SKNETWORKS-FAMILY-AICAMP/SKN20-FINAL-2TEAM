@@ -85,20 +85,13 @@ collapsed = check("patent_collapse", lambda: patent_collapse(rrf or [], dense_me
 if collapsed:
     print(f"       → Collapse {len(collapsed)}건")
 
-# ── 7. RDB 필터링 (SQLite) ──
-print("\n[7] RDB 필터링")
-from rag.search.filter import SQLiteClaimsDB, apply_rdb_filter
-claims_db = check("SQLiteClaimsDB 로드", lambda: SQLiteClaimsDB())
-filtered = check("apply_rdb_filter", lambda: apply_rdb_filter(collapsed or [], claims_db)) if claims_db else None
+# ── 7. ParentDB 필터링 + 보강 ──
+print("\n[7] ParentDB 필터링 + 보강")
+from rag.search.filter import ParentDB, apply_rdb_filter
+parent_db = check("ParentDB 로드", lambda: ParentDB())
+filtered = check("apply_rdb_filter", lambda: apply_rdb_filter(collapsed or [], parent_db)) if parent_db else None
 if filtered:
     print(f"       → {len(filtered)}건")
-
-# ── 8. 부모DB 보강 ──
-print("\n[8] 부모DB 보강")
-from rag.search.pipeline import _enrich_with_parent_db
-enriched = check("_enrich_with_parent_db", lambda: _enrich_with_parent_db(filtered or []))
-if enriched:
-    print(f"       → {len(enriched)}건")
 
 # ── 9. search() 통합 호출 ──
 print("\n[9] search() 통합 호출")

@@ -289,29 +289,15 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
     # 사용자 쿼리
     parts.append(user_query)
 
-    # [등록 청구항]
-    last_claims = search_result.get("claims", {}).get("last_claims", [])
-    if last_claims:
-        claim_texts = []
-        for c in last_claims:
-            num = c.get("claim_number", "?")
-            text = c.get("text", "")
-            if text:
-                claim_texts.append(f"[청구항 {num}] {text}")
-        if claim_texts:
-            parts.append(f"\n[등록 청구항]\n" + "\n".join(claim_texts))
+    # [등록 청구항] — parents.sqlite 원문 직접 사용
+    claim_regit = search_result.get("claims", {}).get("claim_regit_text", "")
+    if claim_regit:
+        parts.append(f"\n[등록 청구항]\n{claim_regit}")
 
-    # [공개 청구항]
-    first_claims = search_result.get("claims", {}).get("first_claims", [])
-    if first_claims:
-        claim_texts = []
-        for c in first_claims:
-            num = c.get("claim_number", "?")
-            text = c.get("text", "")
-            if text:
-                claim_texts.append(f"[청구항 {num}] {text}")
-        if claim_texts:
-            parts.append(f"\n[공개 청구항]\n" + "\n".join(claim_texts))
+    # [공개 청구항] — parents.sqlite 원문 직접 사용
+    claim_pub = search_result.get("claims", {}).get("claim_pub_text", "")
+    if claim_pub:
+        parts.append(f"\n[공개 청구항]\n{claim_pub}")
 
     # [특허 정보]
     meta = search_result.get("metadata", {})
@@ -549,29 +535,15 @@ def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
         if estoppel:
             patent_parts.append(f"금반언 청구항: {estoppel} (삭제됨 - 침해 주장 불가)")
 
-        # 등록 청구항
-        last_claims = result.get("claims", {}).get("last_claims", [])
-        if last_claims:
-            claim_texts = []
-            for c in last_claims:
-                num = c.get("claim_number", "?")
-                text = c.get("text", "")
-                if text:
-                    claim_texts.append(f"[청구항 {num}] {text}")
-            if claim_texts:
-                patent_parts.append("[등록 청구항]\n" + "\n".join(claim_texts))
+        # 등록 청구항 — parents.sqlite 원문 직접 사용
+        claim_regit = result.get("claims", {}).get("claim_regit_text", "")
+        if claim_regit:
+            patent_parts.append(f"[등록 청구항]\n{claim_regit}")
 
-        # 공개 청구항
-        first_claims = result.get("claims", {}).get("first_claims", [])
-        if first_claims:
-            claim_texts = []
-            for c in first_claims:
-                num = c.get("claim_number", "?")
-                text = c.get("text", "")
-                if text:
-                    claim_texts.append(f"[청구항 {num}] {text}")
-            if claim_texts:
-                patent_parts.append("[공개 청구항]\n" + "\n".join(claim_texts))
+        # 공개 청구항 — parents.sqlite 원문 직접 사용
+        claim_pub = result.get("claims", {}).get("claim_pub_text", "")
+        if claim_pub:
+            patent_parts.append(f"[공개 청구항]\n{claim_pub}")
 
         parts.append("\n".join(patent_parts))
 

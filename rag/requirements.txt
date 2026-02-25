@@ -1,0 +1,17 @@
+# Dense embedding & reranking
+sentence-transformers
+
+# Vector DB
+chromadb
+
+# LLM API (vLLM / OpenAI compatible)
+openai
+
+# Environment config
+python-dotenv
+
+# Pre-filter CSV processing (DB 전환 시 제거 가능)
+pandas
+
+# MySQL connection (선택 - DB 필터링 활성화 시 필요)
+# pymysql

@@ -19,14 +19,13 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="repla
 from rag import config
 from rag.search.filter import (
     extract_keywords, prefilter_by_keywords,
-    SQLiteClaimsDB, apply_rdb_filter,
+    ParentDB, apply_rdb_filter,
 )
 from rag.search.retriever import (
     dense_search, sparse_search,
     reciprocal_rank_fusion, patent_collapse,
     _get_collection,
 )
-from rag.search.pipeline import _enrich_with_parent_db
 from rag.generate import build_fto_prompt, call_llm, parse_fto_response
 
 
@@ -99,22 +98,17 @@ def run_search(query):
     collapsed = patent_collapse(rrf_results, dense_meta, top_k=config.FINAL_TOP_K)
     done(f"{len(collapsed)}건")
 
-    # 6. RDB 필터링
-    step(7, total, "RDB 필터링 중")
+    # 6. ParentDB 필터링 + 보강
+    step(7, total, "ParentDB 필터링 + 보강 중")
     try:
-        claims_db = SQLiteClaimsDB()
+        parent_db = ParentDB()
     except FileNotFoundError:
-        done("SQLite DB 없음 - 건너뜀")
+        done("ParentDB 없음 - 건너뜀")
         return collapsed
 
-    results = apply_rdb_filter(collapsed, claims_db)
+    results = apply_rdb_filter(collapsed, parent_db)
     if config.MIN_SCORE > 0:
         results = [r for r in results if r.get("score", 0) >= config.MIN_SCORE]
-    done(f"{len(results)}건")
-
-    # 7. 부모DB 보강
-    step(8, total, "부모DB 보강 중")
-    results = _enrich_with_parent_db(results)
     done(f"{len(results)}건")
 
     return results

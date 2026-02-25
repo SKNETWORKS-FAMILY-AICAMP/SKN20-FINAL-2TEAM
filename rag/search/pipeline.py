@@ -7,7 +7,7 @@
     → [1] filter.py        : 키워드 추출 + 사전필터링 → 78K→~1K 문서 풀 축소
     → [2] retriever.py     : Dense+Sparse 검색 (축소된 풀 내)
     → [3] retriever.py     : RRF + Patent Collapse
-    → [4] filter.py        : 등록 필터 + 금반언 + 데이터 보강
+    → [4] filter.py        : 등록 필터 + 데이터 보강 (ParentDB)
     → 최종 결과 반환
 
 사용법:
@@ -20,61 +20,7 @@
 """
 from .. import config
 from .retriever import dense_search, sparse_search, reciprocal_rank_fusion, patent_collapse
-from .filter import apply_rdb_filter, ClaimsDBInterface, SQLiteClaimsDB, ParentDB, prefilter_by_keywords, extract_keywords
-
-
-# ══════════════════════════════════════════════════════
-# 부모 DB 보강 (원문서 정보 첨부)
-# ══════════════════════════════════════════════════════
-
-def _enrich_with_parent_db(results: list[dict], verbose: bool = False) -> list[dict]:
-    """검색 결과에 부모 DB(parent.db) 원문서 정보 첨부.
-
-    검색은 경량 자식 청크로 수행하고, 결과 반환 시
-    부모 DB에서 원문서 메타데이터·청크 구조를 보강합니다.
-    """
-    try:
-        parent_db = ParentDB()
-    except FileNotFoundError:
-        if verbose:
-            print("[부모DB] parent.db 없음 — 보강 건너뜀")
-        return results
-
-    enriched = 0
-    for result in results:
-        apply_num = result.get("patent_id", "")
-        parent = parent_db.get_parent(apply_num)
-        if not parent:
-            continue
-        enriched += 1
-
-        meta = result.setdefault("metadata", {})
-
-        # 1) 기존 메타데이터 보충 (빈 값만 채움)
-        for key in ("invention_title", "abstract", "regit_num", "register_status"):
-            if not meta.get(key) and parent.get(key):
-                meta[key] = parent[key]
-        if not meta.get("ipc") and parent.get("ipc"):
-            meta["ipc"] = parent["ipc"]
-
-        # 2) 부모 DB 전용 메타데이터 추가
-        for key in ("invention_title_eng", "application_date", "open_date",
-                     "register_date", "applicant"):
-            if parent.get(key):
-                meta[key] = parent[key]
-
-        # 3) 청크 구조 정보
-        result["chunk_ids"] = parent.get("chunk_ids", [])
-        result["claim_groups"] = parent.get("claim_groups", {})
-
-        # 4) 원문 청구항 텍스트 (G 모듈·프론트엔드 활용)
-        result["claim_pub_text"] = parent.get("claim_pub", "")
-        result["claim_regit_text"] = parent.get("claim_regit", "")
-
-    if verbose:
-        print(f"[부모DB] {enriched}/{len(results)}건 보강 완료")
-
-    return results
+from .filter import apply_rdb_filter, ParentDB, prefilter_by_keywords, extract_keywords
 
 
 # ══════════════════════════════════════════════════════
@@ -84,7 +30,6 @@ def _enrich_with_parent_db(results: list[dict], verbose: bool = False) -> list[d
 def search(
     query: str,
     top_k: int = None,
-    claims_db: ClaimsDBInterface = None,
     dense_top_k: int = None,
     sparse_top_k: int = None,
     rrf_k: int = None,
@@ -93,12 +38,11 @@ def search(
 ) -> list[dict]:
     """전체 RAG 검색 파이프라인.
 
-    사용자 입력 → 사전필터링 → 하이브리드 서치 → RRF → Patent Collapse → RDB 필터링
+    사용자 입력 → 사전필터링 → 하이브리드 서치 → RRF → Patent Collapse → ParentDB 필터링+보강
 
     Args:
         query: 사용자 입력.
         top_k: 최종 반환 특허 수.
-        claims_db: RDB 필터용. None이면 SQLiteClaimsDB 사용.
         dense_top_k: Dense 검색 top-k (멀티쿼리당).
         sparse_top_k: Sparse 검색 top-k (멀티쿼리당).
         rrf_k: RRF K 파라미터.
@@ -170,18 +114,13 @@ def search(
     if verbose:
         print(f"[Collapse] {len(collapsed)}개 특허")
 
-    # 6. RDB 필터링 (등록 상태 확인 + 금반언 표시 + 청구항 데이터 보강)
-    if claims_db is None:
-        # ※ 현재: SQLite (claims_db.sqlite, 78,587건 완전 데이터)
-        # ※ 추후: MySQLClaimsDB로 교체 (RDB 구축 완료 시)
-        #         → from .filter import MySQLClaimsDB
-        #         → claims_db = MySQLClaimsDB()
-        try:
-            claims_db = SQLiteClaimsDB()
-        except FileNotFoundError:
-            return collapsed
+    # 6. ParentDB 필터링 + 보강 (등록 상태 확인 + 메타데이터·청구항 원문·청크 구조 통합)
+    try:
+        parent_db = ParentDB()
+    except FileNotFoundError:
+        return collapsed
 
-    results = apply_rdb_filter(collapsed, claims_db)
+    results = apply_rdb_filter(collapsed, parent_db)
 
     # 7. MIN_SCORE 필터 (노이즈 제거 — RRF 점수가 너무 낮은 결과 제외)
     if config.MIN_SCORE > 0:
@@ -189,9 +128,6 @@ def search(
 
     if verbose:
         print(f"[필터] {len(results)}개 최종 결과")
-
-    # 8. 부모 DB 보강 (원문서 정보 첨부)
-    results = _enrich_with_parent_db(results, verbose=verbose)
 
     return results
 
