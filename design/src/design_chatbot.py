@@ -80,16 +80,13 @@ load_dotenv()
 
 # ==================== LLM & ChromaDB 초기화 ====================
 
-# sLLM: 텍스트 전용 (리포트 생성 / 일반 질문)
+# 단일 VLM: 텍스트 + 이미지 모두 처리 (Qwen2.5-VL는 Vision-Language 모델)
 llm = ChatOpenAI(
-    model="fto",
-    openai_api_base="http://localhost:8000/v1",
+    model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
+    openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
     openai_api_key="EMPTY",
     temperature=0,
 )
-
-# VLM: 이미지 분석/비교 노드 전용 (비전 미지원 → GPT-4o 유지)
-llm_vision = ChatOpenAI(model="gpt-4o", temperature=0)
 
 output_parser = StrOutputParser()
 
@@ -218,7 +215,7 @@ def analyze_image_node(state: GraphState) -> GraphState:
     url = f"data:image/jpeg;base64,{b64}"
 
     # VLM 분석 (IMAGE_ANALYSIS_PROMPT 사용)
-    chain = IMAGE_ANALYSIS_PROMPT | llm_vision | output_parser
+    chain = IMAGE_ANALYSIS_PROMPT | llm | output_parser
     analysis = chain.invoke({"image_url": url}) # vlm 분석 결과가 나올것
 
     # 상태 update
@@ -324,7 +321,7 @@ def detailed_compare_node(state: GraphState) -> GraphState:
     comp_url = f"data:image/jpeg;base64,{b64}"
 
     # 두 이미지 VLM 비교 (IMAGE_COMPARISON_PROMPT 사용)
-    chain = IMAGE_COMPARISON_PROMPT | llm_vision | output_parser
+    chain = IMAGE_COMPARISON_PROMPT | llm | output_parser
     result = chain.invoke({
         "input_image_url": state['base64_image'], # 입력 이미지
         "comparison_image_url": comp_url # 비교 대상 이미지
@@ -410,8 +407,36 @@ def general_question_node(state: GraphState) -> GraphState:
 
         final = llm.invoke(messages)
         answer = final.content
+
     else:
-        answer = response.content
+        # Fallback: Qwen2.5-VL이 tool_calls JSON 대신 content에 도구 이름을 텍스트로
+        # 언급하는 경우 직접 도구를 호출하고 결과를 LLM에 전달
+        content = response.content
+        tool_result = None
+
+        _web_kw  = ['통계', '최신 뉴스', '트렌드', '현황', '출원 건수', '최근 동향', '출원 통계']
+
+        if "search_design_db" in content:
+            print(f"  [Fallback] search_design_db 직접 호출")
+            tool_result = search_design_db.invoke({"query": state['text_query']})
+
+        elif ("web_search" in content or "웹 검색" in content
+              or any(kw in state['text_query'] for kw in _web_kw)):
+            print(f"  [Fallback] web_search 직접 호출")
+            tool_result = web_search.invoke({"query": state['text_query']})
+
+        if tool_result:
+            # 모델의 "결과 없음" 응답을 이어받지 않도록 시스템+쿼리만 남기고 결과 전달
+            summary_messages = [
+                messages[0],  # system 메시지
+                {"role": "user", "content": state['text_query']},
+                {"role": "assistant", "content": "도구로 검색을 완료했습니다."},
+                {"role": "user", "content": f"검색 결과입니다. 반드시 아래 결과를 사용해서 답변하세요:\n\n{tool_result}"},
+            ]
+            final = llm.invoke(summary_messages)
+            answer = final.content
+        else:
+            answer = content
 
     # 대화 히스토리 업데이트 (user + assistant 추가)
     updated_history = history + [
