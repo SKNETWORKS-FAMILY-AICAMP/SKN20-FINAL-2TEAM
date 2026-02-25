@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/c/Users/playdata2/miniconda3/envs/langchain/python.exe:*)"
+    ]
+  }
+}
