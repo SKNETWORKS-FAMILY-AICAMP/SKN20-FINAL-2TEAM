@@ -108,7 +108,7 @@ function setActiveNav() {
     const currentPage = location.pathname.split("/").pop() || "index.html";
 
     // 드롭다운 하위 페이지 → 부모 "리스크 분석" 링크를 active 처리
-    const analysisPages = ["analysis.html", "design-chat.html", "select-analysis-type.html"];
+    const analysisPages = ["analysis.html", "patent-chat.html", "design-chat.html", "select-analysis-type.html"];
 
     document.querySelectorAll("[data-nav]").forEach(link => {
         const target = link.getAttribute("data-nav");

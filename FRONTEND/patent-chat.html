@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css">
+
+    <title>특허·실용신안 리스크 분석 AI - FTOGuard</title>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --primary: #FF6B35;
+            --primary-dark: #E55A2B;
+            --primary-light: #FF8C5A;
+            --primary-bg: rgba(255, 107, 53, 0.06);
+            --primary-bg-hover: rgba(255, 107, 53, 0.10);
+            --primary-border: rgba(255, 107, 53, 0.18);
+        }
+
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+
+        /* 사이드바 */
+        #sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar.sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        #sidebarOpenBtn {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease 0.15s;
+        }
+        #sidebarOpenBtn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .icon-btn {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #A3A3A3;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        .icon-btn:hover {
+            color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        /* Session Card */
+        .session-card {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.75rem;
+        }
+        .session-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.08);
+            transform: translateY(-2px);
+        }
+        .session-card.active {
+            background: #FFF5F0;
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.12);
+        }
+
+        /* 스크롤바 */
+        #chatSessions::-webkit-scrollbar { width: 6px; }
+        #chatSessions::-webkit-scrollbar-track { background: transparent; }
+        #chatSessions::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+        #chatSessions::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        #messagesArea::-webkit-scrollbar { width: 6px; }
+        #messagesArea::-webkit-scrollbar-track { background: transparent; }
+        #messagesArea::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+        #messagesArea::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .type-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--primary-border);
+            background: var(--primary-bg);
+            color: var(--primary);
+            white-space: nowrap;
+        }
+
+        /* 메시지 스타일 */
+        .msg { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .msg.user { flex-direction: row-reverse; }
+
+        .msg-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+        .msg.assistant .msg-avatar {
+            background: var(--primary);
+            color: white;
+        }
+        .msg.user .msg-avatar {
+            background: #10B981;
+            color: white;
+        }
+
+        .msg-content { flex: 1; max-width: 80%; }
+        .msg.user .msg-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 0.875rem 1.125rem;
+            border-radius: 1rem;
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .msg.assistant .msg-bubble {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-top-left-radius: 0.25rem;
+        }
+        .msg.user .msg-bubble {
+            background: var(--primary);
+            color: white;
+            border-top-right-radius: 0.25rem;
+        }
+
+        /* 타이핑 인디케이터 */
+        .typing-indicator { display: flex; gap: 0.25rem; padding: 0.75rem; }
+        .typing-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #A3A3A3;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* 리포트 박스 */
+        .report-box {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            background: #FFF7F2;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* 결과 이동 배너 */
+        .result-ready-banner {
+            background: linear-gradient(135deg, #FFF5F0, #FFF0E8);
+            border: 1.5px solid var(--primary-border);
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* 스텝 넘버 */
+        .step-num {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(255, 107, 53, 0.15);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        .step-num.step-1 { background: var(--primary); }
+        .step-num.step-2 { background: var(--primary-light); }
+        .step-num.step-3 { background: var(--primary-dark); }
+    </style>
+</head>
+
+<body style="background-color: #FFF7F2;">
+    <!-- 공통 헤더 -->
+    <div id="app-header"></div>
+
+    <!-- 사이드바 열기 버튼 -->
+    <button
+        id="sidebarOpenBtn"
+        onclick="toggleSidebar()"
+        class="fixed left-3 top-24 z-50 icon-btn bg-white border border-neutral-200 shadow-md"
+        title="사이드바 열기"
+        style="width: 2rem; height: 2rem;"
+    >
+        <i class="fas fa-chevron-right text-xs"></i>
+    </button>
+
+    <div class="flex h-screen">
+        <!-- 사이드바 -->
+        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col hidden lg:flex fixed left-0 top-20 bottom-0 z-40">
+            <!-- Header -->
+            <div class="p-6 border-b border-neutral-200">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-neutral-900 text-sm font-bold">특허·실용신안 분석 기록</h3>
+                    <div class="flex items-center gap-2">
+                        <button onclick="startNewChat()" class="icon-btn" title="새 분석">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                        <button onclick="toggleSidebar()" class="icon-btn" title="사이드바 접기">
+                            <i class="fas fa-chevron-left text-xs" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
+                        <div class="text-2xl font-bold text-black" id="totalCount">0</div>
+                        <div class="text-xs text-neutral-600 mt-1">Total</div>
+                    </div>
+                    <div class="rounded-xl p-4 border" style="background: var(--primary-bg); border-color: var(--primary-border);">
+                        <div class="text-2xl font-bold text-primary" id="sessionStatus">대기</div>
+                        <div class="text-xs text-neutral-600 mt-1">상태</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session List -->
+            <div class="flex-1 overflow-y-auto p-4" id="chatSessions">
+                <div class="text-center py-8">
+                    <div class="w-14 h-14 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-neutral-200">
+                        <i class="fas fa-file-alt text-xl text-neutral-400"></i>
+                    </div>
+                    <p class="text-neutral-500 text-xs">기술 구성을 입력하여<br>특허 분석을 시작하세요</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 메인 영역 -->
+        <main id="mainContent" class="flex-1 ml-0 lg:ml-72 transition-all duration-300" style="margin-left: 18rem; background-color: #FFF7F2;">
+            <div class="h-screen flex flex-col" style="padding-top: 80px;">
+
+                <!-- 메시지 영역 -->
+                <div class="flex-1 overflow-y-auto p-5" id="messagesArea">
+                    <div class="max-w-4xl mx-auto" id="messagesWrapper">
+
+                        <!-- Welcome -->
+                        <div id="welcomeMessage" class="text-center py-10">
+                            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background: rgba(255, 107, 53, 0.10);">
+                                <i class="fas fa-file-alt text-2xl text-primary"></i>
+                            </div>
+                            <h1 class="text-xl font-bold text-black mb-2">특허·실용신안 리스크 분석 AI</h1>
+                            <p class="text-neutral-500 text-sm mb-6">
+                                화장품 기술 구성을 입력하면 AI가 대화를 통해 리스크를 분석하고<br>충분한 정보가 모이면 상세 결과 리포트를 제공합니다
+                            </p>
+
+                            <!-- 분석 프로세스 -->
+                            <div class="border rounded-xl p-4 mb-5 max-w-md mx-auto" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04)); border-color: var(--primary-border);">
+                                <p class="text-xs font-bold text-black mb-3 flex items-center justify-center gap-1.5">
+                                    <i class="fas fa-lightbulb text-primary"></i>
+                                    분석 프로세스
+                                </p>
+                                <div class="flex flex-col gap-2.5 text-left">
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-1"><span>1</span></div>
+                                        <span class="text-xs text-neutral-700">기술 구성 입력 → AI가 추가 정보 요청</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-2"><span>2</span></div>
+                                        <span class="text-xs text-neutral-700">대화를 통해 성분·제형·목적 구체화</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="step-num step-3"><span>3</span></div>
+                                        <span class="text-xs text-neutral-700">충분한 정보 수집 → 상세 결과 리포트</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CTA 버튼 -->
+                            <div class="flex justify-center gap-3">
+                                <button onclick="fillQuery('세라마이드·판테놀 기반 피부장벽 강화 크림 조성물을 분석해줘')"
+                                    class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                                    <i class="fas fa-bolt"></i>
+                                    예시로 시작하기
+                                </button>
+                                <button onclick="document.getElementById('messageInput').focus()"
+                                    class="px-5 py-2.5 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-full font-semibold text-sm transition-all">
+                                    <i class="fas fa-pencil-alt mr-1"></i>
+                                    직접 입력하기
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 입력 영역 -->
+                <div class="border-t border-neutral-200 bg-white p-6 shadow-sm">
+                    <div class="max-w-4xl mx-auto">
+                        <!-- 입력 행 -->
+                        <div class="flex items-center gap-3">
+                            <textarea
+                                id="messageInput"
+                                placeholder="화장품 기술 구성을 입력하세요 (예: 히알루론산·나이아신아마이드 함유 저자극 수분 앰플 조성물)..."
+                                rows="1"
+                                class="flex-1 px-5 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm resize-none"
+                                style="max-height: 120px; min-height: 44px;"
+                            ></textarea>
+                            <button id="sendBtn" disabled
+                                class="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
+                                <i class="fas fa-paper-plane"></i>
+                                전송
+                            </button>
+                        </div>
+                        <p class="text-xs text-neutral-400 mt-2 text-center">
+                            Shift + Enter로 줄바꿈 &middot; Enter로 전송
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 개발 환경 인증 우회 -->
+    <script>
+        (function() {
+            const header  = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+            const payload = btoa(JSON.stringify({ sub: 'dev', exp: Math.floor(Date.now() / 1000) + 86400 * 365 }));
+            const devToken = `${header}.${payload}.dev_signature`;
+            const devUser  = JSON.stringify({ id: 'dev', name: '개발자', email: 'dev@ftoguard.com' });
+            if (!localStorage.getItem('authToken')) {
+                localStorage.setItem('authToken', devToken);
+                localStorage.setItem('user', devUser);
+            }
+        })();
+    </script>
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+    // ==================== 설정 ====================
+    const API_BASE = 'http://localhost:8000/api/analysis';
+
+    // ==================== 상태 ====================
+    let threadId = null;      // 현재 대화 스레드
+    let sessionCount = 0;
+    let isAnalyzing = false;
+
+    // ==================== DOM ====================
+    const messagesWrapper = document.getElementById('messagesWrapper');
+    const messageInput    = document.getElementById('messageInput');
+    const sendBtn         = document.getElementById('sendBtn');
+    const welcomeMessage  = document.getElementById('welcomeMessage');
+
+    // ==================== 이벤트 ====================
+    messageInput.addEventListener('input', () => {
+        updateSendButton();
+        autoResize();
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendBtn.disabled) handleSend();
+        }
+    });
+
+    sendBtn.addEventListener('click', handleSend);
+
+    function autoResize() {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    }
+
+    function updateSendButton() {
+        sendBtn.disabled = isAnalyzing || !messageInput.value.trim();
+    }
+
+    function fillQuery(text) {
+        messageInput.value = text;
+        autoResize();
+        updateSendButton();
+        messageInput.focus();
+    }
+
+    // ==================== 메인 전송 ====================
+
+    async function handleSend() {
+        const text = messageInput.value.trim();
+        if (!text || isAnalyzing) return;
+
+        if (welcomeMessage) welcomeMessage.remove();
+
+        addUserMessage(text);
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        isAnalyzing = true;
+        updateSendButton();
+        setStatus('분석 중');
+        addLoadingMessage();
+
+        try {
+            const formData = new FormData();
+            formData.append('message', text);
+            if (threadId) formData.append('thread_id', threadId);
+
+            const response = await fetch(`${API_BASE}/patent/chat`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            removeLoadingMessage();
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                threadId = result.thread_id;
+
+                // 봇 답변 표시
+                addBotMessage(result.answer);
+
+                // LLM이 결과 도출 준비 완료로 판단한 경우
+                if (result.ready_for_result) {
+                    sessionCount++;
+                    updateTotalCount();
+                    addSessionCard(text, threadId);
+                    setStatus('완료');
+                    showResultReadyBanner(result.thread_id);
+                } else {
+                    setStatus('대화 중');
+                }
+            } else {
+                addBotMessage('분석 중 오류가 발생했습니다. 다시 시도해주세요.');
+                setStatus('오류');
+            }
+        } catch (error) {
+            removeLoadingMessage();
+            addBotMessage(`연결 오류: ${error.message}`);
+            setStatus('오류');
+        } finally {
+            isAnalyzing = false;
+            updateSendButton();
+        }
+    }
+
+    // ==================== 결과 준비 배너 ====================
+
+    function showResultReadyBanner(tid) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="result-ready-banner">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: var(--primary-bg); border: 1px solid var(--primary-border);">
+                        <i class="fas fa-chart-bar text-primary"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-black mb-0.5">분석에 충분한 정보가 수집되었습니다</p>
+                        <p class="text-xs text-neutral-500">상세 침해 리스크 리포트를 확인하세요</p>
+                    </div>
+                    <button onclick="goToResult('${tid}')"
+                        class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-xs transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 whitespace-nowrap">
+                        결과 보기
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function goToResult(tid) {
+        const params = new URLSearchParams({ thread_id: tid });
+        window.location.href = `results.html?${params.toString()}`;
+    }
+
+    // ==================== 메시지 렌더링 ====================
+
+    function addUserMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'msg user';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-user text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">${escapeHtml(text)}</div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function addBotMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        // 마크다운 굵게(**text**) 간단 처리
+        const formatted = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble" style="white-space:pre-wrap;">${formatted}</div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    // ==================== 로딩 ====================
+
+    function addLoadingMessage() {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.id = 'loadingMessage';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                <div class="text-xs text-neutral-400 mt-1">분석 중... (약 5-15초 소요)</div>
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    function removeLoadingMessage() {
+        const el = document.getElementById('loadingMessage');
+        if (el) el.remove();
+    }
+
+    // ==================== 세션 카드 ====================
+
+    function addSessionCard(firstMessage, tid) {
+        const container = document.getElementById('chatSessions');
+        // 빈 상태 placeholder 제거
+        const placeholder = container.querySelector('.text-center');
+        if (placeholder) placeholder.remove();
+
+        const card = document.createElement('div');
+        card.className = 'session-card active';
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <span class="type-badge"><i class="fas fa-file-alt mr-1"></i>특허·실용신안</span>
+                <span class="text-xs text-neutral-500">방금</span>
+            </div>
+            <h4 class="text-sm font-semibold text-black leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                ${escapeHtml(firstMessage)}
+            </h4>
+        `;
+        card.onclick = () => goToResult(tid);
+
+        // 기존 active 해제
+        container.querySelectorAll('.session-card').forEach(c => c.classList.remove('active'));
+        container.prepend(card);
+    }
+
+    // ==================== 새 분석 시작 ====================
+
+    function startNewChat() {
+        threadId = null;
+        isAnalyzing = false;
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        updateSendButton();
+        setStatus('대기');
+
+        messagesWrapper.innerHTML = `
+            <div id="welcomeMessage" class="text-center py-10">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background: rgba(255, 107, 53, 0.10);">
+                    <i class="fas fa-file-alt text-2xl text-primary"></i>
+                </div>
+                <h1 class="text-xl font-bold text-black mb-2">특허·실용신안 리스크 분석 AI</h1>
+                <p class="text-neutral-500 text-sm mb-6">
+                    화장품 기술 구성을 입력하면 AI가 대화를 통해 리스크를 분석하고<br>충분한 정보가 모이면 상세 결과 리포트를 제공합니다
+                </p>
+                <div class="border rounded-xl p-4 mb-5 max-w-md mx-auto" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04)); border-color: var(--primary-border);">
+                    <p class="text-xs font-bold text-black mb-3 flex items-center justify-center gap-1.5">
+                        <i class="fas fa-lightbulb text-primary"></i>
+                        분석 프로세스
+                    </p>
+                    <div class="flex flex-col gap-2.5 text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="step-num step-1"><span>1</span></div>
+                            <span class="text-xs text-neutral-700">기술 구성 입력 → AI가 추가 정보 요청</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="step-num step-2"><span>2</span></div>
+                            <span class="text-xs text-neutral-700">대화를 통해 성분·제형·목적 구체화</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="step-num step-3"><span>3</span></div>
+                            <span class="text-xs text-neutral-700">충분한 정보 수집 → 상세 결과 리포트</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center gap-3">
+                    <button onclick="fillQuery('세라마이드·판테놀 기반 피부장벽 강화 크림 조성물을 분석해줘')"
+                        class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                        <i class="fas fa-bolt"></i>
+                        예시로 시작하기
+                    </button>
+                    <button onclick="document.getElementById('messageInput').focus()"
+                        class="px-5 py-2.5 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-full font-semibold text-sm transition-all">
+                        <i class="fas fa-pencil-alt mr-1"></i>
+                        직접 입력하기
+                    </button>
+                </div>
+            </div>
+        `;
+        if (typeof Toast !== 'undefined') Toast.success('새 분석을 시작합니다.');
+    }
+
+    // ==================== 유틸 ====================
+
+    function setStatus(text) {
+        document.getElementById('sessionStatus').textContent = text;
+    }
+
+    function updateTotalCount() {
+        document.getElementById('totalCount').textContent = sessionCount;
+    }
+
+    function scrollToBottom() {
+        const area = document.getElementById('messagesArea');
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return String(str ?? '');
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ==================== 사이드바 토글 ====================
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const openBtn = document.getElementById('sidebarOpenBtn');
+
+        sidebar.classList.toggle('sidebar-hidden');
+
+        if (sidebar.classList.contains('sidebar-hidden')) {
+            mainContent.style.marginLeft = '0';
+            toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+            openBtn.classList.add('visible');
+        } else {
+            mainContent.style.marginLeft = '18rem';
+            toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+            openBtn.classList.remove('visible');
+        }
+    }
+    </script>
+</body>
+</html>
