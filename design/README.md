@@ -1,151 +1,93 @@
-# Design RAG 시스템 📐
+# 디자인 유사성 분석 챗봇
 
-> 특허청 디자인 데이터를 기반으로 유사 디자인을 검색하고 분석하는 RAG(Retrieval-Augmented Generation) 시스템
+CLIP 임베딩 기반 **Hybrid Retrieval**과 **Qwen2.5-VL-7B-Instruct (vLLM 서빙)**을 활용한 디자인 특허 유사도 분석 시스템
 
-## 📁 폴더 구조
+---
+
+## 전체 구조
 
 ```
-design/                            # 🎨 디자인 RAG 시스템
-├── src/                           # 🧠 소스코드
-│   ├── API_명세서.md              # API 명세서
-│   ├── api.py                     # FastAPI 백엔드 서버
-│   ├── design_chatbot.py          # 챗봇 실행 모듈
-│   ├── design_chatbot.ipynb       # 챗봇 실행 모듈 (Jupyter 노트북 버전)
-│   ├── prompts.py                 # 프롬프트 템플릿
-│   ├── utils.py                   # 유틸리티 함수들
-│  
-│
-├── data/                          # 📊 이미지 데이터 (구글 드라이브 다운로드)
-│   ├── images/                    
-│   │   ├── 3020230035272-api_xml-0_000.jpg
-│   │   ├── ...
-│   │  
-├── chroma_db/                     # 🗄️ ChromaDB 벡터 데이터베이스 (구글 드라이브 다운로드)
-│   ├── .DS_Store                  
-│   ├── chroma.sqlite3             # ChromaDB 메인 데이터베이스
-│   └── bba2cc98-8fd6-4bc3-a496-d78a6068a8f9/
-│    
-├── requirements.txt               
-└── README.md                      
-```
-
-### 🚫 `.gitignore` 설정
-
-```gitignore
-data/
-chroma_db/
-.env
-__pycache__/
-*.pyc
-temp_uploads/*
-.DS_Store
-```
-
-
-
-## 🚀 실행 순서
-
-### ⚡ Step 1: 데이터 다운로드 (최초 1회)
-구글 드라이브에서 필요한 데이터(벡터DB & 이미지) 다운로드
-
-꼭! 위 폴더 구조를 참고해, 다운로드한 폴더를 알맞은 위치에 배치해주세요.
-
-
-
-1. **ChromaDB 벡터 데이터베이스** 다운로드(48.2MB)
-- https://drive.google.com/drive/folders/1JkeGGx2MyGmmuUczrHQ0o-HDH74MWYtt?usp=drive_link 
-- 위 링크에서 `chroma_db/` 폴더를 다운받아, 폴더 자체를 design 루트 디렉토리에 배치.
-
-
-2. **이미지 데이터** ~~다운로드 (1.97 GB)~~ → **다운로드 불필요**
-- 이미지는 ChromaDB 메타데이터에 저장된 `imagePath` (kipris.or.kr URL)에서 실시간으로 가져옵니다.
-- 로컬 `data/images/` 폴더가 없어도 정상 동작합니다.
-
-
-### ⚙️ Step 2: 환경 설정
-```bash
-# 패키지 설치
-pip install -r requirements.txt
-
-# 환경변수 설정 (.env 파일 생성)
-OPENAI_API_KEY=sk-...
-KIPRISPLUS_API_KEY=...
-TAVILY_API_KEY=tvly-...
-```
-
-### 🎯 Step 3: 서비스 실행
-
-#### 🖥️ FastAPI 백엔드 서버 실행 
-```bash
-cd src
-python api.py
-# 또는
-uvicorn api:app --reload --host 0.0.0.0 --port 8000
-
-# 접속: http://localhost:8000
-# API 문서: http://localhost:8000/docs
-```
-
-#### 💬 챗봇 실행 (테스트용)
-```bash
-cd src
-
-# Jupyter 노트북으로 실행
-jupyter notebook design_chatbot.ipynb
-
-# 또는 Python 스크립트로 실행
-python design_chatbot.py
+[입력]
+  │
+  ├─ 이미지 ──▶ [VLM 분석] ──▶ [유사 디자인 검색] ──▶ [선택 대기] ──▶ [상세 비교] ──▶ [FTO 리포트]
+  │
+  └─ 텍스트 ──▶ [LLM + Tools]
 ```
 
 ---
 
-## ⚙️ 환경 설정
+## 이미지 입력 플로우
 
-### 필수 환경변수 (`.env` 파일)
+### 1단계 · VLM 분석
+Qwen2.5-VL-7B-Instruct가 입력 이미지의 형상·구조·외관을 텍스트로 분석
+
+---
+
+### 2단계 · 유사 디자인 검색 (Hybrid Retrieval)
+
+**전처리 — 쿼리 이미지 → 스케치 변환**
+
+DB에 저장된 임베딩은 스케치 변환 이미지 기준이므로, 쿼리 이미지도 동일한 전처리 적용
+
 ```
-OPENAI_API_KEY=sk-...
-KIPRISPLUS_API_KEY=...
-TAVILY_API_KEY=tvly-...
-```
-
-### 필수 패키지
-
-**Python 3.9+ 필요**
-
-```bash
-# === LangChain 프레임워크 (실제 사용) ===
-langchain==1.2.1
-langchain-community==0.4.1
-langchain-core==1.2.6
-langchain-openai==1.1.6
-langgraph==1.0.5
-langgraph-checkpoint==3.0.1
-langgraph-prebuilt==1.0.5
-
-# === 모델 ===
-torch>=2.1.0
-numpy>=1.24.0
-git+https://github.com/openai/CLIP.git
-
-# === 데이터베이스 ===
-chromadb>=0.4.0
-
-# === 웹/API ===
-fastapi>=0.104.0
-uvicorn>=0.24.0
-requests>=2.31.0
-
-# === 이미지/파일 처리 ===
-Pillow>=10.0.0
-openpyxl>=3.1.0
-
-# === 유틸리티 ===
-python-dotenv>=1.0.0
+원본 이미지
+  └─▶ GaussianBlur (5×5, σ=1.0)
+        └─▶ Canny Edge Detection (threshold: 30 / 120)
+              └─▶ Dilate (2×2 kernel, 1회)
+                    └─▶ 흰 배경 + 검은 윤곽선
 ```
 
-### 설치
-```bash
-# 프로젝트 루트 디렉토리에서 실행
-pip install -r requirements.txt
-```
+**검색 — Dense + BM25 2단계**
+
+| 단계 | 방법 | 범위 | 결과 |
+|:---:|---|---|---|
+| ① Dense | CLIP ViT-B/32 임베딩 → ChromaDB 코사인 유사도 | 전체 DB | 상위 50개 후보 |
+| ② BM25 | Dense 1위의 `articleName` 키워드 → 텍스트 재점수 | 50개 내 재랭킹 | - |
+| ③ 합산 | min-max 정규화 후 가중 합산 | Dense **0.7** + BM25 **0.3** | - |
+| ④ 중복 제거 | 동일 출원번호 중 `hybrid_score` 최고 도면 유지 | - | - |
+| ⑤ 반환 | `hybrid_score` 내림차순 정렬 | - | **최종 10개** |
+
+---
+
+### 3단계 · 사용자 선택 _(interrupt)_
+
+- 검색 결과 10개를 `hybrid_score` 기준으로 출력
+- 사용자가 상세 비교할 도면 번호 선택 → 그래프 재개
+
+---
+
+### 4단계 · 상세 비교
+
+- 선택한 도면 이미지를 Qwen2.5-VL-7B-Instruct가 입력 이미지와 나란히 비교
+- 유사점 / 차이점 분석 결과 생성
+
+---
+
+### 5단계 · FTO 리포트 생성
+
+- VLM 분석 결과 + 상세 비교 결과 → 최종 FTO 리포트 출력
+
+---
+
+## 텍스트 입력 플로우
+
+LLM이 질문을 보고 필요한 Tool을 자동 선택하여 답변
+
+| Tool | 동작 |
+|---|---|
+| `web_search` | Tavily를 통한 웹 검색 (특허 뉴스, 법률 정보 등) |
+| `search_design_db` | 자연어 → CLIP 임베딩 → ChromaDB 디자인 검색 |
+
+---
+
+## 주요 파일
+
+| 파일 | 역할 |
+|---|---|
+| `src/design_chatbot.py` | 챗봇 메인 — LangGraph 그래프 및 노드 정의 |
+| `src/utils.py` | 임베딩, 스케치 변환, Hybrid Retrieval 유틸 함수 |
+| `src/prompts.py` | VLM 분석 / 비교 / 리포트 프롬프트 |
+
+
+---
 
