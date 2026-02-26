@@ -39,18 +39,20 @@
       
       <!-- 리스크 분석 드롭다운 -->
       <div class="relative group">
-        <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors flex items-center gap-1 cursor-pointer" 
-           href="select-analysis-type.html"
+        <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors flex items-center gap-1 cursor-pointer"
+           href="#"
+           onclick="checkAuthAndRedirect('select-analysis-type.html'); return false;"
            data-nav="select-analysis-type.html">
           리스크 분석
           <i class="fas fa-chevron-down text-xs"></i>
           <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
         </a>
-        
+
         <!-- 드롭다운 메뉴 -->
         <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-neutral-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
           <div class="p-2">
-            <a href="patent-chat.html" 
+            <a href="#"
+               onclick="checkAuthAndRedirect('patent-chat.html'); return false;"
                class="dropdown-nav-item flex items-start gap-3 px-4 py-3 rounded-lg hover:bg-neutral-50 transition-colors">
               <div class="dropdown-icon-wrap w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                 <i class="fas fa-file-alt text-primary"></i>
@@ -60,7 +62,8 @@
                 <p class="text-xs text-neutral-600">기술 특허 침해 리스크 분석</p>
               </div>
             </a>
-            <a href="design-chat.html"
+            <a href="#"
+               onclick="checkAuthAndRedirect('design-chat.html'); return false;"
                class="dropdown-nav-item flex items-start gap-3 px-4 py-3 rounded-lg hover:bg-neutral-50 transition-colors">
               <div class="dropdown-icon-wrap w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                 <i class="fas fa-palette text-primary"></i>
@@ -125,12 +128,14 @@
           <i class="fas fa-chevron-down text-xs" id="mobile-analysis-icon"></i>
         </button>
         <div id="mobile-analysis-submenu" class="hidden pl-4 mt-2 space-y-2">
-          <a href="patent-chat.html" 
+          <a href="#"
+             onclick="checkAuthAndRedirect('patent-chat.html'); return false;"
              class="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary py-2">
             <i class="fas fa-file-alt"></i>
             특허·실용신안
           </a>
-          <a href="design-chat.html"
+          <a href="#"
+             onclick="checkAuthAndRedirect('design-chat.html'); return false;"
              class="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary py-2">
             <i class="fas fa-palette"></i>
             디자인
