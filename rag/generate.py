@@ -497,6 +497,13 @@ FTO_SYSTEM_PROMPT = f"""당신은 화장품 특허 침해(FTO: Freedom To Operat
 """
 
 
+def _truncate_claims(text: str, max_chars: int = 3000) -> str:
+    """청구항 텍스트를 max_chars 이내로 잘라서 토큰 초과 방지."""
+    if not text or len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "\n... (이하 생략)"
+
+
 def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
     """search() 결과 여러 건 + 사용자 쿼리 -> GPT chat messages.
 
@@ -535,15 +542,15 @@ def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
         if estoppel:
             patent_parts.append(f"금반언 청구항: {estoppel} (삭제됨 - 침해 주장 불가)")
 
-        # 등록 청구항 — parents.sqlite 원문 직접 사용
+        # 등록 청구항 — parents.sqlite 원문 직접 사용 (토큰 초과 방지를 위해 잘라냄)
         claim_regit = result.get("claims", {}).get("claim_regit_text", "")
         if claim_regit:
-            patent_parts.append(f"[등록 청구항]\n{claim_regit}")
+            patent_parts.append(f"[등록 청구항]\n{_truncate_claims(claim_regit)}")
 
-        # 공개 청구항 — parents.sqlite 원문 직접 사용
+        # 공개 청구항 — parents.sqlite 원문 직접 사용 (토큰 초과 방지를 위해 잘라냄)
         claim_pub = result.get("claims", {}).get("claim_pub_text", "")
         if claim_pub:
-            patent_parts.append(f"[공개 청구항]\n{claim_pub}")
+            patent_parts.append(f"[공개 청구항]\n{_truncate_claims(claim_pub)}")
 
         parts.append("\n".join(patent_parts))
 
