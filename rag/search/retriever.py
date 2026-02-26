@@ -48,13 +48,27 @@ def _get_model() -> SentenceTransformer:
 
 
 def _get_collection() -> chromadb.Collection:
-    """ChromaDB 컬렉션 싱글톤. cosine 거리 메트릭 사용."""
+    """ChromaDB 컬렉션 싱글톤. cosine 거리 메트릭 사용.
+
+    CHROMA_HOST 환경변수가 설정되어 있으면 EC2 원격 서버(HttpClient)에 연결,
+    없으면 로컬 PersistentClient 사용.
+    """
+    import os
     global _collection
     if _collection is None:
-        client = chromadb.PersistentClient(
-            path=str(config.CHROMA_DIR),
-            settings=Settings(anonymized_telemetry=False),
-        )
+        chroma_host = os.environ.get("CHROMA_HOST", "")
+        if chroma_host:
+            chroma_port = int(os.environ.get("CHROMA_PORT", 8001))
+            client = chromadb.HttpClient(
+                host=chroma_host,
+                port=chroma_port,
+                settings=Settings(anonymized_telemetry=False),
+            )
+        else:
+            client = chromadb.PersistentClient(
+                path=str(config.CHROMA_DIR),
+                settings=Settings(anonymized_telemetry=False),
+            )
         _collection = client.get_or_create_collection(
             name=config.CHROMA_COLLECTION,
             metadata={"hnsw:space": "cosine"},

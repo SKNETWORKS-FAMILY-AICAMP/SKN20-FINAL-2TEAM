@@ -4,6 +4,13 @@ from typing import List, Optional
 from pydantic import BaseModel
 from openai import OpenAI
 import os
+import sys
+import time
+
+# RAG 모듈 경로 추가 (backend/app/routers/chat.py 기준 4단계 상위 = 프로젝트 루트)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 from app.database import get_db
 from app.schemas.chat import ChatCreate, ChatResponse, ChatListResponse, MessageCreate, MessageResponse
@@ -163,9 +170,8 @@ async def send_chat_message(
 ):
     """
     프론트엔드 채팅 인터페이스용 메시지 API
-    - FormData로 수신 (이미지 첨부 포함 가능)
-    - 대화 히스토리를 DB에서 불러와 vLLM에 전달
-    - vLLM(14B) 응답 반환
+    - FTO 분석: RAG 파이프라인(ChromaDB + vLLM) 호출 → analyses 테이블 저장
+    - 폴백: vLLM 직접 호출
     """
     chat_service = ChatService(db)
 
@@ -185,35 +191,65 @@ async def send_chat_message(
         chat = chat_service.create_chat(current_user.id, title)
         chat_id = chat.id
 
-    # 사용자 메시지 DB 저장
-    chat_service.add_message(
+    # 사용자 메시지 DB 저장 (message_id를 captures해야 analysis FK에 사용)
+    user_msg = chat_service.add_message(
         chat_id=chat_id,
         role="user",
         content=message,
         message_type="text"
     )
 
-    # 대화 히스토리 불러오기 (최근 20개)
-    chat = chat_service.get_chat(chat_id, current_user.id)
-    history = []
-    if chat and hasattr(chat, "messages"):
-        for msg in list(chat.messages)[-20:]:
-            if msg.role in ("user", "assistant"):
-                history.append({"role": msg.role, "content": msg.content})
+    analysis_id = None
+    analysis_complete = False
+    response_message = ""
 
-    # vLLM 호출
-    try:
-        client = OpenAI(base_url=VLLM_BASE_URL, api_key="dummy", timeout=120)
-        messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
-        resp = client.chat.completions.create(
-            model=VLLM_MODEL,
-            messages=messages_payload,
-            max_tokens=2048,
-            temperature=0.1,
-        )
-        response_message = resp.choices[0].message.content
-    except Exception as e:
-        response_message = f"모델 호출 중 오류가 발생했습니다: {str(e)}"
+    # ── FTO 분석: RAG 파이프라인 ──────────────────────────────────
+    if analysis_type == "fto" and message.strip():
+        start_time = time.time()
+        try:
+            from rag.backend_adapter import analyze_product
+            from app.models.analysis import Analysis, InputTypeEnum, RiskLevelEnum as ModelRiskLevel
+
+            rag_result = analyze_product(message)
+            fto_result = rag_result.get("fto_result", {})
+            fto_opinion = fto_result.get("fto_opinion", "")
+            patent_analyses = fto_result.get("patent_analyses", [])
+
+            # risk_level 결정 (라벨 기반)
+            labels = [p.get("label", "") for p in patent_analyses]
+            if any(l == "침해" for l in labels):
+                risk_val = "high"
+            elif any(l in ("침해_전문가", "애매") for l in labels):
+                risk_val = "medium"
+            else:
+                risk_val = "low"
+
+            response_message = fto_opinion or "분석이 완료되었습니다. 결과 페이지에서 상세 내용을 확인하세요."
+
+            # analyses 테이블에 저장
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            analysis_obj = Analysis(
+                message_id=user_msg.id,
+                input_type=InputTypeEnum.text,
+                risk_level=ModelRiskLevel(risk_val),
+                result_json=rag_result,
+                model_used=VLLM_MODEL,
+                processing_time_ms=elapsed_ms,
+            )
+            db.add(analysis_obj)
+            db.commit()
+            db.refresh(analysis_obj)
+
+            analysis_id = analysis_obj.id
+            analysis_complete = True
+
+        except Exception as e:
+            # RAG 실패 시 vLLM 직접 호출 폴백
+            response_message = _call_vllm_fallback(db, chat_id, current_user.id, chat_service, e)
+
+    else:
+        # design 분석 또는 analysis_type이 fto가 아닌 경우: vLLM 직접 호출
+        response_message = _call_vllm_fallback(db, chat_id, current_user.id, chat_service, None)
 
     # 어시스턴트 응답 DB 저장
     chat_service.add_message(
@@ -227,6 +263,35 @@ async def send_chat_message(
         message=response_message,
         session_id=chat_id,
         context=None,
-        analysis_complete=False,
-        analysis_id=None
+        analysis_complete=analysis_complete,
+        analysis_id=analysis_id
     )
+
+
+def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatService", err) -> str:
+    """RAG 실패 또는 design 분석 시 vLLM 직접 호출 폴백."""
+    if err:
+        print(f"[RAG 폴백] RAG 파이프라인 오류: {err}")
+
+    # 대화 히스토리 불러오기
+    from app.services.chat_service import ChatService as CS
+    chat = chat_service.get_chat(chat_id, user_id)
+    history = []
+    if chat and hasattr(chat, "messages"):
+        for msg in list(chat.messages)[-20:]:
+            if msg.role in ("user", "assistant"):
+                history.append({"role": str(msg.role.value) if hasattr(msg.role, 'value') else str(msg.role),
+                                 "content": msg.content})
+
+    try:
+        client = OpenAI(base_url=VLLM_BASE_URL, api_key="dummy", timeout=120)
+        messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
+        resp = client.chat.completions.create(
+            model=VLLM_MODEL,
+            messages=messages_payload,
+            max_tokens=2048,
+            temperature=0.1,
+        )
+        return resp.choices[0].message.content
+    except Exception as e:
+        return f"모델 호출 중 오류가 발생했습니다: {str(e)}"

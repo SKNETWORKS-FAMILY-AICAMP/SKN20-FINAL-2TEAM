@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 # .env 파일 로드 (프로젝트 루트 → workspace 순으로 탐색)
 # RAG 디렉토리 기준으로 상위 폴더를 탐색하며 .env 로드
 _rag_dir = Path(__file__).parent
-for _env_candidate in [_rag_dir.parent / ".env", _rag_dir.parent.parent / ".env", _rag_dir.parent.parent.parent / ".env"]:
+for _env_candidate in [_rag_dir.parent / ".env", _rag_dir.parent / "backend" / ".env", _rag_dir.parent.parent / ".env"]:
     if _env_candidate.exists():
         load_dotenv(_env_candidate)
         break
@@ -159,8 +159,8 @@ CHECKPOINT_INTERVAL = 2000    # 체크포인트 저장 간격 (청크 수)
 PROCESSED_FILES_PATH = INDEX_DIR / "processed_files.json"
 
 # ── Generation (G 모듈) ─────────────────────────────
-VLLM_API_URL = os.environ.get("VLLM_API_URL", "")           # 예: http://localhost:8000/v1
-VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME", "itsbini/qwen2.5-3b-fto")
+VLLM_API_URL = os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")    # 예: http://localhost:8000/v1
+VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME") or os.environ.get("VLLM_MODEL", "itsbini/qwen2.5-3b-fto")
 VLLM_TIMEOUT = 30
 
 GPT_FALLBACK_MODEL = "gpt-4o-mini"

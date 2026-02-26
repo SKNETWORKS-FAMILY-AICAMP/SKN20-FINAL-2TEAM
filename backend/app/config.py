@@ -1,6 +1,11 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import os
+from pathlib import Path
+
+# 프로젝트 루트의 .env 파일을 단일 설정 파일로 사용
+_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_ENV_FILE = str(_PROJECT_ROOT / ".env")
 
 
 class Settings(BaseSettings):
@@ -37,7 +42,7 @@ class Settings(BaseSettings):
     HF_TOKEN: str = ""
 
     class Config:
-        env_file = ".env"
+        env_file = _ENV_FILE
         extra = "allow"
 
 
