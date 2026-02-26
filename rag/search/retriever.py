@@ -24,11 +24,17 @@ import importlib.util
 from .. import config
 
 # tokenizer.py는 index/ 폴더에 bm25.pkl과 함께 배포됨 (패키지가 아닌 데이터 폴더)
+# 파일이 없으면 sparse 검색 비활성화 (dense-only fallback)
+morpheme_tokenize = None
 _tokenizer_path = config.INDEX_DIR / "tokenizer.py"
-_spec = importlib.util.spec_from_file_location("tokenizer", _tokenizer_path)
-_tokenizer_mod = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_tokenizer_mod)
-morpheme_tokenize = _tokenizer_mod.morpheme_tokenize
+try:
+    if _tokenizer_path.exists():
+        _spec = importlib.util.spec_from_file_location("tokenizer", _tokenizer_path)
+        _tokenizer_mod = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_tokenizer_mod)
+        morpheme_tokenize = _tokenizer_mod.morpheme_tokenize
+except Exception as e:
+    print(f"[retriever] tokenizer 로드 실패 (sparse 검색 비활성): {e}")
 
 
 # ══════════════════════════════════════════════════════
@@ -164,7 +170,13 @@ def sparse_search(query: str, top_k: int = None, allowed_chunk_ids: list[str] = 
     Returns:
         [(chunk_id, score), ...] score 높을수록 관련.
     """
-    return _sparse_search_bm25(query, top_k, allowed_chunk_ids)
+    if morpheme_tokenize is None:
+        return []  # tokenizer 없으면 sparse 검색 비활성
+    try:
+        return _sparse_search_bm25(query, top_k, allowed_chunk_ids)
+    except FileNotFoundError:
+        print("[sparse_search] BM25 인덱스 파일 없음 — dense-only 검색으로 진행")
+        return []
 
 
 def _sparse_search_bm25(query: str, top_k: int = None, allowed_chunk_ids: list[str] = None) -> list[tuple[str, float]]:

@@ -20,7 +20,7 @@
 """
 from .. import config
 from .retriever import dense_search, sparse_search, reciprocal_rank_fusion, patent_collapse
-from .filter import apply_rdb_filter, ParentDB, prefilter_by_keywords, extract_keywords
+from .filter import apply_rdb_filter, ParentDB, MySQLParentDB, prefilter_by_keywords, extract_keywords
 
 
 # ══════════════════════════════════════════════════════
@@ -118,7 +118,14 @@ def search(
     try:
         parent_db = ParentDB()
     except FileNotFoundError:
-        return collapsed
+        try:
+            parent_db = MySQLParentDB()
+            if verbose:
+                print("[ParentDB] SQLite 없음 → MySQL RDS 폴백 사용")
+        except Exception as e:
+            if verbose:
+                print(f"[ParentDB] MySQL 폴백도 실패: {e} → 메타데이터 보강 없이 반환")
+            return collapsed
 
     results = apply_rdb_filter(collapsed, parent_db)
 

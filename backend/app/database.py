@@ -25,7 +25,14 @@ def get_db():
 
 
 def init_db():
-    """테이블 생성"""
+    """테이블 생성 — 기존 RAG 데이터 테이블(patents, claim_keywords, claim_components)은 건드리지 않음"""
     # 모든 모델 import (테이블 생성을 위해 필요)
     from app.models import user, chat, analysis, patent
-    Base.metadata.create_all(bind=engine)
+
+    # 기존 RAG 데이터 테이블은 이미 RDS에 존재하므로 제외
+    existing_rag_tables = {"patents", "claim_keywords", "claim_components"}
+    tables_to_create = [
+        t for t in Base.metadata.sorted_tables
+        if t.name not in existing_rag_tables
+    ]
+    Base.metadata.create_all(bind=engine, tables=tables_to_create)

@@ -36,10 +36,22 @@ class Settings(BaseSettings):
     HF_MODEL_ID: str = "itsbini/qwen2.5-14b-fto"
 
     # 개발 모드 (배포 시 False로 변경!)
-    DEV_BYPASS_AUTH: bool = False
+    DEV_BYPASS_AUTH: bool = True
 
     # Hugging Face
     HF_TOKEN: str = ""
+
+    # vLLM 서버
+    VLLM_BASE_URL: str = "http://localhost:8000/v1"
+    VLLM_MODEL: str = "/workspace/qwen2.5-14b-fto-merged"
+
+    # ChromaDB (EC2)
+    CHROMA_HOST: str = ""
+    CHROMA_PORT: int = 8001
+    CHROMA_IMAGE_PORT: int = 8002
+
+    # OpenAI GPT 폴백
+    OPENAI_API_KEY: str = ""
 
     class Config:
         env_file = _ENV_FILE

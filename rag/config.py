@@ -19,7 +19,7 @@ for _env_candidate in [_rag_dir.parent / ".env", _rag_dir.parent / "backend" / "
 
 # ── 경로 ──────────────────────────────────────────────
 RAG_DIR = _rag_dir
-PROJECT_DIR = RAG_DIR.parent.parent          # SKN20-FINAL-2TEAM
+PROJECT_DIR = RAG_DIR.parent                  # SKN20-FINAL-2TEAM
 DATA_DIR = RAG_DIR / "data"
 INDEX_DIR = RAG_DIR / "index"
 CHROMA_DIR = INDEX_DIR / "chroma_db"

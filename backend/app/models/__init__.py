@@ -7,15 +7,7 @@ from app.models.analysis import (
     ImageMatch,
     ClaimMatch
 )
-from app.models.patent import (
-    DesignPatent,
-    Patent,
-    Claim,
-    PatentIPC,
-    ClaimElement
-)
-# TODO: 디자인/RAG 팀 연동 후 활성화
-# from app.models.patent import DesignEmbedding, ClaimEmbedding
+from app.models.patent import Patent
 
 __all__ = [
     "User",
@@ -26,9 +18,5 @@ __all__ = [
     "AnalysisKeyword",
     "ImageMatch",
     "ClaimMatch",
-    "DesignPatent",
     "Patent",
-    "Claim",
-    "PatentIPC",
-    "ClaimElement",
 ]

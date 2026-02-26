@@ -74,7 +74,7 @@ class ImageMatch(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False)
-    design_patent_id = Column(BigInteger, ForeignKey("design_patents.id"), nullable=True)  # 디자인 연동 전까지 nullable
+    design_patent_id = Column(BigInteger, nullable=True)  # FK 제거 (디자인은 ChromaDB만 사용)
     rag_score = Column(Float)
     model_score = Column(Float)
     is_similar = Column(Boolean)
@@ -82,8 +82,6 @@ class ImageMatch(Base):
 
     # 관계
     analysis = relationship("Analysis", back_populates="image_matches")
-    # TODO: 디자인 팀 연동 후 활성화
-    # design_patent = relationship("DesignPatent")
 
 
 class ClaimMatch(Base):
@@ -91,7 +89,8 @@ class ClaimMatch(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False)
-    claim_id = Column(BigInteger, ForeignKey("claims.id"), nullable=True)  # RAG 연동 전까지 nullable
+    chunk_id = Column(String(200), nullable=True)    # ChromaDB 청크 ID
+    patent_id = Column(String(50), nullable=True)     # 출원번호
     rag_score = Column(Float)
     rerank_score = Column(Float)
     match_result = Column(Enum(MatchResultEnum))
@@ -99,4 +98,3 @@ class ClaimMatch(Base):
 
     # 관계
     analysis = relationship("Analysis", back_populates="claim_matches")
-    claim = relationship("Claim")

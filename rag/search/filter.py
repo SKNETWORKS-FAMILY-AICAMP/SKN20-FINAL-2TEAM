@@ -300,6 +300,66 @@ class ParentDB:
         }
 
 
+class MySQLParentDB:
+    """RDS MySQL patents 테이블 기반 ParentDB 대체.
+
+    parents.sqlite가 없는 환경에서 RDS에서 직접 조회합니다.
+    ParentDB와 동일한 dict 포맷을 반환합니다.
+    """
+
+    def __init__(self):
+        import pymysql
+        self._conn = pymysql.connect(
+            host=_os.environ.get("MYSQL_HOST", ""),
+            port=int(_os.environ.get("MYSQL_PORT", 3306)),
+            user=_os.environ.get("MYSQL_USER", "root"),
+            password=_os.environ.get("MYSQL_PASSWORD", ""),
+            database=_os.environ.get("MYSQL_DATABASE", "fto"),
+            charset="utf8mb4",
+            connect_timeout=5,
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+
+    def get_parent(self, apply_num: str) -> dict | None:
+        """출원번호로 특허 데이터 전체 조회."""
+        if not self._conn.open:
+            self._conn.ping(reconnect=True)
+
+        cur = self._conn.cursor()
+        cur.execute("SELECT * FROM patents WHERE apply_num = %s", (apply_num,))
+        row = cur.fetchone()
+        cur.close()
+
+        if not row:
+            return None
+
+        def _json(val, default):
+            if not val:
+                return default
+            try:
+                return json.loads(val)
+            except (json.JSONDecodeError, TypeError):
+                return default
+
+        return {
+            "apply_num": row.get("apply_num", ""),
+            "invention_title": row.get("invention_title", ""),
+            "invention_title_eng": row.get("invention_title_eng", ""),
+            "ipc": _json(row.get("ipc"), []),
+            "register_status": row.get("register_status", ""),
+            "regit_num": row.get("regit_num", ""),
+            "application_date": row.get("application_date", ""),
+            "open_date": row.get("open_date", ""),
+            "register_date": row.get("register_date", ""),
+            "applicant": row.get("applicant", ""),
+            "abstract": row.get("abstract", ""),
+            "claim_pub": row.get("claim_pub", ""),
+            "claim_regit": row.get("claim_regit", ""),
+            "chunk_ids": _json(row.get("chunk_ids"), []),
+            "claim_groups": _json(row.get("claim_groups"), {}),
+        }
+
+
 # ══════════════════════════════════════════════════════
 # RDB 필터 적용 (등록 상태 필터 + 데이터 보강)
 # ══════════════════════════════════════════════════════

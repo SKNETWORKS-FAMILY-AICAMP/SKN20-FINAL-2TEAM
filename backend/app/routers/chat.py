@@ -283,9 +283,11 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
                 history.append({"role": str(msg.role.value) if hasattr(msg.role, 'value') else str(msg.role),
                                  "content": msg.content})
 
+    messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
+
+    # 1순위: vLLM
     try:
         client = OpenAI(base_url=VLLM_BASE_URL, api_key="dummy", timeout=120)
-        messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
         resp = client.chat.completions.create(
             model=VLLM_MODEL,
             messages=messages_payload,
@@ -293,5 +295,22 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
             temperature=0.1,
         )
         return resp.choices[0].message.content
-    except Exception as e:
-        return f"모델 호출 중 오류가 발생했습니다: {str(e)}"
+    except Exception as vllm_err:
+        print(f"[vLLM 폴백] vLLM 호출 실패: {vllm_err}")
+
+    # 2순위: OpenAI GPT-4o-mini
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+    if openai_key:
+        try:
+            client = OpenAI(api_key=openai_key, timeout=60)
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages_payload,
+                max_tokens=2048,
+                temperature=0.1,
+            )
+            return resp.choices[0].message.content
+        except Exception as gpt_err:
+            return f"모델 호출 중 오류가 발생했습니다 (vLLM + GPT 모두 실패): {str(gpt_err)}"
+
+    return "모델 서버에 연결할 수 없습니다. vLLM 서버를 시작하거나 OPENAI_API_KEY를 설정하세요."

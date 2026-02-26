@@ -6,7 +6,7 @@ import os
 
 from app.config import settings
 from app.database import init_db
-from app.routers import auth, chat, analysis, search
+from app.routers import auth, chat, analysis, search, design
 
 # 앱 시작 시 DB 테이블 생성
 init_db()
@@ -31,6 +31,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["인증"])
 app.include_router(chat.router, prefix="/api/chat", tags=["채팅"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["분석"])
 app.include_router(search.router, prefix="/api/search", tags=["검색"])
+app.include_router(design.router, prefix="/api/analysis", tags=["디자인분석"])
 
 
 @app.get("/health")
