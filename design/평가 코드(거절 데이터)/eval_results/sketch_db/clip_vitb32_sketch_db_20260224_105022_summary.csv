@@ -1,0 +1,2 @@
+experiment,n_apps,timestamp,HitRate@5,HitRate@10,HitRate@20,HitRate@100
+clip_vitb32_sketch_db,20,20260224_105022,0.2,0.2,0.25,0.4
