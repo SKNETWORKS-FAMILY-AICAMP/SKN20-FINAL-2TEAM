@@ -1,360 +1,241 @@
-# FTO 프로젝트 - Claude 가이드
+# FTOGuard 프로젝트 - Claude 작업 가이드
 
-> **Claude에게**: 대화 시작 시 이 파일을 먼저 읽고 프로젝트 상황을 파악한 후 진행하세요.
-
-## 프로젝트 목적
-
-**상품 출시 전 특허/디자인 침해 여부 사전 검증 서비스 (FTO: Freedom To Operate)**
-- 사용자가 출시하려는 제품이 기존 특허/디자인을 침해하는지 AI로 사전 판단
-- 팀명: 긍마 / SKN20-FINAL-2TEAM
-- 개발기간: 2026.01.09 ~ 2026.03.11
+## 프로젝트 개요
+FTO(Freedom to Operate) 특허·디자인 침해 리스크 판단 AI 에이전트
+- 특허 FTO 분석: RAG(특허 검색) + vLLM(Qwen2.5-14B) → 침해 분석
+- 디자인 분석: ChromaDB 이미지 RAG (CLIP 임베딩)
 
 ---
 
-## 서비스 플로우
+## 새 런팟 시작 시 작업 순서
 
-### 1. 특허 침해 분석 (텍스트)
+### 1. 환경 설정
 
-```
-사용자 쿼리 입력
-    ↓
-[Pre-filter] claim_keywords 테이블에서 쿼리 요소 매칭 → ~1000개 patent_id
-    ↓
-[RAG] BM25 + Dense (ChromaDB) → 상위 5개 청구항
-    ↓
-[sLLM] claim_components에서 구성요소 가져와서 침해 여부 판단
-    ↓
-결과: 침해 / 비침해 / 애매 / 침해_전문가
-```
+```bash
+# 패키지 설치
+pip install vllm openai fastapi uvicorn sqlalchemy pydantic-settings \
+    python-jose[cryptography] pymysql python-multipart aiofiles chromadb
 
-### 2. 이미지 특허 침해 분석
-
-```
-이미지 업로드
-    ↓
-[이미지 RAG] BM25 + Dense (ChromaDB) → 유사 이미지 검색
-    ↓
-design_patents 테이블에서 image_url 조회
-    ↓
-결과 이미지 표시
+# .env 생성 (RDS 연결)
+cat > /root/SKN20-FINAL-2TEAM/backend/.env << 'EOF'
+DATABASE_URL=mysql+pymysql://admin:rmdak2020@fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com:3306/fto
+SECRET_KEY=demo-secret-key-2026
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+CORS_ORIGINS=["*"]
+VLLM_BASE_URL=http://localhost:8000/v1
+VLLM_MODEL=/workspace/qwen2.5-14b-fto-merged
+DEV_BYPASS_AUTH=true
+EOF
 ```
 
----
+### 2. vLLM 서버 실행
 
-## 디렉토리 구조
+```bash
+# 병합된 모델이 /workspace에 있으면 바로 실행
+vllm serve /workspace/qwen2.5-14b-fto-merged \
+    --host 0.0.0.0 --port 8000 --dtype float16 > /workspace/vllm.log 2>&1 &
 
+# /workspace에 없으면 HuggingFace에서 다운로드 후 실행
+# (모델: itsbini/qwen2.5-14b-fto-merged, 약 29.5GB)
+export HF_HOME=/workspace/hf_cache
+vllm serve itsbini/qwen2.5-14b-fto-merged \
+    --host 0.0.0.0 --port 8000 --dtype float16 > /workspace/vllm.log 2>&1 &
+
+# 서버 준비 확인 (2~3분 소요)
+tail -f /workspace/vllm.log
+# "Application startup complete." 메시지 확인
 ```
-SKN20-FINAL-2TEAM/
-├── SLLM_model/                 # sLLM 학습 모듈
-│   ├── training/               # 학습 스크립트
-│   │   ├── train_qwen_v2.py    # 1.5B 학습
-│   │   ├── train_qwen3b.py     # 3B 학습
-│   │   ├── train_qwen14b.py    # 14B 학습
-│   │   └── upload_hf.py        # HuggingFace 업로드
-│   ├── data/sllm_qwen_data/    # 학습 데이터 (17,377건 / 4,317건)
-│   ├── outputs/                # 학습된 모델 저장소
-│   └── sllm_smalltrain_dj/eval/ # 추론 및 평가 스크립트
-│
-├── backend/                    # FastAPI 백엔드
-│   ├── app/
-│   │   ├── routers/            # auth, chat, analysis, search
-│   │   ├── services/           # 비즈니스 로직
-│   │   └── models/             # SQLAlchemy 모델
-│   └── Dockerfile
-│
-├── rag/                        # RAG 검색 모듈 (Dense+Sparse+RRF)
-├── FRONTEND/                   # Nginx 정적 HTML/JS 프론트엔드
-├── design/                     # 디자인 유사도 분석 (CLIP + VLM)
-├── sql/                        # DB 스키마 및 마이그레이션
-│   └── fto_schema.sql          # RDS 테이블 정의
-└── docker-compose.yml          # EC2 배포용 (RDS 연결)
+
+### 3. FastAPI 백엔드 실행
+
+```bash
+cd /root/SKN20-FINAL-2TEAM/backend
+uvicorn app.main:app --host 0.0.0.0 --port 8080 > /workspace/backend.log 2>&1 &
+
+# 확인
+curl http://localhost:8080/health
+```
+
+### 4. 접속 방법 (SSH 터널)
+
+```bash
+# Mac 로컬 터미널에서 실행
+ssh -L 8080:localhost:8080 root@<IP> -p <PORT> -i ~/.ssh/id_ed25519 -N
+
+# 브라우저 접속
+# http://localhost:8080/chat.html
 ```
 
 ---
 
-## 데이터 저장소 구조
-
-### MySQL (AWS RDS) - 메타데이터 + Pre-filter
-
-| 테이블 | 건수 | 용도 | 담당 |
-|--------|------|------|------|
-| `patents` | - | 특허 기본 정보 | - |
-| `claims` | - | 청구항 텍스트 (BM25용) | - |
-| `claim_keywords` | ~1000만 | Pre-filter용 키워드 | 팀원1 |
-| `claim_components` | ~26만 | sLLM용 구성요소 | 팀원1 |
-| `design_patents` | - | 디자인 특허 + 이미지 URL | 팀원3 |
-| `users`, `chats`, `messages` | - | 서비스 데이터 | - |
-| `analyses`, `*_matches` | - | 분석 결과 | - |
-
-### ChromaDB (EC2) - 벡터 검색
-
-| 디렉토리 | 용도 | 담당 |
-|----------|------|------|
-| `/data/chroma/claims/` | 청구항 Dense 검색 | 팀원2 |
-| `/data/chroma/images/` | 이미지 Dense 검색 | 팀원3 |
-
----
-
-## 팀원별 데이터 현황
-
-| 팀원 | 데이터 | 저장소 | 상태 |
-|------|--------|--------|------|
-| 본인 | 스키마, 통합 | RDS | ✅ 스키마 생성 완료 |
-| 팀원1 | claim_keywords (~1000만), claim_components (~26만) | RDS | 🔄 업로드 중 |
-| 팀원2 | 청구항 벡터 (ChromaDB) | EC2 | ⏳ 대기 |
-| 팀원3 | 이미지 벡터 (ChromaDB) + design_patents | EC2 + RDS | ⏳ 대기 |
-
----
-
-## AWS 인프라 (2026-02-24 구성)
+## AWS RDS 정보 (2026-02-26 정리 완료)
 
 | 항목 | 값 |
 |------|-----|
-| EC2 퍼블릭 IP | `52.78.233.64` |
-| EC2 인스턴스 ID | `i-025ca49992ebcd3cc` |
-| EC2 OS | Ubuntu 24.04 LTS (t2.micro) |
-| RDS 엔드포인트 | `fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com` |
-| RDS 엔진 | MySQL 8.4 (db.t3.micro) |
-| RDS DB명 | `fto` |
-| RDS 유저 | `admin` |
-| 리전 | ap-northeast-2 (서울) |
-| SSH 키 | `fto-key.pem` |
+| 엔드포인트 | `fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com` |
+| 포트 | 3306 |
+| DB명 | `fto` |
+| 유저 | `admin` |
+| 비밀번호 | `rmdak2020` |
+| 엔진 | MySQL 8.4 |
 
-### EC2 접속
+### RDS 테이블 구조
+
+```
+patents (4만건)           ← 특허 메타데이터 + 청구항 텍스트
+├── apply_num (PK)        ← 출원번호
+├── invention_title       ← 발명명
+├── claim_pub             ← 공개 청구항 텍스트
+├── claim_regit           ← 등록 청구항 텍스트
+└── chunk_ids             ← ChromaDB 청크 ID 목록
+
+claim_keywords (1000만건) ← Pre-filter용 키워드
+├── patent_id             ← 출원번호 (patents.apply_num 참조)
+├── chunk_id              ← 청구항 청크 ID
+└── keyword               ← 키워드
+
+claim_components (26만건) ← sLLM용 구성요소
+├── patent_id             ← 출원번호
+├── chunk_id              ← 청구항 청크 ID (UNIQUE)
+├── components            ← 추출된 구성요소 목록
+└── note                  ← 참조한 종속항 번호
+
+users / chats / messages / analyses ← 서비스 테이블
+
+⚠️ 삭제 필요 (런팟에서 실행):
+design_patents, image_matches ← 이미지는 ChromaDB만 사용
+```
+
+### RDS 정리 명령어 (런팟에서 실행)
 ```bash
-ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
+mysql -h fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com -u admin -prmdak2020 fto -e "
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS image_matches;
+DROP TABLE IF EXISTS design_patents;
+SET FOREIGN_KEY_CHECKS=1;
+SHOW TABLES;
+"
 ```
 
-### RDS 접속 (EC2에서)
-```bash
-mysql -h fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com -u admin -p fto
+### 데이터 연결 관계 (논리적 참조)
 ```
+patents.apply_num ←── claim_keywords.patent_id
+                  ←── claim_components.patent_id
 
----
-
-## sLLM 모델 학습 현황
-
-### 목표: 파인튜닝된 작은 모델 > 파인튜닝 안 된 큰 모델 입증
-
-| 모델 | 파인튜닝 | 정확도 | 구조성공률 | 법리일관성 | 행수일치율 | HuggingFace |
-|------|----------|--------|-----------|-----------|-----------|-------------|
-| Qwen 1.5B | ✅ | 86.2% | 97.3% | 99.6% | 97.5% | itsbini/qwen2.5-1.5b-fto |
-| Qwen 3B | ❌ 베이스 | 30.1% | 85.2% | 91.3% | 29.3% | - |
-| Qwen 3B | ✅ | 89.5% | 98.9% | 99.6% | 99.3% | itsbini/qwen2.5-3b-fto |
-| Qwen 7B | ❌ 베이스 | 31.8% | 98.0% | 48.1% | 70.8% | - |
-| Qwen 14B | ✅ | **94.3%** | 99.7% | 99.6% | 100.0% | itsbini/qwen2.5-14b-fto |
-
-### 입증 완료
-- ✅ 학습된 1.5B (86.2%) > 학습 안 한 3B (30.1%)
-- ✅ 학습된 3B (89.5%) > 학습 안 한 7B (31.8%)
-
----
-
-## 백엔드 API
-
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| POST | `/api/auth/signup` | 회원가입 |
-| POST | `/api/auth/login` | 로그인 (JWT) |
-| POST | `/api/analysis/text` | 텍스트 FTO 분석 |
-| POST | `/api/analysis/image` | 이미지 디자인 분석 |
-| GET | `/api/search/keywords` | 키워드 검색 |
-| POST | `/api/search/hybrid` | 하이브리드 검색 |
-
----
-
-## TODO (남은 작업)
-
-### 🔴 높음
-- [x] **RDS 스키마 생성** (`sql/fto_schema.sql`)
-- [x] **claim_keywords 업로드** (~1000만건)
-- [ ] **claim_components 업로드** (~26만건) - 팀원1에게 CSV 받기
-- [ ] **ChromaDB 파일 EC2 전송** - 팀원2, 팀원3
-- [ ] **EC2 배포 실행**
-  ```bash
-  cd SKN20-FINAL-2TEAM && git pull origin main
-  sudo docker-compose up --build -d
-  ```
-
-### 🟡 중간
-- [ ] **백엔드-sLLM 연동** (`text_analyzer.py`에 모델 호출)
-- [ ] **백엔드-RAG 연동** (`search_service.py`에서 RAG 파이프라인)
-- [ ] **백엔드 .env 파일 분리** (비밀번호 노출 방지)
-- [ ] **CORS 설정** (EC2 IP 추가)
-
-### 🟢 낮음
-- [ ] **14B 베이스 추론** (7B FT vs 14B 베이스 비교)
-- [ ] **테스트 계획 및 결과 보고서**
-- [ ] **LLM 활용 소프트웨어 산출물**
-
----
-
-## 팀원 데이터 취합 가이드
-
-### 팀원1: claim_components CSV 업로드
-```bash
-# 1. CSV를 EC2로 전송
-scp -i ~/Downloads/fto-key.pem claim_components.csv ubuntu@52.78.233.64:~/
-
-# 2. EC2에서 RDS로 로드
-ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
-mysql -h fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com -u admin -p --local-infile=1 fto
-
-# MySQL에서:
-LOAD DATA LOCAL INFILE '/home/ubuntu/claim_components.csv'
-INTO TABLE claim_components
-CHARACTER SET utf8mb4
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 ROWS
-(patent_id, chunk_id, components, note);
-```
-
-### 팀원2, 팀원3: ChromaDB 파일 전송
-```bash
-# ChromaDB 디렉토리 압축
-tar -czvf chroma_claims.tar.gz ./chroma_db/
-
-# EC2로 전송
-scp -i ~/Downloads/fto-key.pem chroma_claims.tar.gz ubuntu@52.78.233.64:~/
-
-# EC2에서 압축 해제
-ssh -i ~/Downloads/fto-key.pem ubuntu@52.78.233.64
-mkdir -p /data/chroma/claims
-tar -xzvf chroma_claims.tar.gz -C /data/chroma/claims/
+claim_keywords.chunk_id ←→ claim_components.chunk_id
+                        ←→ ChromaDB 벡터 ID
 ```
 
 ---
 
-## 🔥 긴급 TODO: LoRA 모델 병합 및 재업로드 (Colab)
+## 이미지 분석 (디자인 특허)
 
-> **Claude에게**: 사용자가 Colab에서 이 작업을 요청하면 아래 스크립트 실행해줘.
+**RDS 사용 안 함** - ChromaDB만 사용
 
-### 배경
-- 현재 HuggingFace에 업로드된 모델들은 **LoRA 어댑터**임
-- HuggingFace Inference API는 LoRA 어댑터 직접 호출 불가
-- **베이스 모델 + LoRA 어댑터 → 전체 모델로 병합** 후 재업로드 필요
-
-### 대상 모델
-
-| LoRA 어댑터 | 베이스 모델 | 병합 후 업로드 |
-|-------------|-------------|----------------|
-| `itsbini/qwen2.5-1.5b-fto` | `Qwen/Qwen2.5-1.5B-Instruct` | `itsbini/qwen2.5-1.5b-fto-merged` |
-| `itsbini/qwen2.5-3b-fto` | `Qwen/Qwen2.5-3B-Instruct` | `itsbini/qwen2.5-3b-fto-merged` |
-| `itsbini/qwen2.5-14b-fto` | `Qwen/Qwen2.5-14B-Instruct` | `itsbini/qwen2.5-14b-fto-merged` |
-
-### Colab 실행 스크립트 (GPU 필수, A100 권장)
-
-```python
-# 1. 패키지 설치
-!pip install -q transformers peft accelerate bitsandbytes huggingface_hub
-
-# 2. HuggingFace 로그인
-from huggingface_hub import login
-login(token="YOUR_HF_TOKEN_HERE")
-
-# 3. 모델 병합 함수
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
-
-def merge_and_upload(
-    base_model_id: str,
-    adapter_id: str,
-    merged_model_id: str,
-    use_4bit: bool = False
-):
-    print(f"=== {adapter_id} 병합 시작 ===")
-
-    # 베이스 모델 로드
-    print(f"베이스 모델 로드: {base_model_id}")
-    if use_4bit:
-        from transformers import BitsAndBytesConfig
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-        )
-        base_model = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            quantization_config=bnb_config,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-    else:
-        base_model = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            torch_dtype=torch.bfloat16,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-
-    tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
-
-    # LoRA 어댑터 로드 및 병합
-    print(f"LoRA 어댑터 로드: {adapter_id}")
-    model = PeftModel.from_pretrained(base_model, adapter_id)
-
-    print("모델 병합 중...")
-    merged_model = model.merge_and_unload()
-
-    # HuggingFace에 업로드
-    print(f"업로드 중: {merged_model_id}")
-    merged_model.push_to_hub(merged_model_id, private=False)
-    tokenizer.push_to_hub(merged_model_id)
-
-    print(f"✅ 완료: https://huggingface.co/{merged_model_id}")
-
-    # 메모리 정리
-    del base_model, model, merged_model
-    torch.cuda.empty_cache()
-
-# 4. 실행 (하나씩 순차적으로)
-
-# 1.5B 모델 (Colab 무료 가능)
-merge_and_upload(
-    base_model_id="Qwen/Qwen2.5-1.5B-Instruct",
-    adapter_id="itsbini/qwen2.5-1.5b-fto",
-    merged_model_id="itsbini/qwen2.5-1.5b-fto-merged"
-)
-
-# 3B 모델 (Colab Pro 권장)
-merge_and_upload(
-    base_model_id="Qwen/Qwen2.5-3B-Instruct",
-    adapter_id="itsbini/qwen2.5-3b-fto",
-    merged_model_id="itsbini/qwen2.5-3b-fto-merged"
-)
-
-# 14B 모델 (A100 40GB 필요, 4bit로 로드)
-merge_and_upload(
-    base_model_id="Qwen/Qwen2.5-14B-Instruct",
-    adapter_id="itsbini/qwen2.5-14b-fto",
-    merged_model_id="itsbini/qwen2.5-14b-fto-merged",
-    use_4bit=True  # VRAM 부족 시
-)
+```
+이미지 업로드
+→ ChromaDB에서 CLIP 임베딩으로 유사 이미지 검색
+→ ChromaDB 메타데이터에서 image_url 가져옴
+→ 결과 이미지 표시
 ```
 
-### 병합 후 백엔드 설정 업데이트
+ChromaDB 위치: EC2 `/data/chroma/images/`
 
-병합 완료 후 `backend/app/services/text_analyzer.py` 수정:
+---
 
-```python
-HF_MODELS = {
-    "1.5b": "itsbini/qwen2.5-1.5b-fto-merged",
-    "3b": "itsbini/qwen2.5-3b-fto-merged",
-    "14b": "itsbini/qwen2.5-14b-fto-merged",
-}
+## 현재 구현 상태
+
+### 완료된 것
+- [x] Qwen2.5-14B LoRA → 베이스 병합 (`itsbini/qwen2.5-14b-fto-merged`)
+- [x] vLLM 서버 (포트 8000)
+- [x] FastAPI 백엔드 (포트 8080) + 프론트엔드 정적 파일 서빙
+- [x] 채팅 UI → vLLM 연결 (`/api/chat/message`)
+- [x] RDS 스키마 정리 완료 (2026-02-26)
+- [x] DEV_BYPASS_AUTH=true (데모용 인증 우회)
+
+### 다음 작업: RAG 연결
+- [ ] RAG 파이프라인 연결 (`rag/search/pipeline.py` → chat 엔드포인트)
+- [ ] ChromaDB 연결 (텍스트 + 이미지)
+- [ ] 결과 페이지 실제 데이터 연결 (`results.html`)
+- [ ] 보고서 PDF에 실제 LLM 분석 결과 표시
+
+---
+
+## RAG 연결 작업
+
+### RAG 파이프라인 흐름
+```
+채팅 메시지 입력
+→ claim_keywords에서 keyword 매칭 (Pre-filter)
+→ ChromaDB에서 chunk_id로 유사 청구항 검색 (Dense + BM25)
+→ chunk_id → claim_components에서 구성요소 조회
+→ patent_id → patents에서 메타데이터 조회
+→ vLLM(Qwen2.5-14B)으로 침해 여부 판단
+→ 결과 반환 + DB 저장
+→ results.html?id=xxx 로 이동
+→ PDF 보고서 다운로드
 ```
 
-### HuggingFace 토큰 (Inference 권한 포함)
+### 수정할 파일
+1. `backend/app/routers/chat.py`
+   - `send_chat_message()` → `pipeline.analyze()` 호출로 교체
+2. `rag/config.py`
+   - RDS 연결 설정
+   - `VLLM_API_URL = "http://localhost:8000/v1"`
+   - `VLLM_MODEL_NAME = "/workspace/qwen2.5-14b-fto-merged"`
+3. `rag/search/pipeline.py`
+   - RDS + ChromaDB 연결
+4. `backend/app/routers/chat.py` + `results.html`
+   - 분석 결과 DB 저장 → results 페이지 연동
+
+---
+
+## 주요 파일 구조
+
 ```
-YOUR_HF_TOKEN_HERE
+SKN20-FINAL-2TEAM/
+├── FRONTEND/              # 정적 HTML/JS/CSS (FastAPI가 서빙)
+│   ├── chat.html          # 특허 FTO 채팅 페이지
+│   ├── design-chat.html   # 디자인 분석 페이지
+│   ├── results.html       # 분석 결과 + PDF 보고서
+│   └── script.js          # apiClient (baseURL="/api")
+├── backend/
+│   ├── app/
+│   │   ├── main.py        # FastAPI 앱 (포트 8080)
+│   │   └── routers/
+│   │       └── chat.py    # /api/chat/message → vLLM 호출
+│   └── .env               # DB, vLLM 설정
+├── rag/
+│   ├── search/
+│   │   └── pipeline.py    # search() + analyze() 함수
+│   ├── generate.py        # vLLM 호출로 FTO 분석 생성
+│   └── config.py          # 설정 파일
+├── sql/
+│   └── fto_schema.sql     # RDS 스키마 (현재 구조 반영)
+└── CLAUDE.md              # 이 파일
 ```
 
 ---
 
-## 팀 정보
+## 포트 구성
 
-- GitHub: https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN20-FINAL-2TEAM
-- RunPod 작업 경로: `/root/SKN20-FINAL-2TEAM`
+| 포트 | 용도 |
+|------|------|
+| 8000 | vLLM 서버 (Qwen2.5-14B) |
+| 8080 | FastAPI 백엔드 + 프론트엔드 |
+| 8888 | JupyterLab |
+
+---
+
+## 모델 정보
+
+- **모델**: `itsbini/qwen2.5-14b-fto-merged` (HuggingFace)
+- **베이스**: Qwen/Qwen2.5-14B-Instruct
+- **파인튜닝**: LoRA → 병합 완료
+- **크기**: ~29.5GB (float16)
+- **필요 VRAM**: A100 40GB 이상 권장
+
+## 시스템 프롬프트 (변경 금지)
+`backend/app/routers/chat.py`의 `SYSTEM_PROMPT`와
+`rag/generate.py`의 `SYSTEM_PROMPT`는 학습 데이터와 동일한 형식이므로 수정 시 성능 저하 가능.
