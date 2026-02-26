@@ -6,30 +6,11 @@
 
 ## 목차
 
-- [프로젝트 구조](#프로젝트-구조)
 - [챗봇 동작 흐름](#챗봇-동작-흐름)
-- [환경 설정](#환경-설정)
-- [서버 실행](#서버-실행)
 - [API 명세](#api-명세)
 - [프론트엔드 연동 가이드](#프론트엔드-연동-가이드)
 
----
 
-## 프로젝트 구조
-
-```
-design/
-├── src/
-│   ├── api.py               # FastAPI 서버 (엔드포인트 정의)
-│   ├── design_chatbot.py    # LangGraph 그래프 (핵심 로직)
-│   ├── utils.py             # CLIP 임베딩, 이미지 검색 유틸
-│   ├── prompts.py           # VLM 프롬프트 (이미지 분석/비교/리포트)
-│   ├── API_명세서.md         # 상세 API 명세
-│   └── temp_uploads/        # 업로드 이미지 임시 저장 폴더
-├── chroma_db/               # ChromaDB 벡터 인덱스
-└── data/
-    └── images/              # 디자인 특허 이미지
-```
 
 ---
 
@@ -78,46 +59,6 @@ design/
      ├── POST /chat/text ──────────────►  대화 히스토리 유지하며 답변
 ```
 
----
-
-## 환경 설정
-
-### 패키지 설치
-
-```bash
-pip install fastapi uvicorn python-multipart pillow requests
-pip install langchain langchain-openai langchain-community langgraph
-pip install chromadb rank-bm25 python-dotenv
-pip install tavily-python
-```
-
-### 환경 변수 (.env)
-
-`design/src/` 폴더에 `.env` 파일을 생성하세요.
-
-```env
-OPENAI_API_KEY=your-openai-api-key
-TAVILY_API_KEY=your-tavily-api-key
-```
-
-### ChromaDB 준비
-
-서버 실행 전 `design/chroma_db/`에 벡터 인덱스가 빌드되어 있어야 합니다.
-
----
-
-## 서버 실행
-
-```bash
-cd design/src
-python api.py
-```
-
-| 항목 | 값 |
-|------|------|
-| 서버 주소 | `http://localhost:8000` |
-| Swagger 문서 | `http://localhost:8000/docs` |
-| 헬스체크 | `http://localhost:8000/health` |
 
 ---
 

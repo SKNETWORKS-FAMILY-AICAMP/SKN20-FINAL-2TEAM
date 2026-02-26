@@ -1,3 +1,46 @@
+## 디렉토리 구조
+
+```
+design/
+├── .env                        # 환경 변수 (API 키 등)
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── chroma_db/                  # ChromaDB 벡터 DB (구글 드라이브에서 다운로드) 
+└── src/
+    ├── design_chatbot.py       # 챗봇 메인 — LangGraph 그래프 및 노드 정의
+    ├── utils.py                # 임베딩, 스케치 변환, Hybrid Retrieval 유틸 함수
+    ├── prompts.py              # VLM 분석 / 비교 / 리포트 프롬프트
+    ├── api.py                  # FastAPI 서버
+    ├── index.html              # 챗봇 UI
+    ├── sllm_서빙_가이드.md
+    ├── temp_uploads/           # 업로드된 임시 이미지
+    └── README.md
+```
+
+---
+
+## 설치
+
+Python 3.9+ 필요
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## .env
+
+```
+OPENAI_API_KEY=<OpenAI API 키>
+TAVILY_API_KEY=<Tavily API 키>
+VLLM_API_BASE=<vLLM 서버 주소>/v1        
+VLLM_MODEL=<모델 경로>                   
+```
+
+---
+
 # 디자인 유사성 분석 챗봇
 
 CLIP 임베딩 기반 **Hybrid Retrieval**과 **Qwen2.5-VL-7B-Instruct (vLLM 서빙)**을 활용한 디자인 특허 유사도 분석 시스템
