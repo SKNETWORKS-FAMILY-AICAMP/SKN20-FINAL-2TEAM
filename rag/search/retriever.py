@@ -126,6 +126,16 @@ def _load_sparse_index() -> dict:
             _sparse_index["meta"] = json.load(f)
         # chunk_id → doc_id 역방향 매핑 (사전필터링용)
         _sparse_index["reverse_doc_map"] = {v: k for k, v in _sparse_index["doc_map"].items()}
+        # 분할 청크 prefix 맵 구축 (1회): 기본 chunk_id → [분할 doc_ids]
+        # _sub: 종속항 그룹 분할, _win: 독립항 슬라이딩 윈도우 분할
+        # 예: {"..._claim_1": [doc_id_sub0, doc_id_sub1, doc_id_win0, ...]}
+        import re
+        sub_prefix_map: dict[str, list[int]] = {}
+        for chunk_id, doc_id in _sparse_index["reverse_doc_map"].items():
+            m = re.match(r"^(.+)_(?:sub|win)\d+$", chunk_id)
+            if m:
+                sub_prefix_map.setdefault(m.group(1), []).append(doc_id)
+        _sparse_index["sub_prefix_map"] = sub_prefix_map
     return _sparse_index
 
 
@@ -169,10 +179,20 @@ def _sparse_search_bm25(query: str, top_k: int = None, allowed_chunk_ids: list[s
     b = meta["b"]
 
     # allowed_chunk_ids → allowed_doc_ids 변환 (사전필터링)
+    # claim_keywords.sqlite는 _sub 없는 기본 패턴(예: ..._claim_1)만 갖고 있지만,
+    # BM25 인덱스는 긴 청구항을 _sub0, _sub1 등으로 분할 저장함.
+    # 기본 chunk_id로 매칭 안 되면 해당 chunk의 _sub 변형도 포함시켜 누락 방지.
     allowed_doc_ids: set[int] | None = None
     if allowed_chunk_ids is not None:
         reverse_map = idx["reverse_doc_map"]
-        allowed_doc_ids = {reverse_map[cid] for cid in allowed_chunk_ids if cid in reverse_map}
+        sub_prefix_map = idx["sub_prefix_map"]
+        allowed_doc_ids = set()
+        for cid in allowed_chunk_ids:
+            if cid in reverse_map:
+                allowed_doc_ids.add(reverse_map[cid])
+            elif cid in sub_prefix_map:
+                # _sub 변형 포함: _claim_1 → _claim_1_sub0, _claim_1_sub1, ...
+                allowed_doc_ids.update(sub_prefix_map[cid])
 
     # 후보 문서별 BM25 점수 누적 (쿼리 토큰이 포함된 문서만 접근)
     scores: dict[int, float] = {}

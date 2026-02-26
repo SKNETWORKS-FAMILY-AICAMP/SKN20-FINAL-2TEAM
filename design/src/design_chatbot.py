@@ -16,7 +16,6 @@
 import os
 import re
 import json
-import requests
 import base64
 import tempfile
 from PIL import Image as PILImage
@@ -62,6 +61,7 @@ from rank_bm25 import BM25Okapi
 # 기존 유틸 함수 재사용
 from utils import (
     get_text_embedding,               # 텍스트 → CLIP 임베딩 (DB검색 Tool용)
+    design_id_to_local_image,         # design_id → 로컬 이미지 경로
     search_and_filter_similar_designs,# 벡터DB 검색 + 중복 필터링 (텍스트 Tool용)
     hybrid_retrieve,                  # Hybrid Retrieval (이미지 검색용)
     convert_to_sketch_query           # 쿼리 이미지 → 스케치 변환
@@ -71,8 +71,7 @@ from utils import (
 from prompts import (
     IMAGE_ANALYSIS_PROMPT,    # 이미지 형상 분석
     IMAGE_COMPARISON_PROMPT,  # 두 이미지 비교
-    REPORT_PROMPT,            # 최종 리포트 생성
-    FORMAT_ANALYSIS_PROMPT    # 분석 결과 포맷팅
+    REPORT_PROMPT             # 최종 리포트 생성
 )
 
 from dotenv import load_dotenv
@@ -81,7 +80,14 @@ load_dotenv()
 
 # ==================== LLM & ChromaDB 초기화 ====================
 
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+# 단일 VLM: 텍스트 + 이미지 모두 처리 (Qwen2.5-VL는 Vision-Language 모델)
+llm = ChatOpenAI(
+    model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
+    openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
+    openai_api_key="EMPTY",
+    temperature=0,
+)
+
 output_parser = StrOutputParser()
 
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
@@ -122,17 +128,12 @@ class GraphState(TypedDict):
 
     # 텍스트 관련 필드
     general_answer: str              # 일반 질문 답변
-    search_images: List[Dict]        # DB 검색 시 추출한 이미지 경로 목록
 
     # 멀티턴: 대화 히스토리
     messages: List[Dict]             # [{"role": "user"|"assistant", "content": "..."}]
 
 
 # ==================== Tool 정의 ====================
-
-# search_design_db 호출 시 이미지 경로를 임시 저장하는 모듈 레벨 변수
-# (general_question_node에서 읽어 state['search_images']에 저장)
-_search_image_results: List[Dict] = []
 
 # Tool 1: 웹 검색 (TAVILY_API_KEY 필요!)
 @tool
@@ -153,8 +154,6 @@ def web_search(query: str) -> str:
 def search_design_db(query: str) -> str:
     """사용자가 자연어로 유사 디자인을 검색할 경우 사용되는 tool.
       예: 둥근 펌프 용기, 사각형 병"""
-    global _search_image_results
-    _search_image_results = []  # 매 호출마다 초기화
 
     # 텍스트 → CLIP 임베딩
     embedding, translated = get_text_embedding(query, translate_korean=True)
@@ -164,7 +163,7 @@ def search_design_db(query: str) -> str:
     # 벡터DB 검색
     results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
 
-    # 결과 정리 + 이미지 경로 캡처
+    # 결과 정리
     output = f"'{query}' 검색 결과 (번역: '{translated}'):\n\n"
     for i in range(len(results['ids'][0])):
         meta = results['metadatas'][0][i]
@@ -175,13 +174,6 @@ def search_design_db(query: str) -> str:
             f"   등록상태: {meta.get('admstStat', 'N/A')}\n"
             f"   유사도 거리: {dist:.4f}\n\n"
         )
-        # 이미지 경로가 있으면 모듈 변수에 임시 저장 (general_question_node에서 state로 이동)
-        if meta.get('imagePath'):
-            _search_image_results.append({
-                'application_number': meta.get('applicationNumber', ''),
-                'last_disposition_date': meta.get('lastDispositionDate', ''),
-                'image_path': meta.get('imagePath', ''),
-            })
     return output
 
 
@@ -214,7 +206,7 @@ def route_by_type(state: GraphState) -> str:
 # ===== 이미지 경로: VLM 분석 + 벡터 검색 =====
 
 def analyze_image_node(state: GraphState) -> GraphState:
-    """이미지를 VLM(GPT-4O)으로 형상 분석"""
+    """이미지를 VLM으로 형상 분석"""
     print("[VLM분석] 입력 이미지 분석 중 ~")
 
     # 이미지 → base64
@@ -226,13 +218,9 @@ def analyze_image_node(state: GraphState) -> GraphState:
     chain = IMAGE_ANALYSIS_PROMPT | llm | output_parser
     analysis = chain.invoke({"image_url": url}) # vlm 분석 결과가 나올것
 
-    # JSON 분석 결과를 사용자 친화적인 텍스트로 변환
-    format_chain = FORMAT_ANALYSIS_PROMPT | llm | output_parser
-    formatted_analysis = format_chain.invoke({"analysis_json": analysis})
-
     # 상태 update
     state['base64_image'] = url
-    state['input_analysis'] = formatted_analysis
+    state['input_analysis'] = analysis
     print(f"  분석 완료 ({len(analysis)}자)")
     return state
 
@@ -275,7 +263,7 @@ def image_search_node(state: GraphState) -> GraphState:
             'application_number': metadata.get('applicationNumber', 'N/A'),
             'article_name':       metadata.get('articleName', 'N/A'),
             'admst_stat':         metadata.get('admstStat', 'N/A'),
-            'image_path':         metadata.get('imagePath', ''),
+            'image_path':         design_id_to_local_image(design_id),
         })
 
     state['comparison_results'] = comparison_results
@@ -322,29 +310,14 @@ def detailed_compare_node(state: GraphState) -> GraphState:
         None
     )
 
-    # 만약 선택한 디자인 번호가 존재하지 않거나 이미지 경로가 없을 시 오류 메시지 저장 후 종료
-    if not selected or not selected['image_path']:
+    # 만약 선택한 디자인 번호가 존재하지 않거나,이미지 경로/파일이 없을시 오류 메시지 저장 후 종료
+    if not selected or not selected['image_path'] or not os.path.exists(selected['image_path']):
         state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
         return state
 
-    # 비교 대상 이미지 → base64 (URL 또는 로컬 파일 모두 지원)
-    img_path = selected['image_path']
-    try:
-        if img_path.startswith('http://') or img_path.startswith('https://'):
-            resp = requests.get(img_path, timeout=10)
-            if resp.status_code != 200:
-                state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
-                return state
-            b64 = base64.b64encode(resp.content).decode('utf-8')
-        elif os.path.exists(img_path):
-            with open(img_path, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode('utf-8')
-        else:
-            state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
-            return state
-    except Exception as e:
-        state['detailed_comparison'] = f"비교 대상 이미지 로드 실패: {e}"
-        return state
+    # 비교 대상 이미지 → base64
+    with open(selected['image_path'], "rb") as f:
+        b64 = base64.b64encode(f.read()).decode('utf-8')
     comp_url = f"data:image/jpeg;base64,{b64}"
 
     # 두 이미지 VLM 비교 (IMAGE_COMPARISON_PROMPT 사용)
@@ -385,7 +358,7 @@ def generate_report_node(state: GraphState) -> GraphState:
         "input_analysis": state.get('input_analysis', ''), # 입력 이미지 분석 결과
         "detailed_comparison": state.get('detailed_comparison', ''), # VLM 상세 비교 결과
         "selected_design_info": design_info, # 비교대상 디자인 정보
-        "user_query": "위 분석 정보를 바탕으로 FTO 리포트를 작성해주세요." # 고정 지시문
+        "user_query": state.get('user_query', 'FTO 리포트를 작성해줘') # 사용자 요청
     })
 
     state['final_report'] = report
@@ -435,12 +408,35 @@ def general_question_node(state: GraphState) -> GraphState:
         final = llm.invoke(messages)
         answer = final.content
 
-        # search_design_db 호출 시 캡처된 이미지 경로를 state에 저장
-        called_tools = {tc['name'] for tc in response.tool_calls}
-        if 'search_design_db' in called_tools:
-            state['search_images'] = _search_image_results.copy()
     else:
-        answer = response.content
+        # Fallback: Qwen2.5-VL이 tool_calls JSON 대신 content에 도구 이름을 텍스트로
+        # 언급하는 경우 직접 도구를 호출하고 결과를 LLM에 전달
+        content = response.content
+        tool_result = None
+
+        _web_kw  = ['통계', '최신 뉴스', '트렌드', '현황', '출원 건수', '최근 동향', '출원 통계']
+
+        if "search_design_db" in content:
+            print(f"  [Fallback] search_design_db 직접 호출")
+            tool_result = search_design_db.invoke({"query": state['text_query']})
+
+        elif ("web_search" in content or "웹 검색" in content
+              or any(kw in state['text_query'] for kw in _web_kw)):
+            print(f"  [Fallback] web_search 직접 호출")
+            tool_result = web_search.invoke({"query": state['text_query']})
+
+        if tool_result:
+            # 모델의 "결과 없음" 응답을 이어받지 않도록 시스템+쿼리만 남기고 결과 전달
+            summary_messages = [
+                messages[0],  # system 메시지
+                {"role": "user", "content": state['text_query']},
+                {"role": "assistant", "content": "도구로 검색을 완료했습니다."},
+                {"role": "user", "content": f"검색 결과입니다. 반드시 아래 결과를 사용해서 답변하세요:\n\n{tool_result}"},
+            ]
+            final = llm.invoke(summary_messages)
+            answer = final.content
+        else:
+            answer = content
 
     # 대화 히스토리 업데이트 (user + assistant 추가)
     updated_history = history + [
@@ -529,7 +525,6 @@ def run_chatbot(image_path=None, text_query=None, user_query="이 제품과 유�
         "detailed_comparison": "",
         "final_report": "",
         "general_answer": "",
-        "search_images": [],
         "messages": [],
     }
 

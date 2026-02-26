@@ -24,8 +24,8 @@ DATA_DIR = RAG_DIR / "data"
 INDEX_DIR = RAG_DIR / "index"
 CHROMA_DIR = INDEX_DIR / "chroma_db"
 SPARSE_INDEX_DIR = INDEX_DIR / "bm25_index"
-CLAIMS_SQLITE_PATH = INDEX_DIR / "claims_db.sqlite"
-PARENT_DB_PATH = INDEX_DIR / "parent_store" / "parent.db"
+CLAIM_KEYWORDS_SQLITE_PATH = INDEX_DIR / "claim_keywords.sqlite"
+PARENT_DB_PATH = INDEX_DIR / "parent_store" / "parents.sqlite"
 
 # ── 임베딩 모델 ──────────────────────────────────────
 EMBED_MODEL = "nlpai-lab/KURE-v1"

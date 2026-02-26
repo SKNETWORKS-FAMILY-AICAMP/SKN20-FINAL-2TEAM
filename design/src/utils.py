@@ -20,6 +20,8 @@ import clip
 import torch
 from pathlib import Path
 from PIL import Image
+from dotenv import load_dotenv
+load_dotenv()
 
 # ==================== 경로 설정 ====================
 # design/src/utils.py 기준 상위 폴더(= design/)
@@ -32,6 +34,15 @@ IMAGES_DIR = str(BASE_DIR / "data" / "images")
 # CLIP 모델 로드 (ViT-B/32)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
+
+# sLLM (vLLM): 한국어 번역용
+from langchain_openai import ChatOpenAI
+llm_translator = ChatOpenAI(
+    model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
+    openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
+    openai_api_key="EMPTY",
+    temperature=0,
+)
 
 # Hybrid Retrieval 파라미터
 RETRIEVAL_TOP_K = 50   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
@@ -90,16 +101,19 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
         
         # 한글일 경우 영어로 번역(clip은 영어 기반이므로)
         if translate_korean and any('\uac00' <= char <= '\ud7a3' for char in text):
-            from langchain_openai import ChatOpenAI
             print(f"   한글 감지: '{text}' → 영어로 번역 중...")
-            llm_translator = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-            translation_prompt = f"""다음 한글을 간단명료한 영어로 번역하세요. 
-디자인/제품 검색용이므로 핵심 키워드만 간단히.
+            translation_prompt = f"""다음 한글에서 CLIP 이미지 검색에 쓸 핵심 물품명(명사)만 영어로 출력하세요.
+'찾아줘', '검색해줘', '보여줘' 등 지시어는 제외하세요.
+단어나 짧은 구(2~4단어)만 출력하세요.
+
+예: '펌프형 용기 디자인 찾아줘' → pump container
+예: '둥근 화장품 병 보여줘' → round cosmetic bottle
+예: '사각형 화장품 용기' → square cosmetic container
 
 한글: {text}
 영어:"""
             query_text = llm_translator.invoke(translation_prompt).content.strip()
-            print(f"   ✅ 번역 완료: '{query_text}'")
+            print(f"   번역 완료: '{query_text}'")
         
         # 텍스트를 토큰화
         text_tokens = clip.tokenize([query_text]).to(device)
