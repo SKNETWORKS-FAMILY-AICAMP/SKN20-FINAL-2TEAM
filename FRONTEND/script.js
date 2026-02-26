@@ -169,7 +169,10 @@ function requireAuth() {
         "analysis.html",
         "chat.html",
         "results.html",
-        "history.html"
+        "history.html",
+        "select-analysis-type.html",
+        "patent-chat.html",
+        "design-chat.html"
     ];
 
     const currentPage = location.pathname.split("/").pop();
