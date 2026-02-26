@@ -15,12 +15,12 @@
 
 import os
 import re
-import json
 import base64
+import requests
 import tempfile
 from PIL import Image as PILImage
 from pathlib import Path
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List, Dict
 
 # ==================== 경로 설정 ====================
 # design/src/design_chatbot.py 기준 상위 폴더(= design/)
@@ -29,22 +29,12 @@ BASE_DIR      = Path(__file__).resolve().parent.parent
 # design/chroma_db  ← chromadb.PersistentClient(path=...)에 사용
 CHROMA_DB     = str(BASE_DIR / "chroma_db")
 
-# design/data/images  ← utils.py design_id_to_local_image 기본 경로
-IMAGES_DIR    = str(BASE_DIR / "data" / "images")
-
-# design2/data/images_v2  ← design2/src/utils.py IMAGES_DIR (신규 버전 이미지)
-IMAGES_DIR_V2 = str(BASE_DIR.parent / "design2" / "data" / "images_v2")
-
-# design2/src/api.py의 임시 업로드 폴더
-UPLOAD_DIR    = str(BASE_DIR.parent / "design2" / "src" / "temp_uploads")
-
 # 벡터DB 유사 디자인 검색 결과 개수
 N_RESULTS     = 15
 
 # LangChain & LangGraph
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langgraph.graph import StateGraph, END
 from langgraph.types import interrupt, Command  # interrupt: 사용자 개입 기능
@@ -61,7 +51,6 @@ from rank_bm25 import BM25Okapi
 # 기존 유틸 함수 재사용
 from utils import (
     get_text_embedding,               # 텍스트 → CLIP 임베딩 (DB검색 Tool용)
-    design_id_to_local_image,         # design_id → 로컬 이미지 경로
     search_and_filter_similar_designs,# 벡터DB 검색 + 중복 필터링 (텍스트 Tool용)
     hybrid_retrieve,                  # Hybrid Retrieval (이미지 검색용)
     convert_to_sketch_query           # 쿼리 이미지 → 스케치 변환
@@ -120,20 +109,24 @@ class GraphState(TypedDict):
 
     # 이미지 검색&분석 관련 필드
     input_analysis: str              # VLM 분석 결과
-    search_results: Dict[str, Any]   # 벡터DB 검색 원본
-    comparison_results: List[Dict]   # 검색 원본을 깔끔하게 정리 -> 최종 유사 디자인 목록
+    comparison_results: List[Dict]   # 유사 디자인 목록 (Hybrid Retrieval 결과)
     selected_index: int              # 사용자가 선택한 디자인 번호
     detailed_comparison: str         # 선택한 디자인 vlm 상세 비교 결과
     final_report: str                # 최종 리포트
 
     # 텍스트 관련 필드
     general_answer: str              # 일반 질문 답변
+    search_images: List[Dict]        # DB 검색 시 추출한 이미지 URL 목록
 
     # 멀티턴: 대화 히스토리
     messages: List[Dict]             # [{"role": "user"|"assistant", "content": "..."}]
 
 
 # ==================== Tool 정의 ====================
+
+# search_design_db 호출 시 이미지 URL을 임시 저장하는 모듈 레벨 변수
+# (general_question_node에서 읽어 state['search_images']에 저장)
+_search_image_results: List[Dict] = []
 
 # Tool 1: 웹 검색 (TAVILY_API_KEY 필요!)
 @tool
@@ -154,6 +147,8 @@ def web_search(query: str) -> str:
 def search_design_db(query: str) -> str:
     """사용자가 자연어로 유사 디자인을 검색할 경우 사용되는 tool.
       예: 둥근 펌프 용기, 사각형 병"""
+    global _search_image_results
+    _search_image_results = []  # 매 호출마다 초기화
 
     # 텍스트 → CLIP 임베딩
     embedding, translated = get_text_embedding(query, translate_korean=True)
@@ -163,7 +158,7 @@ def search_design_db(query: str) -> str:
     # 벡터DB 검색
     results = search_and_filter_similar_designs(image_collection, embedding, n_results=N_RESULTS)
 
-    # 결과 정리
+    # 결과 정리 + 이미지 URL 캡처
     output = f"'{query}' 검색 결과 (번역: '{translated}'):\n\n"
     for i in range(len(results['ids'][0])):
         meta = results['metadatas'][0][i]
@@ -174,6 +169,13 @@ def search_design_db(query: str) -> str:
             f"   등록상태: {meta.get('admstStat', 'N/A')}\n"
             f"   유사도 거리: {dist:.4f}\n\n"
         )
+        # 이미지 URL이 있으면 모듈 변수에 임시 저장
+        if meta.get('imagePath'):
+            _search_image_results.append({
+                'application_number': meta.get('applicationNumber', ''),
+                'last_disposition_date': meta.get('lastDispositionDate', ''),
+                'image_path': meta.get('imagePath', ''),
+            })
     return output
 
 
@@ -263,7 +265,7 @@ def image_search_node(state: GraphState) -> GraphState:
             'application_number': metadata.get('applicationNumber', 'N/A'),
             'article_name':       metadata.get('articleName', 'N/A'),
             'admst_stat':         metadata.get('admstStat', 'N/A'),
-            'image_path':         design_id_to_local_image(design_id),
+            'image_path':         metadata.get('imagePath', ''),
         })
 
     state['comparison_results'] = comparison_results
@@ -310,14 +312,29 @@ def detailed_compare_node(state: GraphState) -> GraphState:
         None
     )
 
-    # 만약 선택한 디자인 번호가 존재하지 않거나,이미지 경로/파일이 없을시 오류 메시지 저장 후 종료
-    if not selected or not selected['image_path'] or not os.path.exists(selected['image_path']):
+    # 만약 선택한 디자인 번호가 존재하지 않거나 이미지 경로가 없을 시 오류 메시지 저장 후 종료
+    if not selected or not selected['image_path']:
         state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
         return state
 
-    # 비교 대상 이미지 → base64
-    with open(selected['image_path'], "rb") as f:
-        b64 = base64.b64encode(f.read()).decode('utf-8')
+    # 비교 대상 이미지 → base64 (URL 또는 로컬 파일 모두 지원)
+    img_path = selected['image_path']
+    try:
+        if img_path.startswith('http://') or img_path.startswith('https://'):
+            resp = requests.get(img_path, timeout=10)
+            if resp.status_code != 200:
+                state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
+                return state
+            b64 = base64.b64encode(resp.content).decode('utf-8')
+        elif os.path.exists(img_path):
+            with open(img_path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode('utf-8')
+        else:
+            state['detailed_comparison'] = "비교 대상 이미지를 찾을 수 없습니다."
+            return state
+    except Exception as e:
+        state['detailed_comparison'] = f"비교 대상 이미지 로드 실패: {e}"
+        return state
     comp_url = f"data:image/jpeg;base64,{b64}"
 
     # 두 이미지 VLM 비교 (IMAGE_COMPARISON_PROMPT 사용)
@@ -407,6 +424,11 @@ def general_question_node(state: GraphState) -> GraphState:
 
         final = llm.invoke(messages)
         answer = final.content
+
+        # search_design_db 호출 시 캡처된 이미지 URL을 state에 저장
+        called_tools = {tc['name'] for tc in response.tool_calls}
+        if 'search_design_db' in called_tools:
+            state['search_images'] = _search_image_results.copy()
 
     else:
         # Fallback: Qwen2.5-VL이 tool_calls JSON 대신 content에 도구 이름을 텍스트로
@@ -519,12 +541,12 @@ def run_chatbot(image_path=None, text_query=None, user_query="이 제품과 유�
         "user_query": user_query,
         "base64_image": "",
         "input_analysis": "",
-        "search_results": {},
         "comparison_results": [],
         "selected_index": 0,
         "detailed_comparison": "",
         "final_report": "",
         "general_answer": "",
+        "search_images": [],
         "messages": [],
     }
 
@@ -567,7 +589,4 @@ graph = create_graph()
 if __name__ == "__main__":
     print(f"ChromaDB 로드 완료: {image_collection.count()}개 디자인")
     print("그래프 생성 완료! (노드 7개, 분기 2갈래)")
-
-    # 이미지 경로를 본인 환경에 맞게 수정하세요
-    image_path = r"C:\Users\playdata2\Desktop\SKN_AI_20\SKN20-FINAL-2TEAM(vb2)\design\data\images_v2\3019810003379-api_xml-1_001.JPG"
-    result = run_chatbot(image_path=image_path)
+    result = run_chatbot(text_query="디자인 특허란?")
