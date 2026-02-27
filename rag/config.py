@@ -161,7 +161,7 @@ PROCESSED_FILES_PATH = INDEX_DIR / "processed_files.json"
 # ── Generation (G 모듈) ─────────────────────────────
 VLLM_API_URL = os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")    # 예: http://localhost:8000/v1
 VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME") or os.environ.get("VLLM_MODEL", "itsbini/qwen2.5-3b-fto")
-VLLM_TIMEOUT = 30
+VLLM_TIMEOUT = 180
 
 GPT_FALLBACK_MODEL = "gpt-4o-mini"
 GPT_TIMEOUT = 60

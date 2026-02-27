@@ -289,6 +289,17 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
     # 사용자 쿼리
     parts.append(user_query)
 
+    # [구성요소] — claim_components 테이블에서 사전 추출된 구성요소
+    components_list = search_result.get("components", [])
+    if components_list:
+        comp_texts = []
+        for comp in components_list:
+            comp_text = comp.get("components", "")
+            if comp_text:
+                comp_texts.append(comp_text)
+        if comp_texts:
+            parts.append(f"\n[구성요소]\n" + "\n\n".join(comp_texts))
+
     # [등록 청구항] — parents.sqlite 원문 직접 사용
     claim_regit = search_result.get("claims", {}).get("claim_regit_text", "")
     if claim_regit:
@@ -541,6 +552,18 @@ def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
         estoppel = result.get("estoppel_claim_numbers", [])
         if estoppel:
             patent_parts.append(f"금반언 청구항: {estoppel} (삭제됨 - 침해 주장 불가)")
+
+        # [구성요소] — claim_components 테이블에서 사전 추출된 구성요소
+        components_list = result.get("components", [])
+        if components_list:
+            comp_texts = []
+            for comp in components_list:
+                comp_text = comp.get("components", "")
+                if comp_text:
+                    comp_texts.append(comp_text)
+            if comp_texts:
+                joined = "\n\n".join(comp_texts)
+                patent_parts.append(f"[구성요소]\n{_truncate_claims(joined)}")
 
         # 등록 청구항 — parents.sqlite 원문 직접 사용 (토큰 초과 방지를 위해 잘라냄)
         claim_regit = result.get("claims", {}).get("claim_regit_text", "")

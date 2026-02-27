@@ -361,6 +361,96 @@ class MySQLParentDB:
 
 
 # ══════════════════════════════════════════════════════
+# claim_components 배치 조회
+# ══════════════════════════════════════════════════════
+
+def fetch_components_batch(patent_ids: list[str]) -> dict[str, list[dict]]:
+    """claim_components 테이블에서 patent_id 목록으로 배치 조회.
+
+    Args:
+        patent_ids: 조회할 출원번호 목록.
+
+    Returns:
+        {patent_id: [{"chunk_id": ..., "components": ..., "note": ...}, ...]}
+    """
+    if not patent_ids:
+        return {}
+
+    _init_prefilter_backend()
+
+    if _prefilter_backend == "mysql":
+        return _fetch_components_mysql(patent_ids)
+    elif _prefilter_backend == "sqlite":
+        return _fetch_components_sqlite(patent_ids)
+    return {}
+
+
+def _fetch_components_mysql(patent_ids: list[str]) -> dict[str, list[dict]]:
+    """MySQL claim_components 배치 조회."""
+    global _prefilter_mysql_conn
+    import pymysql
+
+    if not _prefilter_mysql_conn or not _prefilter_mysql_conn.open:
+        _prefilter_mysql_conn = pymysql.connect(
+            host=_os.environ["MYSQL_HOST"],
+            port=int(_os.environ.get("MYSQL_PORT", 3306)),
+            user=_os.environ.get("MYSQL_USER", "root"),
+            password=_os.environ.get("MYSQL_PASSWORD", ""),
+            database=_os.environ.get("MYSQL_DATABASE", "fto"),
+            charset="utf8mb4",
+        )
+
+    placeholders = ", ".join(["%s"] * len(patent_ids))
+    sql = (
+        f"SELECT patent_id, chunk_id, components, note "
+        f"FROM claim_components WHERE patent_id IN ({placeholders})"
+    )
+    try:
+        cur = _prefilter_mysql_conn.cursor()
+        cur.execute(sql, patent_ids)
+        rows = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        print(f"[구성요소] MySQL 조회 실패: {e}")
+        return {}
+
+    result: dict[str, list[dict]] = {}
+    for patent_id, chunk_id, components, note in rows:
+        result.setdefault(patent_id, []).append({
+            "chunk_id": chunk_id,
+            "components": components or "",
+            "note": note or "",
+        })
+    return result
+
+
+def _fetch_components_sqlite(patent_ids: list[str]) -> dict[str, list[dict]]:
+    """SQLite claim_components 배치 조회 (로컬 환경 fallback)."""
+    placeholders = ", ".join(["?"] * len(patent_ids))
+    sql = (
+        f"SELECT patent_id, chunk_id, components, note "
+        f"FROM claim_components WHERE patent_id IN ({placeholders})"
+    )
+    try:
+        cur = _prefilter_sqlite_conn.cursor()
+        cur.execute(sql, patent_ids)
+        rows = cur.fetchall()
+        cur.close()
+    except Exception as e:
+        print(f"[구성요소] SQLite 조회 실패: {e}")
+        return {}
+
+    result: dict[str, list[dict]] = {}
+    for patent_id, chunk_id, components, note in rows:
+        result.setdefault(patent_id, []).append({
+            "chunk_id": chunk_id,
+            "components": components or "",
+            "note": note or "",
+        })
+    return result
+
+
+# ══════════════════════════════════════════════════════
 # RDB 필터 적용 (등록 상태 필터 + 데이터 보강)
 # ══════════════════════════════════════════════════════
 
@@ -370,6 +460,10 @@ def apply_rdb_filter(
 ) -> list[dict]:
     """Patent Collapse 결과에 ParentDB 필터링 + 보강 적용."""
     filtered = []
+
+    # 구성요소 배치 조회 (N+1 방지)
+    all_patent_ids = [r["patent_id"] for r in collapsed_results]
+    components_map = fetch_components_batch(all_patent_ids)
 
     for result in collapsed_results:
         patent_id = result["patent_id"]
@@ -407,6 +501,7 @@ def apply_rdb_filter(
             "estoppel_claim_numbers": [],
             "chunk_ids": (parent or {}).get("chunk_ids", []),
             "claim_groups": (parent or {}).get("claim_groups", {}),
+            "components": components_map.get(patent_id, []),
             "source": "rag",
         }
 
