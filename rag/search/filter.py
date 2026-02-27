@@ -58,6 +58,8 @@ def extract_keywords(text: str) -> list[str]:
     """
     text = _remove_claim_prefixes(text)
     text = _SPECIAL_CHARS.sub(" ", text)
+    # v3 추가: "및" 앞뒤 공백 삽입 (붙어버린 토큰 분리)
+    text = re.sub(r"및", " 및 ", text)
     words = re.split(r"\s+", text)
 
     result = []
