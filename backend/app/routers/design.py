@@ -200,11 +200,16 @@ async def _image_via_langgraph(file_bytes: bytes, user_query: str, thread_id: st
                 design["image_base64"] = _image_to_base64(image_bytes)
             similar_designs.append(design)
 
+        # base64_image를 세션에 보존 (detailed_compare_node에서 필요)
+        b64_from_graph = result.get("base64_image", "")
+        print(f"[design] step1 base64_image 길이: {len(b64_from_graph)}자")
+
         # 세션 저장 (select 단계에서 사용)
         _sessions[thread_id] = {
             "graph": graph,
             "config": config,
             "comparison_results": result.get("comparison_results", []),
+            "base64_image": b64_from_graph,
         }
 
         return {
@@ -288,12 +293,26 @@ async def _select_via_langgraph(session: dict, selected_index: int) -> dict:
         graph = session["graph"]
         config = session["config"]
 
-        # interrupt 재개: 선택한 디자인 번호 전달
-        result = graph.invoke(_design_command_cls(resume=str(selected_index)), config)
+        # base64_image를 Command.update로 상태에 주입
+        # (MemorySaver가 대형 base64 문자열을 복원하지 못하는 경우 대비)
+        b64_image = session.get("base64_image", "")
+        print(f"[design] step2 재개 - selected_index={selected_index}, base64_image 길이={len(b64_image)}")
+
+        # interrupt 재개: 선택한 디자인 번호 전달 + base64_image 상태 주입
+        try:
+            cmd = _design_command_cls(resume=str(selected_index), update={"base64_image": b64_image})
+        except TypeError:
+            # update 파라미터를 지원하지 않는 구 버전 langgraph 대비
+            cmd = _design_command_cls(resume=str(selected_index))
+
+        result = graph.invoke(cmd, config)
+
+        final_report = result.get("final_report", "리포트 생성에 실패했습니다.")
+        print(f"[design] final_report 길이: {len(final_report)}자")
 
         return {
             "success": True,
-            "final_report": result.get("final_report", "리포트 생성에 실패했습니다."),
+            "final_report": final_report,
         }
     except Exception as e:
         traceback.print_exc()
