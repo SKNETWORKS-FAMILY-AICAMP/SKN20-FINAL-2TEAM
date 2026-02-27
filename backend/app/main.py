@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -9,7 +9,10 @@ from app.database import init_db
 from app.routers import auth, chat, analysis, search, design
 
 # 앱 시작 시 DB 테이블 생성
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"[WARNING] DB 초기화 실패 (로컬 개발 시 무시 가능): {e}")
 
 app = FastAPI(
     title="BINI API",
@@ -37,6 +40,19 @@ app.include_router(design.router, prefix="/api/analysis", tags=["디자인분석
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# 디자인 독립 페이지 (design/src/index.html)
+DESIGN_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../design/src"))
+
+
+@app.get("/design-standalone")
+async def design_standalone():
+    """design/src/index.html 독립 페이지"""
+    index_path = os.path.join(DESIGN_SRC_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="design/src/index.html not found")
 
 
 # 프론트엔드 정적 파일 서빙 (API 라우터 등록 후 마지막에 마운트)

@@ -1,11 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import os
-from pathlib import Path
-
-# 프로젝트 루트의 .env 파일을 단일 설정 파일로 사용
-_PROJECT_ROOT = Path(__file__).parent.parent.parent
-_ENV_FILE = str(_PROJECT_ROOT / ".env")
 
 
 class Settings(BaseSettings):
@@ -32,6 +27,10 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
 
+    # 디자인 분석 서비스 (design/src/api.py → port 8001로 실행)
+    DESIGN_SERVICE_URL: str = "http://localhost:8001"
+    DESIGN_SERVICE_TIMEOUT: int = 120  # VLM 분석이 오래 걸릴 수 있음
+
     # 모델 설정 (HuggingFace API 사용)
     HF_MODEL_ID: str = "itsbini/qwen2.5-14b-fto"
 
@@ -41,24 +40,8 @@ class Settings(BaseSettings):
     # Hugging Face
     HF_TOKEN: str = ""
 
-    # vLLM 서버
-    VLLM_BASE_URL: str = "http://localhost:8000/v1"
-    VLLM_MODEL: str = "/workspace/qwen2.5-14b-fto-merged"
-
-    # ChromaDB (EC2)
-    CHROMA_HOST: str = ""
-    CHROMA_PORT: int = 8001
-    CHROMA_IMAGE_PORT: int = 8002
-
-    # OpenAI GPT 폴백
-    OPENAI_API_KEY: str = ""
-
-    # 디자인 분석 서비스 (design/src/api.py → 별도 프로세스로 실행)
-    DESIGN_SERVICE_URL: str = "http://localhost:8001"
-    DESIGN_SERVICE_TIMEOUT: int = 120
-
     class Config:
-        env_file = _ENV_FILE
+        env_file = ".env"
         extra = "allow"
 
 
