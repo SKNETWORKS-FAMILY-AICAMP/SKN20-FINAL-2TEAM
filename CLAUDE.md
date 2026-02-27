@@ -51,7 +51,9 @@ tail -f /workspace/vllm.log
 
 ```bash
 cd /root/SKN20-FINAL-2TEAM/backend
-uvicorn app.main:app --host 0.0.0.0 --port 8080 > /workspace/backend.log 2>&1 &
+MYSQL_HOST=fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com \
+MYSQL_PORT=3306 MYSQL_USER=admin MYSQL_PASSWORD=rmdak2020 MYSQL_DATABASE=fto \
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > /workspace/backend.log 2>&1 &
 
 # 확인
 curl http://localhost:8080/health
@@ -153,12 +155,47 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 - [x] 채팅 UI → vLLM 연결 (`/api/chat/message`)
 - [x] RDS 스키마 정리 완료 (2026-02-26)
 - [x] DEV_BYPASS_AUTH=true (데모용 인증 우회)
+- [x] RAG 파이프라인 연결 완료 (chat.py → backend_adapter → pipeline.analyze)
+- [x] claim_components 테이블 RAG 연결 (filter.py → generate.py 프롬프트 삽입)
+- [x] vLLM 타임아웃 수정 (30초 → 180초, `rag/config.py`)
+- [x] DEV_BYPASS_AUTH 잘못된 토큰도 우회 (`auth_service.py`)
+- [x] results.html 실제 분석 데이터 연결 (`/api/analysis/{id}`)
+- [x] patent-chat.html API 엔드포인트 수정 (8000→8080, `/api/chat/message`)
+- [x] Qwen2.5-VL-7B-Instruct 다운로드 완료 (`/workspace/Qwen2.5-VL-7B-Instruct`)
 
-### 다음 작업: RAG 연결
-- [ ] RAG 파이프라인 연결 (`rag/search/pipeline.py` → chat 엔드포인트)
-- [ ] ChromaDB 연결 (텍스트 + 이미지)
-- [ ] 결과 페이지 실제 데이터 연결 (`results.html`)
-- [ ] 보고서 PDF에 실제 LLM 분석 결과 표시
+### 다음 작업 (런팟 재시작 후)
+
+#### 우선순위 1: RDS claim_keywords 데이터 교체
+- [ ] claim_keywords 테이블 DROP + 재생성 (이전 DELETE 롤백이 끝나야 가능)
+- [ ] `claim_keywords_full.csv` (460MB, 10,027,989건) INSERT
+- [ ] 인덱스 추가 (patent_id, chunk_id, keyword)
+- 참고: 롤백 완료 후 아래 명령 실행:
+```python
+# python3 << 'SCRIPT' 로 실행
+# 1) DROP TABLE IF EXISTS claim_keywords
+# 2) CREATE TABLE (id, patent_id, chunk_id, keyword)
+# 3) CSV 배치 INSERT (20000건씩)
+# 4) ALTER TABLE ADD KEY (3개 인덱스)
+```
+
+#### 우선순위 2: 디자인 분석 모듈 병합
+- [ ] design 의존성 설치 (`pip install -r design/requirements.txt` + CLIP)
+- [ ] design 환경변수 설정 (VLLM_API_BASE, VLLM_MODEL, TAVILY_API_KEY)
+- [ ] `backend/app/routers/design.py` → design_chatbot graph 연동
+- [ ] design-chat.html 프론트엔드 연결
+- 참고: `design/CLAUDE.md` 상세 가이드 참조
+- 주의: graph는 싱글톤 (import 1회만), 이미지는 2단계 플로우 (interrupt)
+
+#### 우선순위 3: 프론트엔드 개선
+- [ ] patent-chat.html 대화형 흐름 구현 (현재 원샷 분석 → 정보 수집 후 분석으로 변경)
+- [ ] results.html PDF 보고서에 실제 LLM 분석 결과 표시
+- [ ] 사이드바 분석 기록 실제 데이터 연동
+
+#### 우선순위 4: 인프라
+- [ ] 특허 FTO(14B) + 디자인 VL(7B) 동시 서빙 방안 결정
+  - 옵션 A: A100 80GB에서 포트 분리 (8000=14B, 8001=7B)
+  - 옵션 B: 별도 런팟으로 VL 모델 서빙
+  - 옵션 C: 요청 타입에 따라 모델 교체 (동시 불가)
 
 ---
 
@@ -230,11 +267,23 @@ SKN20-FINAL-2TEAM/
 
 ## 모델 정보
 
+### 특허 FTO 분석
 - **모델**: `itsbini/qwen2.5-14b-fto-merged` (HuggingFace)
 - **베이스**: Qwen/Qwen2.5-14B-Instruct
 - **파인튜닝**: LoRA → 병합 완료
 - **크기**: ~29.5GB (float16)
-- **필요 VRAM**: A100 40GB 이상 권장
+- **위치**: `/workspace/qwen2.5-14b-fto-merged`
+
+### 디자인 분석 (VLM)
+- **모델**: `Qwen/Qwen2.5-VL-7B-Instruct` (베이스 모델, 파인튜닝 없음)
+- **크기**: ~15GB (bfloat16)
+- **위치**: `/workspace/Qwen2.5-VL-7B-Instruct`
+- **용도**: 이미지 분석 + 텍스트 생성 (Vision-Language)
+
+### GPU: A100 80GB
+- 14B만 → ~30GB 사용
+- VL 7B만 → ~18GB 사용
+- 동시 서빙 시 포트 분리 필요 (8000, 8001)
 
 ## 시스템 프롬프트 (변경 금지)
 `backend/app/routers/chat.py`의 `SYSTEM_PROMPT`와

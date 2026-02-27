@@ -68,18 +68,21 @@ class AuthService:
         db: Session = Depends(get_db)
     ) -> User:
         """현재 로그인된 사용자 의존성"""
-        # 개발 모드: 토큰 없으면 DB의 첫 번째 유저 반환 (FK 제약 충족)
-        if settings.DEV_BYPASS_AUTH and (credentials is None):
+        # 개발 모드용 헬퍼: DB 첫 번째 유저 반환 (없으면 생성)
+        def _get_dev_user():
             first_user = db.query(User).first()
             if first_user:
                 return first_user
-            # DB에 유저가 없으면 생성
             from app.core.security import get_password_hash
             dev_user = User(email="dev@test.com", name="개발자", password=get_password_hash("dev1234"))
             db.add(dev_user)
             db.commit()
             db.refresh(dev_user)
             return dev_user
+
+        # 개발 모드: 토큰 없으면 바로 우회
+        if settings.DEV_BYPASS_AUTH and credentials is None:
+            return _get_dev_user()
 
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -91,11 +94,16 @@ class AuthService:
         token_data = decode_access_token(token)
 
         if token_data is None or token_data.user_id is None:
+            # 개발 모드: 잘못된 토큰이어도 우회
+            if settings.DEV_BYPASS_AUTH:
+                return _get_dev_user()
             raise credentials_exception
 
         user = db.query(User).filter(User.id == token_data.user_id).first()
 
         if user is None:
+            if settings.DEV_BYPASS_AUTH:
+                return _get_dev_user()
             raise credentials_exception
 
         return user

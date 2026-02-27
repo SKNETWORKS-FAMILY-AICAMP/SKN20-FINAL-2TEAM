@@ -29,6 +29,9 @@ design/src/temp_uploads/*
 .DS_Store
 design2/
 
+# Large CSV data files
+*.csv
+
 # SSH keys / secrets
 *.pem
 *.key
