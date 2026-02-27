@@ -1,0 +1,55 @@
+# ============================================================
+# FTOGuard - GPT 전용 로컬 실행 의존성
+# vLLM/sLLM 없이 OpenAI API만 사용하는 버전
+#
+# Python: 3.10 ~ 3.12 권장 (3.13+ 는 CLIP/torch 호환 문제 가능)
+#
+# 설치:
+#   pip install -r requirements_gpt.txt
+#
+# 실행:
+#   cd backend
+#   uvicorn app.main_gpt:app --host 0.0.0.0 --port 8080 --reload
+# ============================================================
+
+# -- OpenAI & LLM --
+openai==2.24.0
+langchain==1.2.10
+langchain-core==1.2.16
+langchain-openai==1.1.10
+langchain-community==0.4.1
+langgraph==1.0.9
+
+# -- 벡터DB & 검색 --
+chromadb==1.5.1
+sentence-transformers==5.2.3
+rank-bm25==0.2.2
+
+# -- 이미지 처리 (디자인 모듈) --
+torch==2.10.0
+opencv-python==4.13.0.92
+Pillow==12.1.1
+numpy==2.4.2
+git+https://github.com/openai/CLIP.git
+
+# -- 웹 프레임워크 --
+fastapi==0.133.1
+uvicorn==0.41.0
+python-multipart==0.0.22
+aiofiles==25.1.0
+
+# -- 데이터베이스 --
+SQLAlchemy==2.0.47
+PyMySQL==1.1.2
+
+# -- 인증 & 보안 --
+python-jose[cryptography]==3.5.0
+cryptography==46.0.5
+bcrypt==5.0.0
+pydantic[email]==2.12.5
+pydantic-settings==2.13.1
+
+# -- 유틸리티 --
+python-dotenv==1.2.1
+requests==2.32.5
+tavily-python==0.7.22
