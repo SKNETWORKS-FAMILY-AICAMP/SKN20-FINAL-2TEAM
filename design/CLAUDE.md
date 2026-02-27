@@ -9,7 +9,7 @@
 
 | 파일 | 역할 | 수정 여부 |
 |------|------|----------|
-| `src/design_chatbot.py` | LangGraph 그래프, 노드 7개, `run_chatbot()` | **수정 금지** |
+| `src/design_chatbot.py` | LangGraph 그래프, 노드 7개, `graph = create_graph()` | **수정 금지** |
 | `src/utils.py` | CLIP 임베딩, Hybrid Retrieval, 스케치 변환 | **수정 금지** |
 | `src/prompts.py` | VLM 프롬프트 3개 (분석/비교/리포트) | **수정 금지** |
 | `chroma_db/` | ChromaDB 벡터 DB (디자인 특허 이미지 임베딩) | 건드리지 말 것 |
