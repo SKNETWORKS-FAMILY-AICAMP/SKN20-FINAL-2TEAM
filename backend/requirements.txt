@@ -8,6 +8,7 @@ sqlalchemy==2.0.25
 pymysql==1.1.0
 cryptography==42.0.0
 alembic==1.13.1
+chromadb>=0.5.23
 
 # Authentication
 python-jose[cryptography]==3.3.0
@@ -21,6 +22,7 @@ email-validator==2.1.0
 # ML/AI (HuggingFace API 사용)
 huggingface_hub>=0.20.0
 openai>=1.0.0
+chromadb>=0.5.23
 
 # Utils
 python-dotenv==1.0.0

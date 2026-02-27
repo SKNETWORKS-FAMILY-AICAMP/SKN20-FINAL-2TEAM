@@ -15,7 +15,7 @@ numpy>=1.24.0
 git+https://github.com/openai/CLIP.git
 
 # === 데이터베이스 ===
-chromadb>=0.4.0
+chromadb>=0.5.23
 
 # === 웹/API ===
 fastapi>=0.104.0

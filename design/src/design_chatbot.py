@@ -72,10 +72,10 @@ load_dotenv()
 
 
 # llm (Gpt-4o)
-'''
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
-'''
 
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+'''
 # sLLM (Qwen2.5-VL-7B-Instruct)
 llm = ChatOpenAI(
     model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
@@ -83,6 +83,7 @@ llm = ChatOpenAI(
     openai_api_key="EMPTY",
     temperature=0,
 )
+'''
 
 output_parser = StrOutputParser()
 

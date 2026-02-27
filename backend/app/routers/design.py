@@ -11,6 +11,8 @@ import uuid
 import base64
 import tempfile
 import traceback
+import threading
+import requests
 from typing import Optional
 
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException
@@ -20,30 +22,70 @@ router = APIRouter()
 # ── design/src 패키지 임포트 시도 ──────────────────────
 _DESIGN_AVAILABLE = False
 _design_graph = None
+_design_command_cls = None
 _import_error = None
+_load_lock = threading.Lock()
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-try:
-    # design/src를 패키지로 사용하기 위해 경로 추가
-    _design_src = os.path.join(_PROJECT_ROOT, "design", "src")
-    if os.path.isdir(_design_src) and _design_src not in sys.path:
-        sys.path.insert(0, _design_src)
+def _ensure_design_graph_loaded() -> bool:
+    """design/src/design_chatbot.py를 지연 로딩하고 그래프를 초기화한다."""
+    global _DESIGN_AVAILABLE, _design_graph, _design_command_cls, _import_error
 
-    from design_chatbot import create_graph, GraphState
-    from langgraph.types import Command
+    if _DESIGN_AVAILABLE and _design_graph is not None and _design_command_cls is not None:
+        return True
 
-    _design_graph = create_graph()
-    _DESIGN_AVAILABLE = True
-    print("[design] LangGraph 디자인 챗봇 로드 성공")
-except Exception as e:
-    _import_error = str(e)
-    print(f"[design] 디자인 모듈 로드 실패 (GPT 폴백 사용): {e}")
+    with _load_lock:
+        if _DESIGN_AVAILABLE and _design_graph is not None and _design_command_cls is not None:
+            return True
+
+        try:
+            # design/src를 패키지로 사용하기 위해 경로 추가
+            _design_src = os.path.join(_PROJECT_ROOT, "design", "src")
+            if os.path.isdir(_design_src) and _design_src not in sys.path:
+                sys.path.insert(0, _design_src)
+
+            # env 키 이름 차이 보정: design/src는 VLLM_API_BASE를 사용
+            if not os.getenv("VLLM_API_BASE") and os.getenv("VLLM_BASE_URL"):
+                os.environ["VLLM_API_BASE"] = os.getenv("VLLM_BASE_URL")
+
+            from design_chatbot import create_graph
+            from langgraph.types import Command
+
+            _design_graph = create_graph()
+            _design_command_cls = Command
+            _DESIGN_AVAILABLE = True
+            _import_error = None
+            print("[design] LangGraph 디자인 챗봇 로드 성공")
+            return True
+        except Exception as e:
+            _DESIGN_AVAILABLE = False
+            _design_graph = None
+            _design_command_cls = None
+            _import_error = str(e)
+            print(f"[design] 디자인 모듈 로드 실패 (GPT 폴백 사용): {e}")
+            return False
+
+
+# 앱 시작 시 1회 로드 시도 (실패해도 요청 시 재시도)
+_ensure_design_graph_loaded()
 
 
 # ── 인메모리 세션 저장소 ──────────────────────────────────
 # thread_id → {graph, config, state, comparison_results, base64_image}
 _sessions: dict[str, dict] = {}
+
+
+@router.get("/design/status")
+async def design_status():
+    """디자인 챗봇 연결 상태 확인용 엔드포인트."""
+    loaded = _ensure_design_graph_loaded()
+    return {
+        "success": True,
+        "design_module_loaded": loaded,
+        "mode": "langgraph" if loaded else "gpt_fallback",
+        "import_error": _import_error,
+    }
 
 
 def _get_openai_client():
@@ -59,6 +101,39 @@ def _image_to_base64(file_bytes: bytes) -> str:
     return base64.b64encode(file_bytes).decode("utf-8")
 
 
+def _read_image_bytes(image_path: str) -> Optional[bytes]:
+    """imagePath가 URL/절대경로/상대경로일 때 모두 이미지 바이트를 읽는다."""
+    if not image_path:
+        return None
+
+    try:
+        if image_path.startswith("http://") or image_path.startswith("https://"):
+            resp = requests.get(image_path, timeout=10)
+            if resp.status_code == 200:
+                return resp.content
+            return None
+
+        candidate_paths = [image_path]
+
+        if not os.path.isabs(image_path):
+            candidate_paths.extend([
+                os.path.join(_PROJECT_ROOT, image_path),
+                os.path.join(_PROJECT_ROOT, "design", image_path),
+                os.path.join(_PROJECT_ROOT, "design", "data", image_path),
+                os.path.join(_PROJECT_ROOT, "design", "data", "images", image_path),
+            ])
+
+        for path in candidate_paths:
+            normalized = os.path.normpath(path)
+            if os.path.exists(normalized):
+                with open(normalized, "rb") as f:
+                    return f.read()
+    except Exception:
+        return None
+
+    return None
+
+
 # ══════════════════════════════════════════════════════
 # POST /design/image — 이미지 업로드 → 유사 디자인 검색
 # ══════════════════════════════════════════════════════
@@ -72,7 +147,7 @@ async def analyze_design_image(
     file_bytes = await image.read()
     thread_id = str(uuid.uuid4())
 
-    if _DESIGN_AVAILABLE and _design_graph is not None:
+    if _ensure_design_graph_loaded() and _design_graph is not None:
         return await _image_via_langgraph(file_bytes, user_query, thread_id)
     else:
         return await _image_via_gpt_fallback(file_bytes, user_query, thread_id)
@@ -120,9 +195,9 @@ async def _image_via_langgraph(file_bytes: bytes, user_query: str, thread_id: st
             }
             # 이미지 base64 첨부
             img_path = comp.get("image_path")
-            if img_path and os.path.exists(img_path):
-                with open(img_path, "rb") as f:
-                    design["image_base64"] = _image_to_base64(f.read())
+            image_bytes = _read_image_bytes(img_path)
+            if image_bytes:
+                design["image_base64"] = _image_to_base64(image_bytes)
             similar_designs.append(design)
 
         # 세션 저장 (select 단계에서 사용)
@@ -214,7 +289,7 @@ async def _select_via_langgraph(session: dict, selected_index: int) -> dict:
         config = session["config"]
 
         # interrupt 재개: 선택한 디자인 번호 전달
-        result = graph.invoke(Command(resume=str(selected_index)), config)
+        result = graph.invoke(_design_command_cls(resume=str(selected_index)), config)
 
         return {
             "success": True,
@@ -262,7 +337,7 @@ async def design_text_chat(
     """텍스트 기반 디자인 질문 (일반 대화 + DB 검색)."""
     new_thread_id = thread_id or str(uuid.uuid4())
 
-    if _DESIGN_AVAILABLE and _design_graph is not None:
+    if _ensure_design_graph_loaded() and _design_graph is not None:
         return await _text_via_langgraph(text_query, new_thread_id, image_thread_id)
     else:
         return await _text_via_gpt_fallback(text_query, new_thread_id, image_thread_id)

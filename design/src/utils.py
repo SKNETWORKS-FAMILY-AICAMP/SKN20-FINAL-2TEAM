@@ -37,10 +37,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 # llm (Gpt-4o)
-'''
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
-'''
 
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+'''
 # sLLM (Qwen2.5-VL-7B-Instruct) 
 llm = ChatOpenAI(
     model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
@@ -48,7 +48,7 @@ llm = ChatOpenAI(
     openai_api_key="EMPTY",
     temperature=0,
 )
-
+'''
 
 # Hybrid Retrieval 파라미터
 RETRIEVAL_TOP_K = 50   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
