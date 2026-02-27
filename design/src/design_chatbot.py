@@ -20,7 +20,7 @@ import requests
 import tempfile
 from PIL import Image as PILImage
 from pathlib import Path
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Dict, Any
 
 # ==================== 경로 설정 ====================
 # design/src/design_chatbot.py 기준 상위 폴더(= design/)
@@ -60,7 +60,8 @@ from utils import (
 from prompts import (
     IMAGE_ANALYSIS_PROMPT,    # 이미지 형상 분석
     IMAGE_COMPARISON_PROMPT,  # 두 이미지 비교
-    REPORT_PROMPT             # 최종 리포트 생성
+    REPORT_PROMPT,            # 최종 리포트 생성
+    FORMAT_ANALYSIS_PROMPT    # 분석 결과 포맷팅
 )
 
 from dotenv import load_dotenv
@@ -69,7 +70,13 @@ load_dotenv()
 
 # ==================== LLM & ChromaDB 초기화 ====================
 
-# 단일 VLM: 텍스트 + 이미지 모두 처리 (Qwen2.5-VL는 Vision-Language 모델)
+
+# llm (Gpt-4o)
+'''
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+'''
+
+# sLLM (Qwen2.5-VL-7B-Instruct)
 llm = ChatOpenAI(
     model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
     openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
@@ -109,7 +116,8 @@ class GraphState(TypedDict):
 
     # 이미지 검색&분석 관련 필드
     input_analysis: str              # VLM 분석 결과
-    comparison_results: List[Dict]   # 유사 디자인 목록 (Hybrid Retrieval 결과)
+    search_results: Dict[str, Any]   # 벡터DB 검색 원본
+    comparison_results: List[Dict]   # 검색 원본을 깔끔하게 정리 -> 최종 유사 디자인 목록
     selected_index: int              # 사용자가 선택한 디자인 번호
     detailed_comparison: str         # 선택한 디자인 vlm 상세 비교 결과
     final_report: str                # 최종 리포트
@@ -220,9 +228,13 @@ def analyze_image_node(state: GraphState) -> GraphState:
     chain = IMAGE_ANALYSIS_PROMPT | llm | output_parser
     analysis = chain.invoke({"image_url": url}) # vlm 분석 결과가 나올것
 
+    # JSON 분석 결과를 사용자 친화적인 텍스트로 변환
+    format_chain = FORMAT_ANALYSIS_PROMPT | llm | output_parser
+    formatted_analysis = format_chain.invoke({"analysis_json": analysis})
+
     # 상태 update
     state['base64_image'] = url
-    state['input_analysis'] = analysis
+    state['input_analysis'] = formatted_analysis
     print(f"  분석 완료 ({len(analysis)}자)")
     return state
 
@@ -541,6 +553,7 @@ def run_chatbot(image_path=None, text_query=None, user_query="이 제품과 유�
         "user_query": user_query,
         "base64_image": "",
         "input_analysis": "",
+        "search_results": {},
         "comparison_results": [],
         "selected_index": 0,
         "detailed_comparison": "",

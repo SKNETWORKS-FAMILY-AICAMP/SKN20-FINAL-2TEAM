@@ -4,12 +4,12 @@
 디자인 분석에 필요한 헬퍼 함수들을 제공합니다.
 
 목록:
-1. get_image_embedding: 이미지 파일 -> CLIP 임베딩 벡터 반환
-2. get_text_embedding: 텍스트 -> CLIP 임베딩 벡터 반환 (텍스트로 이미지 검색 가능!)
-3. design_id_to_local_image : ChromaDB design_id를 로컬 이미지 경로로 변환
-  (ChromaDB에서 유사 도면 벡터를 찾고, 해당 도면의 로컬 이미지를 불러올 때 사용)
-4. search_and_filter_similar_designs: 벡터DB에서 유사 디자인 검색 후 필터링
-
+1. get_image_embedding        : 이미지 파일 → CLIP 임베딩 벡터 반환
+2. get_text_embedding         : 텍스트 → CLIP 임베딩 벡터 반환 (한글 자동 번역 포함, sLLM 사용)
+3. design_id_to_local_image   : ChromaDB design_id → 로컬 이미지 경로 변환
+4. convert_to_sketch_query    : 쿼리 이미지 → Canny Edge 스케치 변환 (DB 임베딩과 전처리 통일)
+5. hybrid_retrieve            : Dense(CLIP) + BM25 재랭킹 Hybrid Retrieval
+6. search_and_filter_similar_designs: 벡터DB 검색 후 동일 출원번호 중복 제거
 """
 
 import os
@@ -21,6 +21,7 @@ import torch
 from pathlib import Path
 from PIL import Image
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 load_dotenv()
 
 # ==================== 경로 설정 ====================
@@ -35,14 +36,19 @@ IMAGES_DIR = str(BASE_DIR / "data" / "images")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-# sLLM (vLLM): 한국어 번역용
-from langchain_openai import ChatOpenAI
-llm_translator = ChatOpenAI(
+# llm (Gpt-4o)
+'''
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+'''
+
+# sLLM (Qwen2.5-VL-7B-Instruct) 
+llm = ChatOpenAI(
     model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
     openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
     openai_api_key="EMPTY",
     temperature=0,
 )
+
 
 # Hybrid Retrieval 파라미터
 RETRIEVAL_TOP_K = 50   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
@@ -112,7 +118,7 @@ def get_text_embedding(text, translate_korean=True) -> tuple[list, str]:
 
 한글: {text}
 영어:"""
-            query_text = llm_translator.invoke(translation_prompt).content.strip()
+            query_text = llm.invoke(translation_prompt).content.strip()
             print(f"   번역 완료: '{query_text}'")
         
         # 텍스트를 토큰화

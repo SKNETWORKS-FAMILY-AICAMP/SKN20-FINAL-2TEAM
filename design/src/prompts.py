@@ -1,22 +1,21 @@
 """
 프롬프트 템플릿 모듈
 
-1. IMAGE_ANALYSIS_PROMPT: 도면 이미지 분석 프롬프트
+1. REPORT_PROMPT: 최종 리포트 생성 프롬프트
+   input:  입력 디자인 분석 + 선택한 디자인 상세 비교 + 선택한 디자인 정보 + 사용자 요청
+   output: 비교 분석 리포트 (6개 섹션 고정 형식)
 
-input: 이미지 URL
-output: 도면의 형상 관찰 결과 (JSON)
+2. FORMAT_ANALYSIS_PROMPT: JSON 분석 결과 → 사용자 친화적 텍스트 변환
+   input:  IMAGE_ANALYSIS_PROMPT 출력 JSON
+   output: 이모지 포함 읽기 쉬운 형상 요약
 
+3. IMAGE_ANALYSIS_PROMPT: 도면 이미지 형상 분석
+   input:  이미지 URL
+   output: 형상 관찰 결과 (JSON)
 
-2. IMAGE_COMPARISON_PROMPT: 두 이미지를 동시에 분석하고 유사점/비유사점 비교
-
-input: 입력 이미지 URL + 비교 이미지 URL
-output: 비교 분석 결과 유사점, 비유사점 (JSON)
-
-3. REPORT_PROMPT: 최종 리포트 생성 프롬프트
-input: 입력 디자인 분석 + 선택한 디자인 상세 비교 + 선택한 디자인 정보
-output: 비교 분석 리포트 
-
-
+4. IMAGE_COMPARISON_PROMPT: 두 이미지 유사점/비유사점 비교
+   input:  입력 이미지 URL + 비교 이미지 URL
+   output: 비교 분석 결과 (JSON)
 """
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -182,6 +181,33 @@ IMAGE_COMPARISON_PROMPT = ChatPromptTemplate.from_messages([
 
 
 
+
+
+# ==================== 분석 결과 포맷팅 프롬프트 ====================
+
+# JSON 형태의 이미지 분석 결과를 사용자 친화적인 텍스트로 변환
+FORMAT_ANALYSIS_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """
+다음 디자인 분석 결과(JSON)를 사용자에게 보여줄 수 있도록 깔끔하고 읽기 쉬운 형태로 변환하세요.
+
+규칙:
+- JSON 구조나 키 이름은 절대 노출하지 말 것
+- 자연스러운 한국어 문장으로 작성
+- 이모지를 적절히 활용해 시각적으로 구분
+- 전문적이지만 친근한 톤 유지
+
+출력 형식:
+📦 물품: [물품명]
+
+🔍 형상 분석
+- 전체 실루엣: [내용]
+- 몸체 형태: [내용]
+- 상부 구조: [내용]
+- 하부 형태: [내용]
+- 비례 관계: [내용]
+"""),
+    ("user", "{analysis_json}")
+])
 
 
 '''
