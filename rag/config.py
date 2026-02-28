@@ -32,7 +32,7 @@ EMBED_MODEL = "nlpai-lab/KURE-v1"
 EMBED_DIM = 1024
 EMBED_BATCH_SIZE = 32
 DENSE_MAX_CHARS = 4000          # dense_text 글자수 한계 (초과 시 슬라이딩 윈도우 분할)
-CHROMA_COLLECTION = "patent_chunks"
+CHROMA_COLLECTION = "patent_chunks_rebuild"
 
 # ── Sparse 엔진 ────────────────────────────────────────
 BM25_K1 = 1.5
