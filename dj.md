@@ -91,16 +91,68 @@ ChromaDB 프로그램 + 데이터가 뒤섞임
 │  │  FastAPI     │  │ -patent       │  │ -design     │ │
 │  │  +RAG+KURE   │  │ :8001         │  │ :8002       │ │
 │  │  +Frontend   │  │               │  │             │ │
-│  │  :8080       │  │  volume       │  │  volume     │ │
-│  └──────┬───────┘  └───────────────┘  └──────────────┘ │
+│  │  :8080       │  │  📦 volume    │  │  📦 volume  │ │
+│  └──────┬───────┘  └───────────────┘  └─────────────┘ │
 └─────────┼──────────────────────────────────────────────┘
           │
     ┌─────▼──────┐     ┌──────────────────┐
     │  AWS RDS   │     │ RunPod Serverless │
-    │  MySQL 8.4 │     │ Qwen2.5-14B      │
-    │            │     │ Qwen2.5-VL-7B    │
+    │  MySQL 8.4 │     │ 🤖 Qwen2.5-14B   │
+    │            │     │ 🤖 Qwen2.5-VL-7B │
     └────────────┘     └──────────────────┘
 ```
+
+### 왜 16GB RAM이 필요한가?
+
+```
+EC2 r6i.large (16GB RAM)
+├── chromadb-patent  → 가벼움 (~200MB RAM)
+├── chromadb-design  → 가벼움 (~100MB RAM)
+└── backend (:8080)  → 무거움 ⚠️
+    ├── FastAPI         → 가벼움
+    ├── Frontend        → 가벼움
+    ├── BM25 검색       → pkl 파일 로딩 (~500MB RAM)
+    └── KURE-v1 모델    → 이게 문제 (~8~12GB RAM)
+```
+
+KURE 임베딩 모델이 RAM을 많이 먹는다. 사용자가 검색할 때 쿼리를 벡터로 변환하려면 이 모델이 메모리에 상주해야 한다.
+
+```
+사용자: "히알루론산 미백 화장품"
+         │
+    KURE-v1 모델 (RAM 8~12GB 상주)
+         │
+    [0.12, -0.45, 0.78, ...] 1024차원 벡터
+         │
+    ChromaDB에서 유사 특허 검색
+```
+
+> 16GB 필요한 이유 = KURE 모델만이 아니라 전체 RAG 스택 합산 때문.
+
+### 메모리 상세 계산 (F32 기준)
+
+```
+├── KURE-v1                      ~3 GB   (0.6B params × F32)
+├── CLIP ViT-B/32                ~600 MB (디자인 이미지 임베딩용)
+├── BM25 인덱스                  ~500 MB (pkl → RAM 팽창)
+├── LangGraph + 디자인 챗봇      ~300 MB
+├── FastAPI + RAG 코드           ~200 MB
+├── Python 런타임 + OS           ~500 MB
+├── ChromaDB 컨테이너 2개        ~300 MB
+                                ─────────
+                    정상 상태:   ~5.4 GB
+                    피크 시:     ~7~8 GB (동시요청, GC, 로그 등)
+```
+
+### EC2 인스턴스별 판단
+
+| 인스턴스 | RAM | 판단 | 11일 비용 |
+|----------|-----|------|----------|
+| t3.medium (4GB) | 4 GB | ❌ 부족 | ~25,000원 |
+| t3.large (8GB) | 8 GB | ⚠️ 가능은 함 (여유 적음) | ~40,000원 |
+| r6i.large (16GB) | 16 GB | ✅ 안전 | ~57,000원 |
+
+> t3는 burst CPU라서 RAG처럼 지속적으로 CPU 쓰는 작업에 적합하지 않음. r6i 권장.
 
 ---
 
@@ -109,32 +161,44 @@ ChromaDB 프로그램 + 데이터가 뒤섞임
 ```
 SKN20-FINAL-2TEAM/
 │
-│  [Docker 이미지에 들어감 - 코드]
-├── backend/app/                 FastAPI 백엔드
-├── backend/requirements.txt
-├── rag/*.py                     RAG 파이프라인 코드
-├── rag/search/                  검색 모듈
-├── rag/index/tokenizer.py       토크나이저
-├── rag/requirements.txt
-├── design/src/                  디자인 챗봇 코드
-├── design/requirements.txt
-├── FRONTEND/                    정적 HTML/JS/CSS
+├── backend/                    ✅ Docker 이미지에 들어감 (코드)
+│   ├── app/                    ✅
+│   ├── requirements.txt        ✅
+│   └── Dockerfile              🔄 새로 작성 필요
 │
-│  [Docker volume - 데이터]
-├── rag/index/chroma_db/         특허 벡터DB (3.1GB) ※재구축 필요
-├── rag/index/bm25_index/        BM25 역인덱스 (173MB)
-├── design/chroma_db/            디자인 벡터DB (75MB)
+├── rag/
+│   ├── __init__.py             ✅ Docker 이미지에 들어감 (코드)
+│   ├── backend_adapter.py      ✅
+│   ├── config.py               ✅ (환경변수 수정 필요)
+│   ├── generate.py             ✅
+│   ├── download_models.py      ✅
+│   ├── requirements.txt        ✅
+│   ├── search/                 ✅
+│   ├── test/                   ❌ 배포 불필요
+│   └── index/
+│       ├── chroma_db/          📦 Docker volume (재구축 필요)
+│       ├── bm25_index/         📦 Docker volume (173MB)
+│       ├── tokenizer.py        ✅ Docker 이미지에 들어감
+│       ├── parent_store/       ❌ 삭제 (RDS에 있음)
+│       ├── claim_keywords.sqlite ❌ 삭제 (RDS에 올릴 예정)
+│       └── chroma_db_js/       ❌ 삭제 (백업용)
 │
-│  [배포 불필요 - 삭제/무시]
-├── rag/index/parent_store/      RDS와 중복 (100% 일치 확인됨)
-├── rag/index/claim_keywords.sqlite  RDS에 올릴 예정
-├── rag/index/chroma_db_js/      백업용 (배포 안 함)
-├── rag/test/                    테스트 코드
-├── SLLM_model/                  모델 파일
-├── sql/                         스키마 참고용
-├── .env                         환경변수 (Docker에서 환경변수로 주입)
-├── merge_upload.py              유틸리티
-└── CLAUDE.md                    작업 가이드
+├── design/
+│   ├── src/                    ✅ Docker 이미지에 들어감 (코드)
+│   ├── requirements.txt        ✅
+│   └── chroma_db/              📦 Docker volume (75MB)
+│
+├── FRONTEND/                   ✅ Docker 이미지에 들어감 (정적파일)
+│
+├── SLLM_model/                 ❌ 배포 불필요
+├── sql/                        ❌ 배포 불필요 (참고용)
+├── .env                        ❌ Docker에 안 넣음 (환경변수로 주입)
+├── docker-compose.yml          🔄 새로 작성 필요
+├── Dockerfile                  🔄 새로 작성 필요
+├── merge_upload.py             ❌ 배포 불필요
+└── CLAUDE.md                   ❌ 배포 불필요
+
+범례: ✅ 코드(Docker 이미지) / 📦 데이터(Docker volume) / ❌ 불필요 / 🔄 새로 만듦
 ```
 
 ---
@@ -398,3 +462,30 @@ SECRET_KEY=demo-secret-key-2026
 | EC2 신규 (Docker) | 생성 후 기입 |
 | RunPod Endpoint A (14B) | 생성 후 기입 |
 | RunPod Endpoint B (7B) | 생성 후 기입 |
+
+---
+
+## FAQ: KURE 임베딩 모델을 RunPod Serverless에 올리면?
+
+할 수는 있지만 추천하지 않는다.
+
+```
+[EC2에서 KURE 실행 (추천)]
+사용자 → EC2 backend → KURE (같은 서버, 즉시) → ChromaDB
+                        소요: ~0.1초
+
+[KURE 서버리스]
+사용자 → EC2 backend → RunPod KURE (네트워크 왕복) → EC2 → ChromaDB
+                        소요: ~1~3초 + cold start 위험
+```
+
+| | EC2에서 KURE (추천) | RunPod Serverless KURE |
+|---|---|---|
+| 검색 속도 | ~0.1초 | ~1~3초 (네트워크 왕복) |
+| cold start | 없음 | 모델 로딩 10~30초 |
+| EC2 비용 (11일) | r6i.large ~57,000원 | t3.medium ~25,000원 |
+| RunPod 비용 | 없음 | 추가 발생 |
+| 구조 복잡도 | 단순 | 엔드포인트 하나 더 관리 |
+
+> 32,000원 아끼려고 검색마다 1~3초 느려지고 cold start 리스크까지 생긴다.
+> r6i.large 쓸 수 있으면 EC2에서 돌리는 게 훨씬 낫다.
