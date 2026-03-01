@@ -390,18 +390,17 @@ SKN20-FINAL-2TEAM/
 
 ### Step 6: EC2 배포
 
+> 상세 명령어는 **`dj_ec2.md`** 참고
+
 ```
 담당: 인프라 담당
 할 일:
   1. EC2 r6i.large 생성 (16GB RAM, 서울 리전)
-  2. Docker, Docker Compose 설치
-  3. 보안그룹: 8080 포트 열기
-  4. 데이터 업로드 (scp 또는 S3):
-     - chroma_db/ (특허, 3.1GB)
-     - chroma_db/ (디자인, 75MB)
-     - bm25_index/ (173MB)
-  5. git clone + docker compose up -d
-확인: http://EC2_PUBLIC_IP:8080 접속
+  2. Docker 설치 (3줄)
+  3. git clone + data/ 폴더 scp 업로드
+  4. docker compose -f docker-compose.chromadb.yml up -d
+  5. 보안그룹: 8001, 8002, 8080 포트 열기
+확인: curl http://EC2_PUBLIC_IP:8001/api/v2/heartbeat
 ```
 
 ### Step 7: 기존 인프라 정리

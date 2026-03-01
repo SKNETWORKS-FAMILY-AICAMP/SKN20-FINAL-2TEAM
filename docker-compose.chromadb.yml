@@ -1,0 +1,22 @@
+services:
+  chromadb-patent:
+    image: chromadb/chroma:latest
+    container_name: chromadb-patent
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./data/chroma-patent:/data
+    environment:
+      - ANONYMIZED_TELEMETRY=false
+    restart: always
+
+  chromadb-design:
+    image: chromadb/chroma:latest
+    container_name: chromadb-design
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./data/chroma-design:/data
+    environment:
+      - ANONYMIZED_TELEMETRY=false
+    restart: always
