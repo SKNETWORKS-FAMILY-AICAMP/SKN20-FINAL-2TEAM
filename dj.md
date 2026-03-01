@@ -102,6 +102,89 @@ ChromaDB 프로그램 + 데이터가 뒤섞임
     └────────────┘     └──────────────────┘
 ```
 
+### Docker 컨테이너 내부 구조 & 검색 흐름
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Docker Compose (EC2 r6i.large)                             │
+│                                                             │
+│  ┌─────────────────────────────────┐                        │
+│  │  backend 컨테이너 (:8080)       │                        │
+│  │                                 │                        │
+│  │  FastAPI (backend/)             │                        │
+│  │  RAG 코드 (rag/)               │                        │
+│  │  디자인 챗봇 (design/src/)      │                        │
+│  │  프론트엔드 (FRONTEND/)         │                        │
+│  │                                 │                        │
+│  │  [메모리 상주]                   │                        │
+│  │  ├── KURE-v1 임베딩 모델 (~3GB) │                        │
+│  │  ├── CLIP ViT-B/32 (~600MB)     │                        │
+│  │  └── BM25 인덱스 (~500MB)       │  ← pkl 4개 직접 로드   │
+│  │      ├── postings.pkl (145MB)   │                        │
+│  │      ├── idf.pkl (17MB)         │                        │
+│  │      ├── doc_len.pkl (1.9MB)    │                        │
+│  │      ├── doc_map.pkl (8.5MB)    │                        │
+│  │      └── meta.json             │                        │
+│  └──────────┬──────────────────────┘                        │
+│             │                                               │
+│     HTTP 요청 (cosine 검색)                                  │
+│             │                                               │
+│  ┌──────────▼──────────┐  ┌───────────────────┐            │
+│  │ chromadb-patent     │  │ chromadb-design   │            │
+│  │ (:8001)             │  │ (:8002)           │            │
+│  │ image:              │  │ image:            │            │
+│  │  chromadb/chroma    │  │  chromadb/chroma  │            │
+│  │                     │  │                   │            │
+│  │ patent_chunks       │  │ design            │            │
+│  │ 297,061 chunks      │  │ 21,801 vectors    │            │
+│  │ 78,716 특허         │  │ (CLIP 512차원)    │            │
+│  │ (KURE 1024차원)     │  │                   │            │
+│  │                     │  │                   │            │
+│  │ 📦 volume:          │  │ 📦 volume:        │            │
+│  │  ./data/chroma-     │  │  ./data/chroma-   │            │
+│  │  patent/            │  │  design/          │            │
+│  └─────────────────────┘  └───────────────────┘            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 검색 흐름 (사용자가 "히알루론산 미백 화장품" 검색 시)
+
+```
+[1] 키워드 추출 (backend 내부)
+    "히알루론산 미백 화장품" → ["히알루론산", "미백", "화장품"]
+
+[2] 사전필터링 (RDS claim_keywords)
+    78,716 특허 → ~1,000개 후보 chunk_id로 축소
+
+[3-A] BM25 검색 (backend 내부, 네트워크 안 탐)
+    pkl 파일에서 직접 계산 → chunk별 BM25 점수
+    ※ CSV chunk_id(_claim_1)와 BM25(_claim_1_sub0) 이름 차이는
+      sub_prefix_map으로 자동 매핑 (retriever.py:219)
+
+[3-B] Dense 검색 (backend → ChromaDB 컨테이너, HTTP)
+    KURE로 쿼리 임베딩 → ChromaDB에 cosine 검색 요청
+    ※ chunk_id가 아닌 apply_num(출원번호)으로 필터링하므로
+      이름 차이 문제 없음 (retriever.py:106)
+
+[4] RRF 합산 (backend 내부)
+    BM25 순위 + Dense 순위 → 가중합산 → 최종 순위
+
+[5] Patent Collapse → 특허당 1건으로 합침 → 최종 결과
+```
+
+#### BM25를 왜 별도 컨테이너로 안 분리하는가?
+
+| | BM25 (앱 내장) | Elasticsearch (별도 서버) |
+|---|---|---|
+| 데이터 규모 | 78K 문서, 173MB | 수백만~수천만 문서 |
+| 검색 속도 | 메모리 직접 접근 (즉시) | 네트워크 왕복 추가 |
+| 운영 부담 | 없음 (pkl 로드만) | ES 클러스터 관리 필요 |
+| RAM | ~500MB | ES만 2~4GB 필요 |
+
+78K 문서 규모에서 Elasticsearch는 오버엔지니어링. 앱 내장이 현업에서도 맞는 판단.
+
+---
+
 ### 왜 16GB RAM이 필요한가?
 
 ```
