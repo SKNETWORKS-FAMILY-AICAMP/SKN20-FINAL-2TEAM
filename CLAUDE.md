@@ -93,6 +93,8 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 - [x] **RunPod 서버리스 엔드포인트 생성 (2026-03-02)**
   - 특허 텍스트용: `qcqek25abvhk7o`
   - 디자인 이미지용: `hmh882ms5azjye`
+- [x] **claim_keywords RDS 교체 완료 (2026-03-02)** - 10,027,989건 + 인덱스 3개
+- [x] **claim_components RDS 교체 완료 (2026-03-02)** - 127,893건 (등록 청구항 기준)
 
 ---
 
@@ -110,8 +112,8 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 
 | 작업 | 상태 | 비고 |
 |------|------|------|
-| pre-filter 키워드 RDS 교체 | ⬜ | claim_keywords 테이블 재구축 |
-| component 키워드 RDS 교체 | ⬜ | claim_components 테이블 재구축 |
+| pre-filter 키워드 RDS 교체 | ✅ | claim_keywords 10,027,989건 + 인덱스 3개 |
+| component 키워드 RDS 교체 | ✅ | claim_components 127,893건 (등록 청구항) |
 | RunPod 서버리스 설정 | ✅ | 14B + VL 7B 엔드포인트 완료 |
 | 백엔드 → 서버리스 연결 | ⬜ | chat.py에서 RunPod API 호출로 변경 |
 
@@ -128,8 +130,8 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 ## 작업 우선순위
 
 ```
-1. pre-filter 키워드 RDS 교체 (RAG 검색에 필수)
-2. component 키워드 RDS 교체 (구성요소 분석에 필수)
+1. ~~pre-filter 키워드 RDS 교체~~ ✅
+2. ~~component 키워드 RDS 교체~~ ✅
 3. 백엔드 → RunPod 서버리스 연결 (테스트)
 4. 디자인 ChromaDB Docker화
 5. 프론트엔드 개선
