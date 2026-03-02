@@ -7,70 +7,6 @@ FTO(Freedom to Operate) 특허·디자인 침해 리스크 판단 AI 에이전�
 
 ---
 
-## 새 런팟 시작 시 작업 순서
-
-### 1. 환경 설정
-
-```bash
-# 패키지 설치
-pip install vllm openai fastapi uvicorn sqlalchemy pydantic-settings \
-    python-jose[cryptography] pymysql python-multipart aiofiles chromadb
-
-# .env 생성 (RDS 연결)
-cat > /root/SKN20-FINAL-2TEAM/backend/.env << 'EOF'
-DATABASE_URL=mysql+pymysql://admin:rmdak2020@fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com:3306/fto
-SECRET_KEY=demo-secret-key-2026
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-CORS_ORIGINS=["*"]
-VLLM_BASE_URL=http://localhost:8000/v1
-VLLM_MODEL=/workspace/qwen2.5-14b-fto-merged
-DEV_BYPASS_AUTH=true
-EOF
-```
-
-### 2. vLLM 서버 실행
-
-```bash
-# 병합된 모델이 /workspace에 있으면 바로 실행
-vllm serve /workspace/qwen2.5-14b-fto-merged \
-    --host 0.0.0.0 --port 8000 --dtype float16 > /workspace/vllm.log 2>&1 &
-
-# /workspace에 없으면 HuggingFace에서 다운로드 후 실행
-# (모델: itsbini/qwen2.5-14b-fto-merged, 약 29.5GB)
-export HF_HOME=/workspace/hf_cache
-vllm serve itsbini/qwen2.5-14b-fto-merged \
-    --host 0.0.0.0 --port 8000 --dtype float16 > /workspace/vllm.log 2>&1 &
-
-# 서버 준비 확인 (2~3분 소요)
-tail -f /workspace/vllm.log
-# "Application startup complete." 메시지 확인
-```
-
-### 3. FastAPI 백엔드 실행
-
-```bash
-cd /root/SKN20-FINAL-2TEAM/backend
-MYSQL_HOST=fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com \
-MYSQL_PORT=3306 MYSQL_USER=admin MYSQL_PASSWORD=rmdak2020 MYSQL_DATABASE=fto \
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > /workspace/backend.log 2>&1 &
-
-# 확인
-curl http://localhost:8080/health
-```
-
-### 4. 접속 방법 (SSH 터널)
-
-```bash
-# Mac 로컬 터미널에서 실행
-ssh -L 8080:localhost:8080 root@<IP> -p <PORT> -i ~/.ssh/id_ed25519 -N
-
-# 브라우저 접속
-# http://localhost:8080/chat.html
-```
-
----
-
 ## AWS RDS 정보 (2026-02-26 정리 완료)
 
 | 항목 | 값 |
@@ -146,85 +82,58 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 
 ---
 
-## 현재 구현 상태
+## 현재 구현 상태 (2026-03-02 업데이트)
 
 ### 완료된 것
 - [x] Qwen2.5-14B LoRA → 베이스 병합 (`itsbini/qwen2.5-14b-fto-merged`)
-- [x] vLLM 서버 (포트 8000)
 - [x] FastAPI 백엔드 (포트 8080) + 프론트엔드 정적 파일 서빙
 - [x] 채팅 UI → vLLM 연결 (`/api/chat/message`)
-- [x] RDS 스키마 정리 완료 (2026-02-26)
-- [x] DEV_BYPASS_AUTH=true (데모용 인증 우회)
-- [x] RAG 파이프라인 연결 완료 (chat.py → backend_adapter → pipeline.analyze)
-- [x] claim_components 테이블 RAG 연결 (filter.py → generate.py 프롬프트 삽입)
-- [x] vLLM 타임아웃 수정 (30초 → 180초, `rag/config.py`)
-- [x] DEV_BYPASS_AUTH 잘못된 토큰도 우회 (`auth_service.py`)
-- [x] results.html 실제 분석 데이터 연결 (`/api/analysis/{id}`)
-- [x] patent-chat.html API 엔드포인트 수정 (8000→8080, `/api/chat/message`)
-- [x] Qwen2.5-VL-7B-Instruct 다운로드 완료 (`/workspace/Qwen2.5-VL-7B-Instruct`)
-
-### 다음 작업 (런팟 재시작 후)
-
-#### 우선순위 1: RDS claim_keywords 데이터 교체
-- [ ] claim_keywords 테이블 DROP + 재생성 (이전 DELETE 롤백이 끝나야 가능)
-- [ ] `claim_keywords_full.csv` (460MB, 10,027,989건) INSERT
-- [ ] 인덱스 추가 (patent_id, chunk_id, keyword)
-- 참고: 롤백 완료 후 아래 명령 실행:
-```python
-# python3 << 'SCRIPT' 로 실행
-# 1) DROP TABLE IF EXISTS claim_keywords
-# 2) CREATE TABLE (id, patent_id, chunk_id, keyword)
-# 3) CSV 배치 INSERT (20000건씩)
-# 4) ALTER TABLE ADD KEY (3개 인덱스)
-```
-
-#### 우선순위 2: 디자인 분석 모듈 병합
-- [ ] design 의존성 설치 (`pip install -r design/requirements.txt` + CLIP)
-- [ ] design 환경변수 설정 (VLLM_API_BASE, VLLM_MODEL, TAVILY_API_KEY)
-- [ ] `backend/app/routers/design.py` → design_chatbot graph 연동
-- [ ] design-chat.html 프론트엔드 연결
-- 참고: `design/CLAUDE.md` 상세 가이드 참조
-- 주의: graph는 싱글톤 (import 1회만), 이미지는 2단계 플로우 (interrupt)
-
-#### 우선순위 3: 프론트엔드 개선
-- [ ] patent-chat.html 대화형 흐름 구현 (현재 원샷 분석 → 정보 수집 후 분석으로 변경)
-- [ ] results.html PDF 보고서에 실제 LLM 분석 결과 표시
-- [ ] 사이드바 분석 기록 실제 데이터 연동
-
-#### 우선순위 4: 인프라
-- [ ] 특허 FTO(14B) + 디자인 VL(7B) 동시 서빙 방안 결정
-  - 옵션 A: A100 80GB에서 포트 분리 (8000=14B, 8001=7B)
-  - 옵션 B: 별도 런팟으로 VL 모델 서빙
-  - 옵션 C: 요청 타입에 따라 모델 교체 (동시 불가)
+- [x] RDS 스키마 정리 완료
+- [x] RAG 파이프라인 연결 완료
+- [x] **RunPod 서버리스 엔드포인트 생성 (2026-03-02)**
+  - 특허 텍스트용: `qcqek25abvhk7o`
+  - 디자인 이미지용: `hmh882ms5azjye`
 
 ---
 
-## RAG 연결 작업
+## 할 일 목록 (2026-03-02 연휴 작업)
 
-### RAG 파이프라인 흐름
-```
-채팅 메시지 입력
-→ claim_keywords에서 keyword 매칭 (Pre-filter)
-→ ChromaDB에서 chunk_id로 유사 청구항 검색 (Dense + BM25)
-→ chunk_id → claim_components에서 구성요소 조회
-→ patent_id → patents에서 메타데이터 조회
-→ vLLM(Qwen2.5-14B)으로 침해 여부 판단
-→ 결과 반환 + DB 저장
-→ results.html?id=xxx 로 이동
-→ PDF 보고서 다운로드
-```
+### 1. 인프라 작업
 
-### 수정할 파일
-1. `backend/app/routers/chat.py`
-   - `send_chat_message()` → `pipeline.analyze()` 호출로 교체
-2. `rag/config.py`
-   - RDS 연결 설정
-   - `VLLM_API_URL = "http://localhost:8000/v1"`
-   - `VLLM_MODEL_NAME = "/workspace/qwen2.5-14b-fto-merged"`
-3. `rag/search/pipeline.py`
-   - RDS + ChromaDB 연결
-4. `backend/app/routers/chat.py` + `results.html`
-   - 분석 결과 DB 저장 → results 페이지 연동
+| 작업 | 상태 | 비고 |
+|------|------|------|
+| ChromaDB Docker화 | ⬜ | EC2 직접 설치 → Docker Compose로 변경 |
+| EC2 인스턴스 유형 변경 | ⬜ | r6i.large (KURE 때문) - 멘토/강사님 확인 필요 |
+| 디자인 ChromaDB Docker | ⬜ | 이미지용 ChromaDB 컨테이너 |
+
+### 2. 백엔드 작업
+
+| 작업 | 상태 | 비고 |
+|------|------|------|
+| pre-filter 키워드 RDS 교체 | ⬜ | claim_keywords 테이블 재구축 |
+| component 키워드 RDS 교체 | ⬜ | claim_components 테이블 재구축 |
+| RunPod 서버리스 설정 | ✅ | 14B + VL 7B 엔드포인트 완료 |
+| 백엔드 → 서버리스 연결 | ⬜ | chat.py에서 RunPod API 호출로 변경 |
+
+### 3. 프론트엔드 작업
+
+| 작업 | 상태 | 비고 |
+|------|------|------|
+| patent-chat.html 대화형 흐름 | ⬜ | 원샷 분석 → 정보 수집 후 분석 |
+| design-chat.html 연결 | ⬜ | VL 모델 서버리스 연동 |
+| results.html PDF 보고서 | ⬜ | 실제 LLM 분석 결과 표시 |
+
+---
+
+## 작업 우선순위
+
+```
+1. pre-filter 키워드 RDS 교체 (RAG 검색에 필수)
+2. component 키워드 RDS 교체 (구성요소 분석에 필수)
+3. 백엔드 → RunPod 서버리스 연결 (테스트)
+4. 디자인 ChromaDB Docker화
+5. 프론트엔드 개선
+```
 
 ---
 
@@ -288,3 +197,53 @@ SKN20-FINAL-2TEAM/
 ## 시스템 프롬프트 (변경 금지)
 `backend/app/routers/chat.py`의 `SYSTEM_PROMPT`와
 `rag/generate.py`의 `SYSTEM_PROMPT`는 학습 데이터와 동일한 형식이므로 수정 시 성능 저하 가능.
+
+---
+
+## RunPod 서버리스 엔드포인트 (2026-03-02 설정 완료)
+
+### 엔드포인트 정보
+
+| 용도 | 모델 | Endpoint ID | API URL |
+|------|------|-------------|---------|
+| 특허 텍스트 분석 | `itsbini/qwen2.5-14b-fto-merged` | `qcqek25abvhk7o` | `https://api.runpod.ai/v2/qcqek25abvhk7o/run` |
+| 디자인 이미지 분석 | `Qwen/Qwen2.5-VL-7B-Instruct` | `hmh882ms5azjye` | `https://api.runpod.ai/v2/hmh882ms5azjye/run` |
+
+### 서버리스 설정
+
+| 설정 | 값 |
+|------|-----|
+| Max Workers | 1 |
+| Active Workers | 0 (요청 없으면 비용 0) |
+| GPU | A100 80GB |
+| Idle Timeout | 5 sec |
+| Execution Timeout | 600 sec |
+| FlashBoot | 활성화 (Cold start 단축) |
+
+### API Key
+
+```
+RUNPOD_API_KEY=<여기에 API Key 입력>
+```
+
+### 사용 예시 (cURL)
+
+```bash
+# 특허 텍스트 분석
+curl -X POST https://api.runpod.ai/v2/qcqek25abvhk7o/run \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_RUNPOD_API_KEY' \
+  -d '{"input":{"prompt":"Your prompt here"}}'
+
+# 디자인 이미지 분석
+curl -X POST https://api.runpod.ai/v2/hmh882ms5azjye/run \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer YOUR_RUNPOD_API_KEY' \
+  -d '{"input":{"prompt":"Your prompt here"}}'
+```
+
+### 비용 구조
+
+- **요청 없을 때**: $0 (Active Workers = 0)
+- **요청 처리 중**: A100 80GB 기준 ~$0.00111/sec (~$4/hour)
+- **Cold Start**: FlashBoot로 ~2초 (첫 요청 시 모델 로딩 필요)
