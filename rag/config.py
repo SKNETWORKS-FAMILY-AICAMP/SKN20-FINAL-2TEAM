@@ -181,9 +181,15 @@ CHECKPOINT_INTERVAL = 2000    # 체크포인트 저장 간격 (청크 수)
 PROCESSED_FILES_PATH = INDEX_DIR / "processed_files.json"
 
 # ── Generation (G 모듈) ─────────────────────────────
-VLLM_API_URL = os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")    # 예: http://localhost:8000/v1
-VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME") or os.environ.get("VLLM_MODEL", "itsbini/qwen2.5-3b-fto")
-VLLM_TIMEOUT = 180
+# RunPod 서버리스 설정
+RUNPOD_API_KEY = os.environ.get("RUNPOD_API_KEY", "")
+RUNPOD_TEXT_BASE_URL = os.environ.get("RUNPOD_TEXT_BASE_URL", "")
+RUNPOD_DESIGN_BASE_URL = os.environ.get("RUNPOD_DESIGN_BASE_URL", "")
+
+# vLLM 설정 (RunPod 서버리스 또는 로컬)
+VLLM_API_URL = os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")
+VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME") or os.environ.get("VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
+VLLM_TIMEOUT = 300  # 서버리스 Cold Start 고려하여 5분
 
 GPT_FALLBACK_MODEL = "gpt-4o-mini"
 GPT_TIMEOUT = 60

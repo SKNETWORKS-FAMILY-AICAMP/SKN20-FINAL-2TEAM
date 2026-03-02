@@ -20,9 +20,10 @@ from app.models.user import User
 
 router = APIRouter()
 
-# vLLM 클라이언트
+# vLLM 클라이언트 (RunPod 서버리스)
 VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
-VLLM_MODEL = os.getenv("VLLM_MODEL", "/workspace/qwen2.5-14b-fto-merged")
+VLLM_MODEL = os.getenv("VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
+RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
 
 SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
 
@@ -285,9 +286,10 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
 
     messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + history
 
-    # 1순위: vLLM
+    # 1순위: vLLM (RunPod 서버리스)
     try:
-        client = OpenAI(base_url=VLLM_BASE_URL, api_key="dummy", timeout=120)
+        api_key = RUNPOD_API_KEY if RUNPOD_API_KEY else "dummy"
+        client = OpenAI(base_url=VLLM_BASE_URL, api_key=api_key, timeout=300)
         resp = client.chat.completions.create(
             model=VLLM_MODEL,
             messages=messages_payload,
@@ -296,7 +298,7 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
         )
         return resp.choices[0].message.content
     except Exception as vllm_err:
-        print(f"[vLLM 폴백] vLLM 호출 실패: {vllm_err}")
+        print(f"[vLLM 폴백] RunPod 서버리스 호출 실패: {vllm_err}")
 
     # 2순위: OpenAI GPT-4o-mini
     openai_key = os.getenv("OPENAI_API_KEY", "")

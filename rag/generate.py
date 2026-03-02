@@ -349,11 +349,15 @@ def call_llm(messages: list[dict]) -> str:
 
 
 def _call_vllm(messages: list[dict]) -> str:
-    """vLLM OpenAI-compatible API 호출."""
+    """vLLM OpenAI-compatible API 호출 (RunPod 서버리스 또는 로컬)."""
     from openai import OpenAI
+
+    # RunPod 서버리스인 경우 API Key 사용
+    api_key = config.RUNPOD_API_KEY if config.RUNPOD_API_KEY else "dummy"
+
     client = OpenAI(
         base_url=config.VLLM_API_URL,
-        api_key="dummy",
+        api_key=api_key,
         timeout=config.VLLM_TIMEOUT,
     )
     resp = client.chat.completions.create(
