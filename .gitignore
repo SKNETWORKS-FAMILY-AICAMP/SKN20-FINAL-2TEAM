@@ -12,6 +12,7 @@ fto_dump.sql
 rag/index/
 *.sqlite3
 data/
+/data/
 
 # Nested repo
 SKN20-FINAL-2TEAM/
