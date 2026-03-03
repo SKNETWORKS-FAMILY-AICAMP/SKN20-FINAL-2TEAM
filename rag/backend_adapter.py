@@ -15,6 +15,7 @@ def analyze_product(
     product_description: str,
     top_k: int = 10,
     verbose: bool = False,
+    history: list[dict] = None,
 ) -> dict:
     """검색 + FTO 통합 분석. 백엔드 단일 진입점.
 
@@ -22,6 +23,7 @@ def analyze_product(
         product_description: 사용자 제품 설명.
         top_k: 검색 결과 수.
         verbose: 중간 로그 출력.
+        history: 이전 대화 히스토리 [{"role": "user"|"assistant", "content": "..."}]
 
     Returns:
         {"query": str, "search_results": list, "fto_result": dict}
@@ -31,6 +33,7 @@ def analyze_product(
         product_description,
         top_k=top_k,
         verbose=verbose,
+        history=history,
     )
 
 

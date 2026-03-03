@@ -517,15 +517,16 @@ def _truncate_claims(text: str, max_chars: int = 3000) -> str:
     return text[:max_chars] + "\n... (이하 생략)"
 
 
-def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
+def build_fto_prompt(search_results: list[dict], user_query: str, history: list[dict] = None) -> list[dict]:
     """search() 결과 여러 건 + 사용자 쿼리 -> GPT chat messages.
 
     Args:
         search_results: pipeline.search() 반환 리스트 (상위 N건).
         user_query: 사용자 원본 쿼리 (제품 설명).
+        history: 이전 대화 히스토리 [{"role": "user"|"assistant", "content": "..."}]
 
     Returns:
-        OpenAI chat 형식 messages (system + user).
+        OpenAI chat 형식 messages (system + history + user).
     """
     top_n = config.GENERATE_INPUT_N
     results = search_results[:top_n]
@@ -581,10 +582,16 @@ def build_fto_prompt(search_results: list[dict], user_query: str) -> list[dict]:
 
     user_content = "\n".join(parts)
 
-    return [
-        {"role": "system", "content": FTO_SYSTEM_PROMPT},
-        {"role": "user", "content": user_content},
-    ]
+    # 메시지 구성: system + history + current user
+    messages = [{"role": "system", "content": FTO_SYSTEM_PROMPT}]
+
+    # 이전 대화 히스토리 추가 (멀티턴 지원)
+    if history:
+        messages.extend(history)
+
+    messages.append({"role": "user", "content": user_content})
+
+    return messages
 
 
 def parse_fto_response(raw_text: str) -> dict:
@@ -643,6 +650,7 @@ def generate_fto(
     search_results: list[dict],
     user_query: str,
     verbose: bool = False,
+    history: list[dict] = None,
 ) -> dict:
     """FTO 통합 분석. Top N을 한번에 GPT에 전달하여 선별 + 종합 의견 생성.
 
@@ -650,6 +658,7 @@ def generate_fto(
         search_results: pipeline.search() 반환값.
         user_query: 사용자 원본 쿼리.
         verbose: 중간 로그 출력.
+        history: 이전 대화 히스토리 [{"role": "user"|"assistant", "content": "..."}]
 
     Returns:
         {
@@ -668,7 +677,7 @@ def generate_fto(
             title = r.get("metadata", {}).get("invention_title", "")[:40]
             print(f"  [{i+1}] {pid} — {title}")
 
-    messages = build_fto_prompt(search_results, user_query)
+    messages = build_fto_prompt(search_results, user_query, history=history)
 
     if verbose:
         user_len = len(messages[1]["content"])

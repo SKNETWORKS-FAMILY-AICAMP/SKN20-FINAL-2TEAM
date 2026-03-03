@@ -524,32 +524,45 @@
 
     // ==================== 메시지 렌더링 ====================
 
-    function addUserMessage(text) {
+    function addUserMessage(text, timestamp = null) {
         const div = document.createElement('div');
         div.className = 'msg user';
+        const timeStr = timestamp ? formatMessageTime(timestamp) : formatMessageTime(new Date());
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-user text-xs"></i></div>
             <div class="msg-content">
                 <div class="msg-bubble">${escapeHtml(text)}</div>
+                <div class="text-xs text-neutral-400 mt-1">${timeStr}</div>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
     }
 
-    function addBotMessage(text) {
+    function addBotMessage(text, timestamp = null) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
         // 마크다운 굵게(**text**) 간단 처리
         const formatted = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        const timeStr = timestamp ? formatMessageTime(timestamp) : formatMessageTime(new Date());
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
             <div class="msg-content">
                 <div class="msg-bubble" style="white-space:pre-wrap;">${formatted}</div>
+                <div class="text-xs text-neutral-400 mt-1">${timeStr}</div>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+    }
+
+    function formatMessageTime(dateInput) {
+        const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? '오후' : '오전';
+        const hour12 = hours % 12 || 12;
+        return `${ampm} ${hour12}:${minutes}`;
     }
 
     // ==================== 로딩 ====================
@@ -593,7 +606,7 @@
 
     // ==================== 세션 카드 ====================
 
-    function addSessionCard(firstMessage, tid) {
+    function addSessionCard(firstMessage, analysisId) {
         const container = document.getElementById('chatSessions');
         // 빈 상태 placeholder 제거
         const placeholder = container.querySelector('.text-center');
@@ -601,6 +614,8 @@
 
         const card = document.createElement('div');
         card.className = 'session-card active';
+        card.dataset.chatId = threadId;
+        card.dataset.analysisId = analysisId;
         card.innerHTML = `
             <div class="flex items-center justify-between mb-2">
                 <span class="type-badge"><i class="fas fa-file-alt mr-1"></i>특허·실용신안</span>
@@ -610,7 +625,19 @@
                 ${escapeHtml(firstMessage)}
             </h4>
         `;
-        card.onclick = () => goToResult(tid);
+        // 클릭 시 채팅 히스토리 로드 (분석 완료된 경우 결과 페이지로 이동 옵션 제공)
+        card.onclick = () => {
+            if (analysisId) {
+                // 분석 완료된 세션: 결과 페이지로 이동할지 물어보기
+                if (confirm('분석 결과 페이지로 이동할까요?')) {
+                    goToResult(analysisId);
+                } else {
+                    loadChatHistory(threadId);
+                }
+            } else {
+                loadChatHistory(threadId);
+            }
+        };
 
         // 기존 active 해제
         container.querySelectorAll('.session-card').forEach(c => c.classList.remove('active'));
@@ -692,6 +719,120 @@
         if (typeof str !== 'string') return String(str ?? '');
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // ==================== 채팅 세션 로드 ====================
+
+    async function loadChatSessions() {
+        try {
+            const token = localStorage.getItem('authToken') || '';
+            const response = await fetch(`${API_BASE}/chat`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            });
+            if (!response.ok) return;
+
+            const sessions = await response.json();
+            sessionCount = sessions.length;
+            updateTotalCount();
+
+            const container = document.getElementById('chatSessions');
+            if (sessions.length === 0) return;
+
+            // 빈 상태 placeholder 제거
+            const placeholder = container.querySelector('.text-center');
+            if (placeholder) placeholder.remove();
+
+            // 세션 카드 렌더링
+            sessions.forEach((session, idx) => {
+                const card = document.createElement('div');
+                card.className = 'session-card' + (idx === 0 ? ' active' : '');
+                card.dataset.chatId = session.id;
+                const timeAgo = formatTimeAgo(session.created_at);
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="type-badge"><i class="fas fa-file-alt mr-1"></i>특허·실용신안</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-neutral-500">${timeAgo}</span>
+                            <button class="delete-btn icon-btn" data-chat-id="${session.id}" title="삭제" style="width:1.5rem;height:1.5rem;">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h4 class="text-sm font-semibold text-black leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                        ${escapeHtml(session.title || '새 대화')}
+                    </h4>
+                `;
+                // 카드 클릭 시 채팅 로드 (삭제 버튼 제외)
+                card.onclick = (e) => {
+                    if (!e.target.closest('.delete-btn')) {
+                        loadChatHistory(session.id);
+                    }
+                };
+                // 삭제 버튼 클릭
+                card.querySelector('.delete-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    deleteChat(session.id, card);
+                };
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error('세션 로드 실패:', error);
+        }
+    }
+
+    async function loadChatHistory(chatId) {
+        try {
+            const token = localStorage.getItem('authToken') || '';
+            const response = await fetch(`${API_BASE}/chat/${chatId}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            });
+            if (!response.ok) return;
+
+            const chat = await response.json();
+            threadId = chatId;
+
+            // 활성 세션 표시
+            document.querySelectorAll('.session-card').forEach(c => {
+                c.classList.toggle('active', c.dataset.chatId == chatId);
+            });
+
+            // 메시지 영역 초기화
+            if (welcomeMessage) welcomeMessage.remove();
+            messagesWrapper.innerHTML = '';
+
+            // 메시지 렌더링 (시간 포함)
+            if (chat.messages && chat.messages.length > 0) {
+                chat.messages.forEach(msg => {
+                    if (msg.role === 'user') {
+                        addUserMessage(msg.content, msg.created_at);
+                    } else if (msg.role === 'assistant') {
+                        addBotMessage(msg.content, msg.created_at);
+                    }
+                });
+            }
+
+            setStatus('대화 중');
+        } catch (error) {
+            console.error('채팅 히스토리 로드 실패:', error);
+        }
+    }
+
+    function formatTimeAgo(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+
+        if (diff < 60) return '방금';
+        if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+        return date.toLocaleDateString('ko-KR');
+    }
+
+    // 페이지 로드 시 세션 목록 불러오기
+    document.addEventListener('DOMContentLoaded', () => {
+        loadChatSessions();
+    });
 
     // ==================== 사이드바 토글 ====================
 

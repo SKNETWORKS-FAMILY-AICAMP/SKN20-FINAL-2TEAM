@@ -147,6 +147,7 @@ def analyze(
     query: str,
     top_k: int = None,
     verbose: bool = False,
+    history: list[dict] = None,
     **search_kwargs,
 ) -> dict:
     """전체 RAG+G 파이프라인. search() -> generate_fto() -> 최종 응답.
@@ -155,26 +156,22 @@ def analyze(
         query: 사용자 입력 (제품 설명).
         top_k: 검색 결과 수 (search()에 전달).
         verbose: 중간 로그 출력.
+        history: 이전 대화 히스토리 [{"role": "user"|"assistant", "content": "..."}]
         **search_kwargs: search()에 전달할 추가 파라미터.
 
     Returns:
         {"query": str, "search_results": list, "fto_result": dict}
     """
-    from ..generate import generate
+    from ..generate import generate_fto
 
     search_results = search(query, top_k=top_k, verbose=verbose, **search_kwargs)
 
     if verbose:
-        print(f"\n[FTO 분석 시작] 상위 {config.GENERATE_TOP_N}건 → 1건씩 sLLM 호출")
+        print(f"\n[FTO 분석 시작] 상위 {config.GENERATE_INPUT_N}건 → {config.GENERATE_OUTPUT_N}건 선별")
+        if history:
+            print(f"[멀티턴] 이전 대화 {len(history)}개 메시지 포함")
 
-    analyses = generate(search_results, query, verbose=verbose)
-
-    # generate()는 list[dict] 반환 → generate_fto() 호환 형식으로 래핑
-    fto_result = {
-        "patent_analyses": analyses,
-        "fto_opinion": "",
-        "raw_output": "",
-    }
+    fto_result = generate_fto(search_results, query, verbose=verbose, history=history)
 
     return {
         "query": query,
