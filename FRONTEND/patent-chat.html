@@ -1102,22 +1102,37 @@
                 </div>`;
         }).join('');
 
+        // 분석 요약 카드 (flex 대신 inline-block 사용 - html2canvas 호환)
+        const summaryWidth = Math.floor(100 / Math.max(analyses.length, 1)) - 2;
+        const summaryCards = analyses.map((a, i) => {
+            const l = a.label || '';
+            const c = a.comparisons || [];
+            const mc = c.filter(x => x.correspondence === '대응').length;
+            const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' } };
+            const s = lm[l] || lm['비침해'];
+            return `<div style="display:inline-block; width:${summaryWidth}%; vertical-align:top; border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center; margin-right:4px; box-sizing:border-box;">
+                <div style="font-size:9px; color:#9CA3AF;">TOP ${i+1}</div>
+                <div style="font-size:10px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
+                <div style="font-size:9px; color:#6B7280;">대응 ${mc}/${c.length}</div>
+            </div>`;
+        }).join('');
+
         // PDF 컨테이너
         const pdfDiv = document.createElement('div');
-        pdfDiv.style.cssText = 'width:680px; padding:30px; font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif; color:#333; background:#fff;';
+        pdfDiv.style.cssText = 'position:absolute; left:0; top:0; width:680px; padding:30px; font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif; color:#333; background:#fff; z-index:99999;';
         pdfDiv.innerHTML = `
             <!-- 헤더 -->
             <div style="border-bottom:3px solid #FF6B35; padding-bottom:14px; margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
+                <table style="width:100%; border:none;"><tr>
+                    <td style="border:none; padding:0; vertical-align:top;">
                         <div style="font-size:20px; font-weight:800; color:#1a1a1a; margin-bottom:2px;">FTOGuard</div>
                         <div style="font-size:13px; color:#666;">특허 침해 분석 리포트</div>
-                    </div>
-                    <div style="text-align:right;">
+                    </td>
+                    <td style="border:none; padding:0; text-align:right; vertical-align:top;">
                         <div style="font-size:9px; color:#9CA3AF; letter-spacing:2px;">REPORT</div>
                         <div style="font-size:10px; color:#666; margin-top:2px;">${dateStr}</div>
-                    </div>
-                </div>
+                    </td>
+                </tr></table>
                 <div style="margin-top:12px; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px;">
                     <div style="font-size:9px; color:#9CA3AF; margin-bottom:2px;">분석 질문</div>
                     <div style="font-size:11px; color:#1a1a1a; font-weight:600; line-height:1.5;">${escapeHtml(userQuery)}</div>
@@ -1125,21 +1140,7 @@
             </div>
 
             <!-- 분석 요약 -->
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                ${analyses.map((a, i) => {
-                    const l = a.label || '';
-                    const c = a.comparisons || [];
-                    const mc = c.filter(x => x.correspondence === '대응').length;
-                    const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' } };
-                    const s = lm[l] || lm['비침해'];
-                    const meta = a.metadata || {};
-                    return `<div style="flex:1; border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center;">
-                        <div style="font-size:9px; color:#9CA3AF;">TOP ${i+1}</div>
-                        <div style="font-size:10px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
-                        <div style="font-size:9px; color:#6B7280;">대응 ${mc}/${c.length}</div>
-                    </div>`;
-                }).join('')}
-            </div>
+            <div style="margin-bottom:20px;">${summaryCards}</div>
 
             <!-- 특허별 상세 분석 -->
             ${patentCards}
@@ -1158,23 +1159,26 @@
 
         document.body.appendChild(pdfDiv);
 
-        html2pdf().set({
-            margin: [8, 8, 8, 8],
-            filename: `FTO분석결과_${fileDate}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css'], avoid: ['tr'] },
-        }).from(pdfDiv).save().then(() => {
-            document.body.removeChild(pdfDiv);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
-        }).catch(err => {
-            console.error('PDF 생성 실패:', err);
-            document.body.removeChild(pdfDiv);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
-        });
+        // DOM 렌더링 대기 후 html2pdf 실행
+        setTimeout(() => {
+            html2pdf().set({
+                margin: [8, 8, 8, 8],
+                filename: `FTO분석결과_${fileDate}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, windowWidth: 740 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css'], avoid: ['tr'] },
+            }).from(pdfDiv).save().then(() => {
+                document.body.removeChild(pdfDiv);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+            }).catch(err => {
+                console.error('PDF 생성 실패:', err);
+                document.body.removeChild(pdfDiv);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+            });
+        }, 300);
     }
 
     function corrBadgeClass(value) {

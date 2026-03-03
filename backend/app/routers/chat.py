@@ -116,11 +116,13 @@ async def get_analysis_result(
 
     result = analysis.result_json or {}
     patent_analyses = result.get("fto_result", {}).get("patent_analyses", [])
+    search_results = result.get("search_results", [])
 
     return {
         "analysis_id": analysis.id,
         "risk_level": analysis.risk_level.value if analysis.risk_level else None,
         "patent_analyses": patent_analyses,
+        "search_results": search_results,
     }
 
 
