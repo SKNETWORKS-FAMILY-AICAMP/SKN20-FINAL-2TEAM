@@ -1006,7 +1006,6 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF 생성 중...';
 
-        // 사용자 쿼리 가져오기
         const userMsgs = document.querySelectorAll('.msg.user .msg-bubble');
         const userQuery = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].textContent.trim() : '(질문 없음)';
 
@@ -1014,38 +1013,158 @@
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         const fileDate = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
 
-        // PDF용 임시 컨테이너
-        const pdfDiv = document.createElement('div');
-        pdfDiv.style.cssText = 'width:700px; padding:40px; font-family:sans-serif; color:#333;';
+        // 분석 데이터로 PDF 전용 HTML 생성 (패널에서 가져오기)
+        let analyses = lastPanelAnalyses || [];
+        if (analyses.length === 0) {
+            // fallback: 현재 patentAnalyses 사용
+            analyses = patentAnalyses || [];
+        }
+        if (analyses.length === 0) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+            alert('분석 결과가 없습니다.');
+            return;
+        }
+        const patentCards = analyses.map((a, i) => {
+            const meta = a.metadata || {};
+            const title = meta.invention_title || a.patent_id || '특허';
+            const applyNum = meta.apply_num || a.patent_id || '';
+            const label = a.label || '';
 
-        // 상단 헤더
+            // 판정 스타일
+            const labelMap = {
+                '침해':       { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA', text: '침해 가능성 높음' },
+                '침해_전문가': { bg: '#FEF3C7', color: '#D97706', border: '#FDE68A', text: '전문가 검토 필요' },
+                '애매':       { bg: '#FEF3C7', color: '#D97706', border: '#FDE68A', text: '추가 정보 필요' },
+                '비침해':     { bg: '#DCFCE7', color: '#16A34A', border: '#BBF7D0', text: '침해 가능성 낮음' },
+            };
+            const ls = labelMap[label] || labelMap['비침해'];
+
+            // 구성 대비 테이블 행
+            const comps = a.comparisons || [];
+            const tableRows = comps.map(c => {
+                const corrColor = c.correspondence === '대응' ? '#DC2626' : c.correspondence === '미대응' ? '#2563EB' : '#6B7280';
+                const corrBg = c.correspondence === '대응' ? '#FEE2E2' : c.correspondence === '미대응' ? '#DBEAFE' : '#F3F4F6';
+                return `<tr>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; line-height:1.4; width:42%;">${escapeHtml(c.patent_element || '-')}</td>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; line-height:1.4; width:42%;">${escapeHtml(c.user_element || '-')}</td>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; text-align:center; width:16%;">
+                        <span style="background:${corrBg}; color:${corrColor}; padding:2px 6px; border-radius:3px; font-size:8px; font-weight:600;">${escapeHtml(c.correspondence || '-')}</span>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            const matchCount = comps.filter(c => c.correspondence === '대응').length;
+
+            return `
+                <div style="page-break-inside:avoid; border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
+                    <!-- 특허 헤더 -->
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <div style="width:24px; height:24px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; text-align:center; line-height:24px; font-size:11px; font-weight:800; color:#EA580C; flex-shrink:0;">${i + 1}</div>
+                        <div>
+                            <div style="font-size:12px; font-weight:700; color:#1a1a1a;">${escapeHtml(title)}</div>
+                            <div style="font-size:9px; color:#9CA3AF; font-family:monospace;">${escapeHtml(applyNum)}</div>
+                        </div>
+                    </div>
+
+                    <!-- 판정 -->
+                    <div style="background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; padding:8px 12px; margin-bottom:12px;">
+                        <span style="font-size:10px; font-weight:700; color:${ls.color};">${ls.text}</span>
+                        <span style="font-size:9px; color:${ls.color}; margin-left:8px;">대응 ${matchCount}/${comps.length}</span>
+                    </div>
+
+                    <!-- 구성 대비 테이블 -->
+                    ${comps.length > 0 ? `
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:12px; border:1px solid #E5E7EB;">
+                        <thead>
+                            <tr style="background:#F9FAFB;">
+                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">특허 구성</th>
+                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">사용자 제품 구성</th>
+                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:center; border-bottom:2px solid #D1D5DB; width:16%;">대응 여부</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>` : ''}
+
+                    <!-- 판단 -->
+                    ${a.analysis_text ? `
+                    <div style="margin-bottom:10px;">
+                        <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">판단</div>
+                        <div style="font-size:9px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                    </div>` : ''}
+
+                    <!-- 결론 -->
+                    ${a.conclusion_text ? `
+                    <div>
+                        <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
+                        <div style="font-size:9px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                    </div>` : ''}
+                </div>`;
+        }).join('');
+
+        // PDF 컨테이너
+        const pdfDiv = document.createElement('div');
+        pdfDiv.style.cssText = 'width:680px; padding:30px; font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif; color:#333; background:#fff;';
         pdfDiv.innerHTML = `
-            <div style="border-bottom:3px solid #FF6B35; padding-bottom:16px; margin-bottom:24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h1 style="font-size:22px; font-weight:800; color:#1a1a1a; margin:0;">FTOGuard 특허 침해 분석 리포트</h1>
-                    <span style="font-size:11px; color:#999;">REPORT</span>
+            <!-- 헤더 -->
+            <div style="border-bottom:3px solid #FF6B35; padding-bottom:14px; margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <div style="font-size:20px; font-weight:800; color:#1a1a1a; margin-bottom:2px;">FTOGuard</div>
+                        <div style="font-size:13px; color:#666;">특허 침해 분석 리포트</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:9px; color:#9CA3AF; letter-spacing:2px;">REPORT</div>
+                        <div style="font-size:10px; color:#666; margin-top:2px;">${dateStr}</div>
+                    </div>
                 </div>
-                <div style="margin-top:12px; font-size:12px; color:#666;">
-                    <div><strong>생성일시:</strong> ${dateStr}</div>
-                    <div style="margin-top:4px;"><strong>분석 질문:</strong> ${escapeHtml(userQuery)}</div>
+                <div style="margin-top:12px; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px;">
+                    <div style="font-size:9px; color:#9CA3AF; margin-bottom:2px;">분석 질문</div>
+                    <div style="font-size:11px; color:#1a1a1a; font-weight:600; line-height:1.5;">${escapeHtml(userQuery)}</div>
                 </div>
             </div>
-            ${document.getElementById('resultPanelContent').innerHTML}
-            <div style="margin-top:32px; padding:16px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; font-size:10px; color:#6B7280; line-height:1.6;">
-                <strong style="color:#374151;">법적 고지</strong><br>
-                본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.
+
+            <!-- 분석 요약 -->
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                ${analyses.map((a, i) => {
+                    const l = a.label || '';
+                    const c = a.comparisons || [];
+                    const mc = c.filter(x => x.correspondence === '대응').length;
+                    const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' } };
+                    const s = lm[l] || lm['비침해'];
+                    const meta = a.metadata || {};
+                    return `<div style="flex:1; border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center;">
+                        <div style="font-size:9px; color:#9CA3AF;">TOP ${i+1}</div>
+                        <div style="font-size:10px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
+                        <div style="font-size:9px; color:#6B7280;">대응 ${mc}/${c.length}</div>
+                    </div>`;
+                }).join('')}
+            </div>
+
+            <!-- 특허별 상세 분석 -->
+            ${patentCards}
+
+            <!-- 법적 고지 -->
+            <div style="margin-top:20px; padding:14px; background:#F9FAFB; border:1px solid #D1D5DB; border-radius:4px; page-break-inside:avoid;">
+                <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">법적 고지</div>
+                <div style="font-size:8.5px; color:#6B7280; line-height:1.6;">본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.</div>
+            </div>
+
+            <!-- 푸터 -->
+            <div style="margin-top:16px; text-align:center; font-size:8px; color:#D1D5DB;">
+                Generated by FTOGuard &copy; ${now.getFullYear()}
             </div>
         `;
 
         document.body.appendChild(pdfDiv);
 
         html2pdf().set({
-            margin: 10,
+            margin: [8, 8, 8, 8],
             filename: `FTO분석결과_${fileDate}.pdf`,
-            image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { scale: 2, useCORS: true },
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+            pagebreak: { mode: ['css'], avoid: ['tr'] },
         }).from(pdfDiv).save().then(() => {
             document.body.removeChild(pdfDiv);
             btn.disabled = false;
@@ -1445,7 +1564,7 @@
                 });
             }
 
-            // 분석 결과가 있으면 복원
+            // 분석 결과가 있으면 복원 (TOP10 리스트 + 결과보기 버튼)
             for (const aid of analysisIds) {
                 try {
                     const aResp = await fetch(`${API_BASE}/chat/analysis/${aid}`, {
@@ -1453,7 +1572,20 @@
                     });
                     if (aResp.ok) {
                         const aData = await aResp.json();
+                        const sResults = aData.search_results || [];
                         const analyses = aData.patent_analyses || [];
+
+                        // TOP10 리스트 복원
+                        if (sResults.length > 0) {
+                            addPatentListMessage(sResults);
+                            // 분석 완료된 특허 버튼 업데이트
+                            analyses.forEach(a => {
+                                if (a.patent_index !== undefined) {
+                                    updatePatentButton(a.patent_index, a);
+                                }
+                            });
+                        }
+
                         if (analyses.length > 0) {
                             analysesHistory.set(aid, analyses);
                             addResultViewButton(analyses, aid);
