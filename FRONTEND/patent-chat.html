@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,6 +52,34 @@
         #sidebarOpenBtn.visible {
             opacity: 1;
             pointer-events: auto;
+        }
+
+        /* 모바일: 사이드바 오버레이 모드 */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                z-index: 50;
+            }
+            #sidebar.sidebar-open {
+                transform: translateX(0);
+            }
+            #sidebarOpenBtn {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #mainContent {
+                margin-left: 0 !important;
+            }
+            #sidebarBackdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 45;
+            }
+            #sidebarBackdrop.active {
+                display: block;
+            }
         }
 
         .icon-btn {
@@ -278,6 +307,8 @@
         .patent-analyze-btn.risk-medium:hover { background: #D97706; color: white; }
         .patent-analyze-btn.risk-low { border-color: #16A34A; color: #16A34A; background: #F0FDF4; cursor: pointer; font-size: 0.55rem; }
         .patent-analyze-btn.risk-low:hover { background: #16A34A; color: white; }
+        .patent-analyze-btn.risk-info { border-color: #6B7280; color: #6B7280; background: #F9FAFB; cursor: pointer; font-size: 0.55rem; }
+        .patent-analyze-btn.risk-info:hover { background: #6B7280; color: white; }
 
         /* PDF 저장 버튼 */
         .pdf-export-btn {
@@ -443,7 +474,8 @@
 
     <div class="flex h-screen">
         <!-- 사이드바 -->
-        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col hidden lg:flex fixed left-0 top-20 bottom-0 z-40">
+        <div id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-20 bottom-0 z-40">
             <!-- Header -->
             <div class="p-6 border-b border-neutral-200">
                 <div class="flex items-center justify-between mb-5">
@@ -715,11 +747,16 @@
 
         try {
             // ── Phase 1: 검색 ──
+            const isFollowUp = searchResults.length > 0;
             setStatus('검색 중');
-            addLoadingMessage('유사 특허 검색 중...');
+            addLoadingMessage(
+                isFollowUp ? '새로운 구성요소로 유사 특허 재검색 중...' : '유사 특허 검색 중...',
+                true
+            );
 
             const searchResp = await callSearchAPI(text);
 
+            stopSearchCounter();
             removeLoadingMessage();
             threadId = searchResp.session_id;
             searchToken = searchResp.search_token;
@@ -789,7 +826,7 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-neutral-400">출원번호:</span>
-                            <a href="https://kpat.kipris.or.kr/kpat/searchLogina.do?next=MainSearch&method=search&searchText=${encodeURIComponent(applyNum)}"
+                            <a href="https://www.kipris.or.kr/khome/search/searchResult.do?tab=patent&AN=${encodeURIComponent(applyNum)}"
                                target="_blank" rel="noopener"
                                class="text-xs font-mono hover:underline"
                                style="color: var(--primary);"
@@ -887,16 +924,33 @@
         let labelText = '비침해';
         if (label === '침해') { riskClass = 'risk-high'; labelText = '침해'; }
         else if (label === '침해_전문가' || label === '애매') { riskClass = 'risk-medium'; labelText = label === '애매' ? '추가확인' : '전문가검토'; }
+        else if (label === '공개') { riskClass = 'risk-info'; labelText = '공개'; }
 
         btn.disabled = false;
         btn.className = `patent-analyze-btn ${riskClass}`;
-        btn.innerHTML = `${labelText} | 대응 ${matchCount}/${total}`;
+        btn.innerHTML = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
     }
 
     function enableRemainingButtons() {
         document.querySelectorAll('.patent-analyze-btn[disabled]').forEach(btn => {
             btn.disabled = false;
         });
+    }
+
+    async function callAnalyzeFromHistoryAPI(analysisId, index) {
+        const formData = new FormData();
+        formData.append('analysis_id', analysisId);
+        formData.append('patent_index', index);
+        const resp = await fetch(`${API_BASE}/chat/analyze-from-history`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: formData,
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || `히스토리 분석 실패: HTTP ${resp.status}`);
+        }
+        return resp.json();
     }
 
     async function analyzeSinglePatent(btn, index) {
@@ -907,14 +961,22 @@
             return;
         }
 
-        if (!searchToken || isAnalyzing) return;
+        // searchToken 없고 currentAnalysisId도 없으면 분석 불가
+        if ((!searchToken && !currentAnalysisId) || isAnalyzing) return;
 
         // 버튼 로딩 상태
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석중...';
 
         try {
-            const result = await callAnalyzePatentAPI(searchToken, index);
+            let result;
+            if (searchToken) {
+                // 현재 세션: 캐시 기반 분석
+                result = await callAnalyzePatentAPI(searchToken, index);
+            } else {
+                // 히스토리 모드: DB 기반 분석
+                result = await callAnalyzeFromHistoryAPI(currentAnalysisId, index);
+            }
             result.patent_index = index;
             patentAnalyses.push(result);
 
@@ -1046,6 +1108,7 @@
                 '침해_전문가': { bg: '#FEF3C7', color: '#D97706', border: '#FDE68A', text: '전문가 검토 필요' },
                 '애매':       { bg: '#FEF3C7', color: '#D97706', border: '#FDE68A', text: '추가 정보 필요' },
                 '비침해':     { bg: '#DCFCE7', color: '#16A34A', border: '#BBF7D0', text: '침해 가능성 낮음' },
+                '공개':       { bg: '#F3F4F6', color: '#6B7280', border: '#E5E7EB', text: '공개 (권리 미확정)' },
             };
             const ls = labelMap[label] || labelMap['비침해'];
             const comps = a.comparisons || [];
@@ -1063,13 +1126,7 @@
             }).join('');
 
             // 특허 정보 행들
-            const infoRows = [];
-            if (applyNum) infoRows.push(`<span style="color:#6B7280;">출원번호:</span> <span style="font-weight:600;">${escapeHtml(applyNum)}</span>`);
-            if (regitNum) infoRows.push(`<span style="color:#6B7280;">등록번호:</span> <span style="font-weight:600;">${escapeHtml(regitNum)}</span>`);
-            if (registerStatus) infoRows.push(`<span style="color:#6B7280;">상태:</span> <span style="font-weight:600; color:${registerStatus === '등록' ? '#16A34A' : '#D97706'};">${escapeHtml(registerStatus)}</span>`);
-            if (applicant) infoRows.push(`<span style="color:#6B7280;">특허권자:</span> <span style="font-weight:600;">${escapeHtml(applicant)}</span>`);
-            if (applicationDate) infoRows.push(`<span style="color:#6B7280;">출원일:</span> ${escapeHtml(applicationDate)}`);
-            if (registerDate) infoRows.push(`<span style="color:#6B7280;">등록일:</span> ${escapeHtml(registerDate)}`);
+            const infoRows = formatPatentInfo(meta);
 
             return `
                 <div style="page-break-inside:avoid; border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
@@ -1110,7 +1167,7 @@
             const l = a.label || '';
             const c = a.comparisons || [];
             const mc = c.filter(x => x.correspondence === '대응').length;
-            const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' } };
+            const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' }, '공개': { bg:'#F3F4F6', color:'#6B7280' } };
             const s = lm[l] || lm['비침해'];
             return `<td style="border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center;">
                 <div style="font-size:10px; color:#9CA3AF;">TOP ${i+1}</div>
@@ -1169,6 +1226,42 @@
         btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
     }
 
+    // 특허 정보 포맷 (PDF + 결과 패널 공용)
+    function formatPatentInfo(meta) {
+        const applyNum = meta.apply_num || '';
+        const rawRegitNum = meta.regit_num || '';
+        const regitNum = rawRegitNum.replace(/-0+$/, '');
+        const registerStatus = meta.register_status || '';
+        const applicant = meta.applicant || '';
+        const applicationDate = meta.application_date || '';
+        const registerDate = meta.register_date || '';
+        const isRegistered = registerStatus === '등록' || !!regitNum;
+
+        const parts = [];
+        // 출원번호 (출원일)
+        if (applyNum) {
+            let s = `출원번호: ${escapeHtml(applyNum)}`;
+            if (applicationDate) s += ` (출원일: ${escapeHtml(applicationDate)})`;
+            parts.push(s);
+        }
+        // 등록번호/공개번호 (등록일)
+        if (regitNum) {
+            const numLabel = isRegistered ? '등록번호' : '공개번호';
+            let s = `${numLabel}: ${escapeHtml(regitNum)}`;
+            if (registerDate) s += ` (등록일: ${escapeHtml(registerDate)})`;
+            parts.push(s);
+        }
+        // 상태
+        if (registerStatus) {
+            parts.push(`상태: ${escapeHtml(registerStatus)}`);
+        }
+        // 특허권자
+        if (applicant) {
+            parts.push(`특허권자: ${escapeHtml(applicant)}`);
+        }
+        return parts;
+    }
+
     function corrBadgeClass(value) {
         if (!value) return 'unknown';
         if (value === '대응') return 'match';
@@ -1180,7 +1273,6 @@
         return analyses.map((a, i) => {
             const meta = a.metadata || {};
             const title = meta.invention_title || a.patent_id || '특허';
-            const applyNum = meta.apply_num || a.patent_id || '';
 
             // 라벨별 스타일
             const labelStyles = {
@@ -1188,8 +1280,15 @@
                 '침해_전문가': { bg: 'background:#FEF3C7;', color: 'color:#D97706;', text: '전문가 검토 필요', icon: 'fa-exclamation-circle' },
                 '애매':       { bg: 'background:#FEF3C7;', color: 'color:#D97706;', text: '추가 정보 필요', icon: 'fa-question-circle' },
                 '비침해':     { bg: 'background:#DCFCE7;', color: 'color:#16A34A;', text: '침해 가능성 낮음', icon: 'fa-check-circle' },
+                '공개':       { bg: 'background:#F3F4F6;', color: 'color:#6B7280;', text: '공개 (권리 미확정)', icon: 'fa-info-circle' },
             };
             const ls = labelStyles[a.label] || labelStyles['비침해'];
+
+            // 특허 정보
+            const panelInfoParts = formatPatentInfo(meta);
+            const panelInfoHtml = panelInfoParts.length > 0
+                ? `<div class="text-xs leading-relaxed p-2.5 mb-3 rounded-lg" style="background:#F9FAFB; border:1px solid #E5E7EB; line-height:1.8; color:#6B7280;">${panelInfoParts.join(' <span style="color:#D4D4D4;">|</span> ')}</div>`
+                : '';
 
             // 구성 대비 테이블
             const compRows = (a.comparisons || []).map(c => {
@@ -1205,13 +1304,15 @@
 
             return `
                 <div class="panel-patent-card">
-                    <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-2 mb-2">
                         <div class="patent-rank-badge">${i + 1}</div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-bold text-black truncate">${escapeHtml(title)}</div>
-                            <code class="text-xs text-neutral-400">${escapeHtml(applyNum)}</code>
                         </div>
                     </div>
+
+                    <!-- 특허 정보 -->
+                    ${panelInfoHtml}
 
                     <!-- 판정 배지 -->
                     <div class="flex items-center gap-2 mb-3 p-2.5 rounded-lg" style="${ls.bg} border:1px solid rgba(0,0,0,0.06);">
@@ -1295,7 +1396,9 @@
 
     // ==================== 로딩 ====================
 
-    function addLoadingMessage(msg) {
+    let searchCounterRAF = null;
+
+    function addLoadingMessage(msg, showCounter) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
         div.id = 'loadingMessage';
@@ -1308,11 +1411,42 @@
                     <div class="typing-dot"></div>
                 </div>
                 <div class="text-xs text-neutral-400 mt-1">${escapeHtml(msg || '처리 중...')}</div>
+                ${showCounter ? '<div class="text-xs mt-1" style="color: var(--primary); font-variant-numeric: tabular-nums;">약 40,000건 중 <span id="searchCounter" style="font-weight:600;">0</span>건 탐색</div>' : ''}
                 <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+
+        if (showCounter) startSearchCounter();
+    }
+
+    function startSearchCounter() {
+        const counterEl = document.getElementById('searchCounter');
+        if (!counterEl) return;
+        const total = 40000;
+        const startTime = Date.now();
+        const duration = 10000;
+
+        function update() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 0.95);
+            const eased = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            counterEl.textContent = Math.floor(eased * total).toLocaleString();
+            if (progress < 0.95) {
+                searchCounterRAF = requestAnimationFrame(update);
+            }
+        }
+        searchCounterRAF = requestAnimationFrame(update);
+    }
+
+    function stopSearchCounter() {
+        if (searchCounterRAF) {
+            cancelAnimationFrame(searchCounterRAF);
+            searchCounterRAF = null;
+        }
     }
 
     function cancelRequest() {
@@ -1328,6 +1462,7 @@
     }
 
     function removeLoadingMessage() {
+        stopSearchCounter();
         const el = document.getElementById('loadingMessage');
         if (el) el.remove();
     }
@@ -1557,6 +1692,12 @@
             }
 
             // 분석 결과가 있으면 복원 (TOP10 리스트 + 결과보기 버튼)
+            // 히스토리 모드 초기화
+            searchToken = null;
+            currentAnalysisId = null;
+            patentAnalyses = [];
+            searchResults = [];
+
             for (const aid of analysisIds) {
                 try {
                     const aResp = await fetch(`${API_BASE}/chat/analysis/${aid}`, {
@@ -1570,15 +1711,22 @@
                         // TOP10 리스트 복원
                         if (sResults.length > 0) {
                             addPatentListMessage(sResults);
+                            searchResults = sResults;
+                            currentAnalysisId = aid;
+
                             // 분석 완료된 특허 버튼 업데이트
                             analyses.forEach(a => {
                                 if (a.patent_index !== undefined) {
                                     updatePatentButton(a.patent_index, a);
                                 }
                             });
+
+                            // 미분석 버튼 활성화 (히스토리에서도 분석 가능하게)
+                            enableRemainingButtons();
                         }
 
                         if (analyses.length > 0) {
+                            patentAnalyses = analyses;
                             analysesHistory.set(aid, analyses);
                             addResultViewButton(analyses, aid);
                         }
@@ -1619,17 +1767,27 @@
         const mainContent = document.getElementById('mainContent');
         const toggleIcon = document.getElementById('toggleIcon');
         const openBtn = document.getElementById('sidebarOpenBtn');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const isMobile = window.innerWidth < 1024;
 
-        sidebar.classList.toggle('sidebar-hidden');
-
-        if (sidebar.classList.contains('sidebar-hidden')) {
-            mainContent.style.marginLeft = '0';
-            toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
-            openBtn.classList.add('visible');
+        if (isMobile) {
+            // 모바일: 오버레이 모드 (margin 변경 없음)
+            sidebar.classList.toggle('sidebar-open');
+            const isOpen = sidebar.classList.contains('sidebar-open');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
         } else {
-            mainContent.style.marginLeft = '18rem';
-            toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
-            openBtn.classList.remove('visible');
+            // 데스크톱: 기존 margin 기반 토글
+            sidebar.classList.toggle('sidebar-hidden');
+
+            if (sidebar.classList.contains('sidebar-hidden')) {
+                mainContent.style.marginLeft = '0';
+                toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+                openBtn.classList.add('visible');
+            } else {
+                mainContent.style.marginLeft = '18rem';
+                toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+                openBtn.classList.remove('visible');
+            }
         }
     }
     </script>

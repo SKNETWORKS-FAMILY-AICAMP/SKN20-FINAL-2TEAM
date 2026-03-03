@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // 헤더 삽입 후 실행
                 setActiveNav();
                 updateAuthUI();
+                initMobileMenu();
             })
             .catch(err => {
                 console.error("공통 헤더 로딩 오류:", err);
@@ -141,7 +142,8 @@ function setActiveNav() {
 // ==========================
 function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
-    if (!loginBtn) return;
+    const loginBtnMobile = document.getElementById("loginBtn-mobile");
+    if (!loginBtn && !loginBtnMobile) return;
 
     if (authManager.token && !authManager.isTokenValid()) {
         localStorage.removeItem("authToken");
@@ -150,13 +152,56 @@ function updateAuthUI() {
         authManager.user = null;
     }
 
-    if (authManager.isAuthenticated()) {
-        loginBtn.textContent = "로그아웃";
-        loginBtn.onclick = () => authManager.logout();
-    } else {
-        loginBtn.textContent = "로그인";
-        loginBtn.onclick = () => (window.location.href = "login.html");
+    const isLoggedIn = authManager.isAuthenticated();
+    [loginBtn, loginBtnMobile].forEach(btn => {
+        if (!btn) return;
+        if (isLoggedIn) {
+            btn.textContent = "로그아웃";
+            btn.onclick = () => authManager.logout();
+        } else {
+            btn.textContent = "로그인";
+            btn.onclick = () => (window.location.href = "login.html");
+        }
+    });
+}
+
+// ==========================
+// Mobile Menu (header.html의 script가 innerHTML로는 실행 안 되므로 여기서 초기화)
+// ==========================
+function initMobileMenu() {
+    const mobileMenuButton = document.getElementById("mobile-menu-button");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener("click", () => {
+            mobileMenu.classList.toggle("hidden");
+        });
     }
+
+    // 모바일 메뉴 배경 클릭 시 닫기
+    if (mobileMenu) {
+        mobileMenu.addEventListener("click", (e) => {
+            if (e.target === mobileMenu) mobileMenu.classList.add("hidden");
+        });
+    }
+}
+
+// 모바일 리스크 분석 서브메뉴 토글 (header.html에서 onclick으로 호출)
+function toggleMobileAnalysisMenu() {
+    const submenu = document.getElementById("mobile-analysis-submenu");
+    const icon = document.getElementById("mobile-analysis-icon");
+    if (submenu) {
+        submenu.classList.toggle("hidden");
+        if (icon) {
+            icon.classList.toggle("fa-chevron-down");
+            icon.classList.toggle("fa-chevron-up");
+        }
+    }
+}
+
+function closeMobileMenu() {
+    const mobileMenu = document.getElementById("mobile-menu");
+    if (mobileMenu) mobileMenu.classList.add("hidden");
 }
 
 // ==========================

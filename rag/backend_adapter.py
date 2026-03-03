@@ -44,6 +44,9 @@ def analyze_single_patent(
 ) -> dict:
     """단일 특허 sLLM 분석. 프론트엔드 개별 호출용.
 
+    공개 특허(register_status != '등록')는 sLLM을 거치지 않고
+    고정 안내 메시지를 반환한다.
+
     Args:
         search_result: search_only() 결과 리스트의 개별 항목.
         user_query: 사용자 제품 설명.
@@ -52,9 +55,46 @@ def analyze_single_patent(
     Returns:
         parse_response() 결과 + patent_id, score, metadata 포함.
     """
+    patent_id = search_result.get("patent_id", "unknown")
+    metadata = search_result.get("metadata", {})
+    register_status = metadata.get("register_status", "")
+
+    # ── 공개 특허: sLLM 스킵 ──
+    if register_status != "등록":
+        if verbose:
+            print(f"[G-single] {patent_id} 공개 특허 → sLLM 스킵")
+
+        claims = search_result.get("claims", {})
+        claim_pub = (
+            claims.get("claim_pub_text", "")
+            or claims.get("claim_pub", "")
+        )
+
+        analysis_text = f"현재 청구항:\n{claim_pub}"
+
+        conclusion_text = (
+            "해당 공개특허의 청구항과 사용자의 제품 구성을 비교한 결과,\n"
+            "일부 구성요소에서 기술적 유사성이 확인됩니다.\n\n"
+            "본 문헌은 현재 출원 공개 단계로 권리가 확정되지 않았으나,\n"
+            "향후 등록 시 권리범위에 포함될 가능성이 있으므로\n"
+            "심사 경과 및 등록 여부를 지속적으로 확인하는 것이 필요합니다."
+        )
+
+        return {
+            "patent_id": patent_id,
+            "score": search_result.get("score", 0),
+            "metadata": metadata,
+            "estoppel_claim_numbers": search_result.get("estoppel_claim_numbers", []),
+            "label": "공개",
+            "comparisons": [],
+            "analysis_text": analysis_text,
+            "conclusion_text": conclusion_text,
+            "raw_output": "",
+        }
+
+    # ── 등록 특허: sLLM 분석 수행 ──
     from .generate import build_prompt, call_llm, parse_response
 
-    patent_id = search_result.get("patent_id", "unknown")
     if verbose:
         print(f"[G-single] {patent_id} 분석 시작")
 
@@ -64,13 +104,66 @@ def analyze_single_patent(
 
     parsed["patent_id"] = patent_id
     parsed["score"] = search_result.get("score", 0)
-    parsed["metadata"] = search_result.get("metadata", {})
+    parsed["metadata"] = metadata
     parsed["estoppel_claim_numbers"] = search_result.get("estoppel_claim_numbers", [])
 
     if verbose:
         print(f"[G-single] {patent_id} -> {parsed.get('label', '?')}")
 
     return parsed
+
+
+def rewrite_query(
+    history: list[dict],
+    latest_message: str,
+    verbose: bool = False,
+) -> str:
+    """대화 히스토리를 참고하여 후속 질문을 독립적인 제품 설명으로 재작성.
+
+    sLLM(Qwen2.5-14B)에게 간단한 재작성만 요청한다.
+    실패 시 원본 메시지를 그대로 반환.
+    """
+    from . import config
+    from openai import OpenAI
+
+    # 대화 맥락 구성
+    conv_parts = []
+    for msg in history[-6:]:  # 최근 6개만
+        role = "사용자" if msg["role"] == "user" else "AI"
+        conv_parts.append(f"{role}: {msg['content'][:500]}")
+    conv_text = "\n".join(conv_parts)
+
+    prompt = (
+        "당신은 특허 검색을 위한 질문 재작성 도우미입니다.\n"
+        "이전 대화를 참고하여 사용자의 최신 질문을 독립적인 제품/기술 설명 한 문장으로 재작성하세요.\n"
+        "재작성된 제품 설명만 출력하세요. 다른 설명이나 인사말은 불필요합니다.\n\n"
+        f"[이전 대화]\n{conv_text}\n\n"
+        f"[현재 질문]\n{latest_message}\n\n"
+        "[재작성된 제품 설명]\n"
+    )
+
+    try:
+        api_key = config.RUNPOD_API_KEY if config.RUNPOD_API_KEY else "dummy"
+        client = OpenAI(
+            base_url=config.VLLM_API_URL,
+            api_key=api_key,
+            timeout=60,
+        )
+        resp = client.chat.completions.create(
+            model=config.VLLM_MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=256,
+            temperature=0.1,
+        )
+        rewritten = resp.choices[0].message.content.strip()
+        if verbose:
+            print(f"[Query Rewrite] 원본: {latest_message[:80]}")
+            print(f"[Query Rewrite] 재작성: {rewritten[:200]}")
+        return rewritten if rewritten else latest_message
+    except Exception as e:
+        if verbose:
+            print(f"[Query Rewrite] 실패, 원본 사용: {e}")
+        return latest_message
 
 
 def search_only(

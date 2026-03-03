@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
 from openai import OpenAI
+import asyncio
 import json
 import os
 import sys
 import time
+from app.logger import logger
 
 # RAG 모듈 경로 추가 (backend/app/routers/chat.py 기준 4단계 상위 = 프로젝트 루트)
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -255,7 +257,7 @@ async def send_chat_message(
                         if role in ("user", "assistant"):
                             history_messages.append({"role": role, "content": msg.content})
 
-            rag_result = analyze_product(message, verbose=True, history=history_messages)
+            rag_result = await asyncio.to_thread(analyze_product, message, 10, True, history_messages)
             fto_result = rag_result.get("fto_result", {})
             fto_opinion = fto_result.get("fto_opinion", "")
             patent_analyses = fto_result.get("patent_analyses", [])
@@ -290,11 +292,11 @@ async def send_chat_message(
 
         except Exception as e:
             # RAG 실패 시 vLLM 직접 호출 폴백
-            response_message = _call_vllm_fallback(db, chat_id, current_user.id, chat_service, e)
+            response_message = await asyncio.to_thread(_call_vllm_fallback, db, chat_id, current_user.id, chat_service, e)
 
     else:
         # design 분석 또는 analysis_type이 fto가 아닌 경우: vLLM 직접 호출
-        response_message = _call_vllm_fallback(db, chat_id, current_user.id, chat_service, None)
+        response_message = await asyncio.to_thread(_call_vllm_fallback, db, chat_id, current_user.id, chat_service, None)
 
     # 어시스턴트 응답 DB 저장
     chat_service.add_message(
@@ -422,16 +424,36 @@ async def search_patents(
         chat_id=chat_id, role="user", content=message, message_type="text"
     )
 
+    # 후속 질문 감지 → 쿼리 재작성
+    search_query = message
+    t0 = time.time()
+    chat_with_msgs = chat_service.get_chat(chat_id, current_user.id)
+    if chat_with_msgs and hasattr(chat_with_msgs, 'messages'):
+        prev_messages = [m for m in list(chat_with_msgs.messages) if m.id != user_msg.id]
+        if len(prev_messages) >= 2:  # 이전 대화가 2개 이상이면 후속 질문
+            history = []
+            for m in prev_messages[-6:]:
+                role = str(m.role.value) if hasattr(m.role, 'value') else str(m.role)
+                if role in ("user", "assistant"):
+                    history.append({"role": role, "content": m.content})
+            if history:
+                from rag.backend_adapter import rewrite_query
+                t_rw = time.time()
+                search_query = await asyncio.to_thread(rewrite_query, history, message, True)
+                logger.info(f"[검색] 쿼리 재작성 {time.time()-t_rw:.2f}s | 원본: {message[:60]} → 재작성: {search_query[:100]}")
+
     # RAG 검색
     from rag.backend_adapter import search_only
-    search_results = search_only(message, verbose=True)
+    t_search = time.time()
+    search_results = await asyncio.to_thread(search_only, search_query, 10, True)
+    logger.info(f"[검색] RAG 검색 {time.time()-t_search:.2f}s | {len(search_results)}건 | 쿼리: {search_query[:80]}")
 
     # 캐시에 저장 (message_id를 키로)
     from app.utils.search_cache import store as cache_store
     cache_key = str(user_msg.id)
     cache_store(cache_key, {
         "search_results": search_results,
-        "user_query": message,
+        "user_query": search_query,
         "chat_id": chat_id,
         "message_id": user_msg.id,
     })
@@ -447,6 +469,10 @@ async def search_patents(
                 "apply_num": meta.get("apply_num", ""),
                 "regit_num": meta.get("regit_num", ""),
                 "invention_title": meta.get("invention_title", ""),
+                "register_status": meta.get("register_status", ""),
+                "applicant": meta.get("applicant", ""),
+                "application_date": meta.get("application_date", ""),
+                "register_date": meta.get("register_date", ""),
             },
         ))
 
@@ -455,6 +481,57 @@ async def search_patents(
         message_id=user_msg.id,
         search_token=cache_key,
         search_results=items,
+    )
+
+
+@router.post("/analyze-from-history", response_model=PatentAnalysisResponse)
+async def analyze_from_history(
+    analysis_id: int = Form(0),
+    patent_index: int = Form(0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+):
+    """이전 분석의 search_results를 사용하여 추가 특허 분석 (히스토리 재분석)."""
+    from app.models.analysis import Analysis
+
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="분석 결과를 찾을 수 없습니다.")
+
+    result_json = analysis.result_json or {}
+    search_results = result_json.get("search_results", [])
+    user_query = result_json.get("query", "")
+
+    if patent_index < 0 or patent_index >= len(search_results):
+        raise HTTPException(status_code=400, detail=f"patent_index {patent_index}가 범위를 벗어났습니다.")
+
+    from rag.backend_adapter import analyze_single_patent
+    t_analyze = time.time()
+    result = await asyncio.to_thread(analyze_single_patent, search_results[patent_index], user_query, True)
+    result["patent_index"] = patent_index
+    logger.info(f"[분석-히스토리] 특허#{patent_index} {result.get('patent_id','')} {time.time()-t_analyze:.2f}s | label={result.get('label','')}")
+
+    # result_json에 새 분석 결과 추가 저장
+    fto_result = result_json.setdefault("fto_result", {})
+    patent_analyses = fto_result.setdefault("patent_analyses", [])
+    # 기존 동일 index 분석 제거 후 추가
+    patent_analyses = [a for a in patent_analyses if a.get("patent_index") != patent_index]
+    patent_analyses.append(result)
+    fto_result["patent_analyses"] = patent_analyses
+    analysis.result_json = result_json
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(analysis, "result_json")
+    db.commit()
+
+    return PatentAnalysisResponse(
+        patent_id=result.get("patent_id", ""),
+        patent_index=patent_index,
+        label=result.get("label", ""),
+        comparisons=result.get("comparisons", []),
+        analysis_text=result.get("analysis_text", ""),
+        conclusion_text=result.get("conclusion_text", ""),
+        raw_output=result.get("raw_output", ""),
+        metadata=result.get("metadata", {}),
     )
 
 
@@ -479,7 +556,9 @@ async def analyze_single_patent_endpoint(
         raise HTTPException(status_code=400, detail=f"patent_index {patent_index}가 범위를 벗어났습니다.")
 
     from rag.backend_adapter import analyze_single_patent
-    result = analyze_single_patent(search_results[patent_index], user_query, verbose=True)
+    t_analyze = time.time()
+    result = await asyncio.to_thread(analyze_single_patent, search_results[patent_index], user_query, True)
+    logger.info(f"[분석] 특허#{patent_index} {result.get('patent_id','')} {time.time()-t_analyze:.2f}s | label={result.get('label','')}")
 
     return PatentAnalysisResponse(
         patent_id=result.get("patent_id", ""),
