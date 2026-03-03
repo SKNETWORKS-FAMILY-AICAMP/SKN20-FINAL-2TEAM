@@ -63,7 +63,7 @@ def _ensure_design_graph_loaded() -> bool:
             _design_graph = None
             _design_command_cls = None
             _import_error = str(e)
-            print(f"[design] 디자인 모듈 로드 실패 (GPT 폴백 사용): {e}")
+            print(f"[design] 디자인 모듈 로드 실패: {e}")
             return False
 
 
@@ -83,18 +83,19 @@ async def design_status():
     return {
         "success": True,
         "design_module_loaded": loaded,
-        "mode": "langgraph" if loaded else "gpt_fallback",
+        "mode": "langgraph" if loaded else "unavailable",
         "import_error": _import_error,
     }
 
 
-def _get_openai_client():
-    """OpenAI GPT 클라이언트 (폴백용)."""
-    from openai import OpenAI
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY 미설정")
-    return OpenAI(api_key=api_key, timeout=60)
+# GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+# def _get_openai_client():
+#     """OpenAI GPT 클라이언트 (폴백용)."""
+#     from openai import OpenAI
+#     api_key = os.getenv("OPENAI_API_KEY", "")
+#     if not api_key:
+#         raise RuntimeError("OPENAI_API_KEY 미설정")
+#     return OpenAI(api_key=api_key, timeout=60)
 
 
 def _image_to_base64(file_bytes: bytes) -> str:
@@ -150,7 +151,14 @@ async def analyze_design_image(
     if _ensure_design_graph_loaded() and _design_graph is not None:
         return await _image_via_langgraph(file_bytes, user_query, thread_id)
     else:
-        return await _image_via_gpt_fallback(file_bytes, user_query, thread_id)
+        # GPT 폴백 비활성화 (보안 정책: 외부 API로 데이터 유출 방지)
+        # return await _image_via_gpt_fallback(file_bytes, user_query, thread_id)
+        return {
+            "success": False,
+            "error": "디자인 분석 모듈을 로드할 수 없습니다. "
+                     "RunPod 설정(.env)을 확인하세요. "
+                     f"상세: {_import_error}",
+        }
 
 
 async def _image_via_langgraph(file_bytes: bytes, user_query: str, thread_id: str) -> dict:
@@ -228,43 +236,41 @@ async def _image_via_langgraph(file_bytes: bytes, user_query: str, thread_id: st
             pass
 
 
-async def _image_via_gpt_fallback(file_bytes: bytes, user_query: str, thread_id: str) -> dict:
-    """GPT-4o-mini vision 폴백: 이미지 분석."""
-    try:
-        client = _get_openai_client()
-        b64 = _image_to_base64(file_bytes)
-        image_url = f"data:image/jpeg;base64,{b64}"
-
-        # GPT-4o-mini로 이미지 형상 분석
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "당신은 제품 디자인 분석 전문가입니다. 이미지의 형상을 관찰하고 분석 결과를 제공하세요."},
-                {"role": "user", "content": [
-                    {"type": "text", "text": user_query},
-                    {"type": "image_url", "image_url": {"url": image_url}},
-                ]},
-            ],
-            max_tokens=1024,
-        )
-        input_analysis = resp.choices[0].message.content
-
-        # EC2 ChromaDB에서 유사 디자인 검색은 CLIP 없이 불가
-        # 폴백: 분석 결과만 반환
-        _sessions[thread_id] = {
-            "input_analysis": input_analysis,
-            "base64_image": b64,
-        }
-
-        return {
-            "success": True,
-            "thread_id": thread_id,
-            "input_analysis": input_analysis,
-            "similar_designs": [],  # ChromaDB 검색 불가 시 빈 리스트
-        }
-    except Exception as e:
-        traceback.print_exc()
-        return {"success": False, "error": f"GPT 폴백 실패: {str(e)}"}
+# GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+# async def _image_via_gpt_fallback(file_bytes: bytes, user_query: str, thread_id: str) -> dict:
+#     """GPT-4o-mini vision 폴백: 이미지 분석."""
+#     try:
+#         client = _get_openai_client()
+#         b64 = _image_to_base64(file_bytes)
+#         image_url = f"data:image/jpeg;base64,{b64}"
+#
+#         resp = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {"role": "system", "content": "당신은 제품 디자인 분석 전문가입니다."},
+#                 {"role": "user", "content": [
+#                     {"type": "text", "text": user_query},
+#                     {"type": "image_url", "image_url": {"url": image_url}},
+#                 ]},
+#             ],
+#             max_tokens=1024,
+#         )
+#         input_analysis = resp.choices[0].message.content
+#
+#         _sessions[thread_id] = {
+#             "input_analysis": input_analysis,
+#             "base64_image": b64,
+#         }
+#
+#         return {
+#             "success": True,
+#             "thread_id": thread_id,
+#             "input_analysis": input_analysis,
+#             "similar_designs": [],
+#         }
+#     except Exception as e:
+#         traceback.print_exc()
+#         return {"success": False, "error": f"GPT 폴백 실패: {str(e)}"}
 
 
 # ══════════════════════════════════════════════════════
@@ -284,7 +290,12 @@ async def select_design(
     if "graph" in session:
         return await _select_via_langgraph(session, selected_index)
     else:
-        return await _select_via_gpt_fallback(session, selected_index)
+        # GPT 폴백 비활성화 (보안 정책: 외부 API로 데이터 유출 방지)
+        # return await _select_via_gpt_fallback(session, selected_index)
+        return {
+            "success": False,
+            "error": "디자인 분석 세션이 유효하지 않습니다. 이미지를 다시 업로드해주세요.",
+        }
 
 
 async def _select_via_langgraph(session: dict, selected_index: int) -> dict:
@@ -319,28 +330,29 @@ async def _select_via_langgraph(session: dict, selected_index: int) -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def _select_via_gpt_fallback(session: dict, selected_index: int) -> dict:
-    """GPT 폴백: 상세 비교."""
-    try:
-        client = _get_openai_client()
-        input_analysis = session.get("input_analysis", "분석 정보 없음")
-
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "당신은 디자인 FTO 전문 어시스턴트입니다. 입력된 분석 결과를 바탕으로 FTO 리포트를 작성하세요."},
-                {"role": "user", "content": f"입력 디자인 분석:\n{input_analysis}\n\n위 분석 결과를 바탕으로 FTO 리포트를 작성해주세요."},
-            ],
-            max_tokens=2048,
-        )
-        report = resp.choices[0].message.content
-
-        return {
-            "success": True,
-            "final_report": report,
-        }
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+# GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+# async def _select_via_gpt_fallback(session: dict, selected_index: int) -> dict:
+#     """GPT 폴백: 상세 비교."""
+#     try:
+#         client = _get_openai_client()
+#         input_analysis = session.get("input_analysis", "분석 정보 없음")
+#
+#         resp = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {"role": "system", "content": "당신은 디자인 FTO 전문 어시스턴트입니다."},
+#                 {"role": "user", "content": f"입력 디자인 분석:\n{input_analysis}\n\nFTO 리포트를 작성해주세요."},
+#             ],
+#             max_tokens=2048,
+#         )
+#         report = resp.choices[0].message.content
+#
+#         return {
+#             "success": True,
+#             "final_report": report,
+#         }
+#     except Exception as e:
+#         return {"success": False, "error": str(e)}
 
 
 # ══════════════════════════════════════════════════════
@@ -359,7 +371,14 @@ async def design_text_chat(
     if _ensure_design_graph_loaded() and _design_graph is not None:
         return await _text_via_langgraph(text_query, new_thread_id, image_thread_id)
     else:
-        return await _text_via_gpt_fallback(text_query, new_thread_id, image_thread_id)
+        # GPT 폴백 비활성화 (보안 정책: 외부 API로 데이터 유출 방지)
+        # return await _text_via_gpt_fallback(text_query, new_thread_id, image_thread_id)
+        return {
+            "success": False,
+            "error": "디자인 분석 모듈을 로드할 수 없습니다. "
+                     "RunPod 설정(.env)을 확인하세요. "
+                     f"상세: {_import_error}",
+        }
 
 
 async def _text_via_langgraph(text_query: str, thread_id: str, image_thread_id: Optional[str]) -> dict:
@@ -403,36 +422,38 @@ async def _text_via_langgraph(text_query: str, thread_id: str, image_thread_id: 
         }
     except Exception as e:
         traceback.print_exc()
-        return await _text_via_gpt_fallback(text_query, thread_id, image_thread_id)
+        # GPT 폴백 비활성화 (보안 정책: 외부 API로 데이터 유출 방지)
+        # return await _text_via_gpt_fallback(text_query, thread_id, image_thread_id)
+        return {"success": False, "error": f"디자인 분석 처리 중 오류: {str(e)}"}
 
 
-async def _text_via_gpt_fallback(text_query: str, thread_id: str, image_thread_id: Optional[str]) -> dict:
-    """GPT 폴백: 텍스트 질문 답변."""
-    try:
-        client = _get_openai_client()
-
-        # 이전 이미지 컨텍스트 가져오기
-        context = ""
-        if image_thread_id:
-            prev = _sessions.get(image_thread_id, {})
-            if prev.get("input_analysis"):
-                context = f"\n\n[이전 이미지 분석 컨텍스트]\n{prev['input_analysis']}"
-
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": f"당신은 디자인 특허 전문 어시스턴트입니다. 친절하고 정확하게 답변하세요.{context}"},
-                {"role": "user", "content": text_query},
-            ],
-            max_tokens=1024,
-        )
-        answer = resp.choices[0].message.content
-
-        return {
-            "success": True,
-            "thread_id": thread_id,
-            "answer": answer,
-            "search_images": [],
-        }
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+# GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+# async def _text_via_gpt_fallback(text_query: str, thread_id: str, image_thread_id: Optional[str]) -> dict:
+#     """GPT 폴백: 텍스트 질문 답변."""
+#     try:
+#         client = _get_openai_client()
+#
+#         context = ""
+#         if image_thread_id:
+#             prev = _sessions.get(image_thread_id, {})
+#             if prev.get("input_analysis"):
+#                 context = f"\n\n[이전 이미지 분석 컨텍스트]\n{prev['input_analysis']}"
+#
+#         resp = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {"role": "system", "content": f"당신은 디자인 특허 전문 어시스턴트입니다.{context}"},
+#                 {"role": "user", "content": text_query},
+#             ],
+#             max_tokens=1024,
+#         )
+#         answer = resp.choices[0].message.content
+#
+#         return {
+#             "success": True,
+#             "thread_id": thread_id,
+#             "answer": answer,
+#             "search_images": [],
+#         }
+#     except Exception as e:
+#         return {"success": False, "error": str(e)}
