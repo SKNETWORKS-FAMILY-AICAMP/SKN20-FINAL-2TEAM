@@ -23,11 +23,9 @@ from pathlib import Path
 from typing import TypedDict, List, Dict, Any
 
 # ==================== 경로 설정 ====================
-# design/src/design_chatbot.py 기준 상위 폴더(= design/)
-BASE_DIR      = Path(__file__).resolve().parent.parent
-
-# design/chroma_db  ← chromadb.PersistentClient(path=...)에 사용
-CHROMA_DB     = str(BASE_DIR / "chroma_db")
+# config.py에서 경로 관리 (data/chroma-design/ → Docker/EC2 공유용)
+# 기존: design/chroma_db  → 변경: data/chroma-design
+CHROMA_DB     = None  # config import 후 설정 (아래 LLM 초기화 섹션에서)
 
 # 벡터DB 유사 디자인 검색 결과 개수
 N_RESULTS     = 15
@@ -67,26 +65,33 @@ from prompts import (
 from dotenv import load_dotenv
 load_dotenv()
 
+import config as design_config
+
 
 # ==================== LLM & ChromaDB 초기화 ====================
 
-
-# llm (Gpt-4o)
-
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
-
-'''
-# sLLM (Qwen2.5-VL-7B-Instruct)
-llm = ChatOpenAI(
-    model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
-    openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
-    openai_api_key="EMPTY",
-    temperature=0,
-)
-'''
+if design_config.USE_RUNPOD:
+    # RunPod 서버리스 VLM (Qwen2.5-VL-7B-Instruct)
+    llm = ChatOpenAI(
+        model=design_config.VLLM_MODEL_NAME,
+        openai_api_base=design_config.RUNPOD_DESIGN_BASE_URL,
+        openai_api_key=design_config.RUNPOD_API_KEY,
+        temperature=0,
+        timeout=design_config.VLLM_TIMEOUT,
+    )
+    print(f"[design] VLM 모드: {design_config.VLLM_MODEL_NAME}")
+else:
+    # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+    # llm = ChatOpenAI(model=design_config.GPT_FALLBACK_MODEL, temperature=0)
+    # print(f"[design] GPT 폴백 모드: {design_config.GPT_FALLBACK_MODEL}")
+    raise RuntimeError(
+        "[design] RUNPOD_API_KEY 또는 RUNPOD_DESIGN_BASE_URL 미설정. "
+        ".env 파일을 확인하세요."
+    )
 
 output_parser = StrOutputParser()
 
+CHROMA_DB = design_config.CHROMA_DB_PATH
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
 image_collection = chroma_client.get_collection(name="design")
 
@@ -189,8 +194,13 @@ def search_design_db(query: str) -> str:
 
 
 # Tool 목록 & LLM 바인딩
+# - GPT: bind_tools로 정확한 tool calling 지원
+# - VLM (RunPod): tool calling 미지원 → fallback 사용 (448~474줄에서 텍스트 키워드로 직접 호출)
 tools = [web_search, search_design_db]
-llm_with_tools = llm.bind_tools(tools)
+if design_config.USE_RUNPOD:
+    llm_with_tools = llm
+else:
+    llm_with_tools = llm.bind_tools(tools)
 
 
 # ==================== 노드 함수 정의 ====================

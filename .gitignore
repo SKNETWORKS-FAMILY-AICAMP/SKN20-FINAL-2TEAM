@@ -36,3 +36,6 @@ design2/
 # SSH keys / secrets
 *.pem
 *.key
+
+# 캡쳐사진
+/capture/

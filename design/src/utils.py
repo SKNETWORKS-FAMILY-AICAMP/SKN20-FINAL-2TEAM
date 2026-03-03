@@ -24,36 +24,40 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 load_dotenv()
 
-# ==================== 경로 설정 ====================
-# design/src/utils.py 기준 상위 폴더(= design/)
-BASE_DIR   = Path(__file__).resolve().parent.parent
+import config as design_config
 
+# ==================== 경로 설정 ====================
 # design/data/images  ← design_id_to_local_image 기본 이미지 디렉토리
-IMAGES_DIR = str(BASE_DIR / "data" / "images")
+IMAGES_DIR = design_config.IMAGES_DIR
 
 # ==================== 전역 변수 ====================
 # CLIP 모델 로드 (ViT-B/32)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-# llm (Gpt-4o)
-
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
-
-'''
-# sLLM (Qwen2.5-VL-7B-Instruct) 
-llm = ChatOpenAI(
-    model=os.getenv("VLLM_MODEL", "/workspace/Qwen2.5-VL-7B-Instruct"),
-    openai_api_base=os.getenv("VLLM_API_BASE", "http://localhost:8000/v1"),
-    openai_api_key="EMPTY",
-    temperature=0,
-)
-'''
+# LLM 초기화 (config.USE_RUNPOD로 RunPod VLM / GPT 자동 선택)
+# - RunPod 서버리스: Qwen2.5-VL-7B-Instruct (이미지+텍스트)
+# - GPT 폴백: gpt-4o (RUNPOD 설정 없을 때)
+if design_config.USE_RUNPOD:
+    llm = ChatOpenAI(
+        model=design_config.VLLM_MODEL_NAME,
+        openai_api_base=design_config.RUNPOD_DESIGN_BASE_URL,
+        openai_api_key=design_config.RUNPOD_API_KEY,
+        temperature=0,
+        timeout=design_config.VLLM_TIMEOUT,
+    )
+else:
+    # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+    # llm = ChatOpenAI(model=design_config.GPT_FALLBACK_MODEL, temperature=0)
+    raise RuntimeError(
+        "[utils] RUNPOD_API_KEY 또는 RUNPOD_DESIGN_BASE_URL 미설정. "
+        ".env 파일을 확인하세요."
+    )
 
 # Hybrid Retrieval 파라미터
-RETRIEVAL_TOP_K = 50   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
-TOP_K           = 10   # 최종 반환 개수
-DENSE_WEIGHT    = 0.7  # Dense 가중치 (BM25 가중치 = 1 - DENSE_WEIGHT)
+RETRIEVAL_TOP_K = design_config.RETRIEVAL_TOP_K   # Dense 1차 검색 개수 (BM25 재랭킹 전 후보 수)
+TOP_K           = design_config.TOP_K              # 최종 반환 개수
+DENSE_WEIGHT    = design_config.DENSE_WEIGHT       # Dense 가중치 (BM25 가중치 = 1 - DENSE_WEIGHT)
 
 
 # ==================== 이미지 임베딩 함수 ====================
