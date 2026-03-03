@@ -101,13 +101,38 @@ async def create_chat(
     return service.create_chat(current_user.id, chat_data.title)
 
 
-@router.get("/{chat_id}", response_model=ChatResponse)
+@router.get("/analysis/{analysis_id}")
+async def get_analysis_result(
+    analysis_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+):
+    """분석 결과 조회 (result_json의 patent_analyses 반환)"""
+    from app.models.analysis import Analysis
+
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="분석 결과를 찾을 수 없습니다.")
+
+    result = analysis.result_json or {}
+    patent_analyses = result.get("fto_result", {}).get("patent_analyses", [])
+
+    return {
+        "analysis_id": analysis.id,
+        "risk_level": analysis.risk_level.value if analysis.risk_level else None,
+        "patent_analyses": patent_analyses,
+    }
+
+
+@router.get("/{chat_id}")
 async def get_chat(
     chat_id: int,
     service: ChatService = Depends(get_chat_service),
     current_user: User = Depends(AuthService.get_current_user_dependency)
 ):
-    """채팅 상세 조회 (메시지 포함)"""
+    """채팅 상세 조회 (메시지 + analysis_id 포함)"""
+    from app.schemas.chat import MessageResponse as MsgResp
+
     chat = service.get_chat(chat_id, current_user.id)
 
     if not chat:
@@ -116,7 +141,13 @@ async def get_chat(
             detail="채팅을 찾을 수 없습니다."
         )
 
-    return chat
+    return {
+        "id": chat.id,
+        "title": chat.title,
+        "created_at": chat.created_at,
+        "updated_at": chat.updated_at,
+        "messages": [MsgResp.from_message(m) for m in chat.messages],
+    }
 
 
 @router.delete("/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)

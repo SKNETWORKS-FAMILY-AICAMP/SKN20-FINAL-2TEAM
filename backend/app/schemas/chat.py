@@ -25,9 +25,21 @@ class MessageResponse(BaseModel):
     content: str
     message_type: MessageTypeEnum
     created_at: datetime
+    analysis_id: Optional[int] = None
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def from_message(cls, msg):
+        return cls(
+            id=msg.id,
+            role=msg.role,
+            content=msg.content,
+            message_type=msg.message_type,
+            created_at=msg.created_at,
+            analysis_id=msg.analysis.id if msg.analysis else None,
+        )
 
 
 class ChatCreate(BaseModel):
