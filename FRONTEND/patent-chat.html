@@ -1013,25 +1013,29 @@
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         const fileDate = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
 
-        // 분석 데이터로 PDF 전용 HTML 생성 (패널에서 가져오기)
         let analyses = lastPanelAnalyses || [];
-        if (analyses.length === 0) {
-            // fallback: 현재 patentAnalyses 사용
-            analyses = patentAnalyses || [];
-        }
+        if (analyses.length === 0) analyses = patentAnalyses || [];
         if (analyses.length === 0) {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
             alert('분석 결과가 없습니다.');
             return;
         }
+
+        // 새 창에서 깨끗한 HTML로 PDF 생성 (Tailwind CSS 간섭 방지)
+        const printWin = window.open('', '_blank', 'width=800,height=600');
+        if (!printWin) {
+            alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+            return;
+        }
+
         const patentCards = analyses.map((a, i) => {
             const meta = a.metadata || {};
             const title = meta.invention_title || a.patent_id || '특허';
             const applyNum = meta.apply_num || a.patent_id || '';
             const label = a.label || '';
-
-            // 판정 스타일
             const labelMap = {
                 '침해':       { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA', text: '침해 가능성 높음' },
                 '침해_전문가': { bg: '#FEF3C7', color: '#D97706', border: '#FDE68A', text: '전문가 검토 필요' },
@@ -1039,146 +1043,116 @@
                 '비침해':     { bg: '#DCFCE7', color: '#16A34A', border: '#BBF7D0', text: '침해 가능성 낮음' },
             };
             const ls = labelMap[label] || labelMap['비침해'];
-
-            // 구성 대비 테이블 행
             const comps = a.comparisons || [];
+            const matchCount = comps.filter(c => c.correspondence === '대응').length;
             const tableRows = comps.map(c => {
                 const corrColor = c.correspondence === '대응' ? '#DC2626' : c.correspondence === '미대응' ? '#2563EB' : '#6B7280';
                 const corrBg = c.correspondence === '대응' ? '#FEE2E2' : c.correspondence === '미대응' ? '#DBEAFE' : '#F3F4F6';
                 return `<tr>
-                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; line-height:1.4; width:42%;">${escapeHtml(c.patent_element || '-')}</td>
-                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; line-height:1.4; width:42%;">${escapeHtml(c.user_element || '-')}</td>
-                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:9px; text-align:center; width:16%;">
-                        <span style="background:${corrBg}; color:${corrColor}; padding:2px 6px; border-radius:3px; font-size:8px; font-weight:600;">${escapeHtml(c.correspondence || '-')}</span>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:11px; line-height:1.4; width:42%;">${escapeHtml(c.patent_element || '-')}</td>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:11px; line-height:1.4; width:42%;">${escapeHtml(c.user_element || '-')}</td>
+                    <td style="padding:6px 8px; border-bottom:1px solid #E5E7EB; font-size:11px; text-align:center; width:16%;">
+                        <span style="background:${corrBg}; color:${corrColor}; padding:2px 6px; border-radius:3px; font-size:10px; font-weight:600; white-space:nowrap;">${escapeHtml(c.correspondence || '-')}</span>
                     </td>
                 </tr>`;
             }).join('');
 
-            const matchCount = comps.filter(c => c.correspondence === '대응').length;
-
             return `
                 <div style="page-break-inside:avoid; border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
-                    <!-- 특허 헤더 -->
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                        <div style="width:24px; height:24px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; text-align:center; line-height:24px; font-size:11px; font-weight:800; color:#EA580C; flex-shrink:0;">${i + 1}</div>
-                        <div>
-                            <div style="font-size:12px; font-weight:700; color:#1a1a1a;">${escapeHtml(title)}</div>
-                            <div style="font-size:9px; color:#9CA3AF; font-family:monospace;">${escapeHtml(applyNum)}</div>
-                        </div>
-                    </div>
-
-                    <!-- 판정 -->
+                    <table style="border:none; margin-bottom:10px;"><tr>
+                        <td style="border:none; padding:0 10px 0 0; vertical-align:middle; width:28px;">
+                            <div style="width:24px; height:24px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; text-align:center; line-height:24px; font-size:11px; font-weight:800; color:#EA580C;">${i + 1}</div>
+                        </td>
+                        <td style="border:none; padding:0; vertical-align:middle;">
+                            <div style="font-size:13px; font-weight:700; color:#1a1a1a;">${escapeHtml(title)}</div>
+                            <div style="font-size:10px; color:#9CA3AF;">${escapeHtml(applyNum)}</div>
+                        </td>
+                    </tr></table>
                     <div style="background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; padding:8px 12px; margin-bottom:12px;">
-                        <span style="font-size:10px; font-weight:700; color:${ls.color};">${ls.text}</span>
-                        <span style="font-size:9px; color:${ls.color}; margin-left:8px;">대응 ${matchCount}/${comps.length}</span>
+                        <span style="font-size:11px; font-weight:700; color:${ls.color};">${ls.text}</span>
+                        <span style="font-size:10px; color:${ls.color}; margin-left:8px;">대응 ${matchCount}/${comps.length}</span>
                     </div>
-
-                    <!-- 구성 대비 테이블 -->
                     ${comps.length > 0 ? `
                     <table style="width:100%; border-collapse:collapse; margin-bottom:12px; border:1px solid #E5E7EB;">
-                        <thead>
-                            <tr style="background:#F9FAFB;">
-                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">특허 구성</th>
-                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">사용자 제품 구성</th>
-                                <th style="padding:6px 8px; font-size:9px; font-weight:700; color:#374151; text-align:center; border-bottom:2px solid #D1D5DB; width:16%;">대응 여부</th>
-                            </tr>
-                        </thead>
+                        <thead><tr style="background:#F9FAFB;">
+                            <th style="padding:6px 8px; font-size:10px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">특허 구성</th>
+                            <th style="padding:6px 8px; font-size:10px; font-weight:700; color:#374151; text-align:left; border-bottom:2px solid #D1D5DB; width:42%;">사용자 제품 구성</th>
+                            <th style="padding:6px 8px; font-size:10px; font-weight:700; color:#374151; text-align:center; border-bottom:2px solid #D1D5DB; width:16%;">대응 여부</th>
+                        </tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table>` : ''}
-
-                    <!-- 판단 -->
-                    ${a.analysis_text ? `
-                    <div style="margin-bottom:10px;">
-                        <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">판단</div>
-                        <div style="font-size:9px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                    ${a.analysis_text ? `<div style="margin-bottom:10px;">
+                        <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">분석</div>
+                        <div style="font-size:11px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
                     </div>` : ''}
-
-                    <!-- 결론 -->
-                    ${a.conclusion_text ? `
-                    <div>
-                        <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
-                        <div style="font-size:9px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                    ${a.conclusion_text ? `<div>
+                        <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
+                        <div style="font-size:11px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
                     </div>` : ''}
                 </div>`;
         }).join('');
 
-        // 분석 요약 카드 (flex 대신 inline-block 사용 - html2canvas 호환)
-        const summaryWidth = Math.floor(100 / Math.max(analyses.length, 1)) - 2;
         const summaryCards = analyses.map((a, i) => {
             const l = a.label || '';
             const c = a.comparisons || [];
             const mc = c.filter(x => x.correspondence === '대응').length;
             const lm = { '침해': { bg:'#FEE2E2', color:'#DC2626' }, '침해_전문가': { bg:'#FEF3C7', color:'#D97706' }, '애매': { bg:'#FEF3C7', color:'#D97706' }, '비침해': { bg:'#DCFCE7', color:'#16A34A' } };
             const s = lm[l] || lm['비침해'];
-            return `<div style="display:inline-block; width:${summaryWidth}%; vertical-align:top; border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center; margin-right:4px; box-sizing:border-box;">
-                <div style="font-size:9px; color:#9CA3AF;">TOP ${i+1}</div>
-                <div style="font-size:10px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
-                <div style="font-size:9px; color:#6B7280;">대응 ${mc}/${c.length}</div>
-            </div>`;
+            return `<td style="border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center;">
+                <div style="font-size:10px; color:#9CA3AF;">TOP ${i+1}</div>
+                <div style="font-size:12px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
+                <div style="font-size:10px; color:#6B7280;">대응 ${mc}/${c.length}</div>
+            </td>`;
         }).join('');
 
-        // PDF 컨테이너
-        const pdfDiv = document.createElement('div');
-        pdfDiv.style.cssText = 'position:absolute; left:0; top:0; width:680px; padding:30px; font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif; color:#333; background:#fff; z-index:99999;';
-        pdfDiv.innerHTML = `
-            <!-- 헤더 -->
-            <div style="border-bottom:3px solid #FF6B35; padding-bottom:14px; margin-bottom:20px;">
-                <table style="width:100%; border:none;"><tr>
-                    <td style="border:none; padding:0; vertical-align:top;">
-                        <div style="font-size:20px; font-weight:800; color:#1a1a1a; margin-bottom:2px;">FTOGuard</div>
-                        <div style="font-size:13px; color:#666;">특허 침해 분석 리포트</div>
-                    </td>
-                    <td style="border:none; padding:0; text-align:right; vertical-align:top;">
-                        <div style="font-size:9px; color:#9CA3AF; letter-spacing:2px;">REPORT</div>
-                        <div style="font-size:10px; color:#666; margin-top:2px;">${dateStr}</div>
-                    </td>
-                </tr></table>
-                <div style="margin-top:12px; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px;">
-                    <div style="font-size:9px; color:#9CA3AF; margin-bottom:2px;">분석 질문</div>
-                    <div style="font-size:11px; color:#1a1a1a; font-weight:600; line-height:1.5;">${escapeHtml(userQuery)}</div>
-                </div>
-            </div>
+        const fullHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>FTO 분석 결과</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:#333; background:#fff; padding:30px; max-width:720px; margin:0 auto; }
+    @media print {
+        body { padding:15px; }
+        .no-print { display:none !important; }
+        div { page-break-inside:avoid; }
+    }
+</style>
+</head><body>
+    <div style="text-align:center; margin-bottom:12px;" class="no-print">
+        <button onclick="window.print()" style="padding:10px 30px; background:#FF6B35; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer;">
+            PDF로 저장 (인쇄 대화상자)
+        </button>
+        <p style="font-size:11px; color:#999; margin-top:6px;">인쇄 대화상자에서 "PDF로 저장"을 선택하세요</p>
+    </div>
+    <div style="border-bottom:3px solid #FF6B35; padding-bottom:14px; margin-bottom:20px;">
+        <table style="width:100%; border:none;"><tr>
+            <td style="border:none; padding:0; vertical-align:top;">
+                <div style="font-size:22px; font-weight:800; color:#1a1a1a; margin-bottom:2px;">FTOGuard</div>
+                <div style="font-size:14px; color:#666;">특허 침해 분석 리포트</div>
+            </td>
+            <td style="border:none; padding:0; text-align:right; vertical-align:top;">
+                <div style="font-size:10px; color:#9CA3AF; letter-spacing:2px;">REPORT</div>
+                <div style="font-size:11px; color:#666; margin-top:2px;">${dateStr}</div>
+            </td>
+        </tr></table>
+        <div style="margin-top:12px; padding:10px 14px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px;">
+            <div style="font-size:10px; color:#9CA3AF; margin-bottom:2px;">분석 질문</div>
+            <div style="font-size:12px; color:#1a1a1a; font-weight:600; line-height:1.5;">${escapeHtml(userQuery)}</div>
+        </div>
+    </div>
+    <table style="width:100%; border:none; margin-bottom:20px; border-spacing:6px;"><tr>${summaryCards}</tr></table>
+    ${patentCards}
+    <div style="margin-top:20px; padding:14px; background:#F9FAFB; border:1px solid #D1D5DB; border-radius:4px;">
+        <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">법적 고지</div>
+        <div style="font-size:10px; color:#6B7280; line-height:1.6;">본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.</div>
+    </div>
+    <div style="margin-top:16px; text-align:center; font-size:9px; color:#D1D5DB;">Generated by FTOGuard &copy; ${now.getFullYear()}</div>
+</body></html>`;
 
-            <!-- 분석 요약 -->
-            <div style="margin-bottom:20px;">${summaryCards}</div>
+        printWin.document.write(fullHtml);
+        printWin.document.close();
 
-            <!-- 특허별 상세 분석 -->
-            ${patentCards}
-
-            <!-- 법적 고지 -->
-            <div style="margin-top:20px; padding:14px; background:#F9FAFB; border:1px solid #D1D5DB; border-radius:4px; page-break-inside:avoid;">
-                <div style="font-size:10px; font-weight:700; color:#374151; margin-bottom:4px;">법적 고지</div>
-                <div style="font-size:8.5px; color:#6B7280; line-height:1.6;">본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.</div>
-            </div>
-
-            <!-- 푸터 -->
-            <div style="margin-top:16px; text-align:center; font-size:8px; color:#D1D5DB;">
-                Generated by FTOGuard &copy; ${now.getFullYear()}
-            </div>
-        `;
-
-        document.body.appendChild(pdfDiv);
-
-        // DOM 렌더링 대기 후 html2pdf 실행
-        setTimeout(() => {
-            html2pdf().set({
-                margin: [8, 8, 8, 8],
-                filename: `FTO분석결과_${fileDate}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0, windowWidth: 740 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css'], avoid: ['tr'] },
-            }).from(pdfDiv).save().then(() => {
-                document.body.removeChild(pdfDiv);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
-            }).catch(err => {
-                console.error('PDF 생성 실패:', err);
-                document.body.removeChild(pdfDiv);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
-            });
-        }, 300);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
     }
 
     function corrBadgeClass(value) {
