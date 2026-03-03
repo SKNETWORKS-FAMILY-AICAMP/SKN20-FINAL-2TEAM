@@ -383,6 +383,7 @@
     let threadId = null;      // 현재 대화 스레드
     let sessionCount = 0;
     let isAnalyzing = false;
+    let currentAbortController = null;
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -444,11 +445,14 @@
             formData.append('analysis_type', 'fto');
 
             const token = localStorage.getItem('authToken') || '';
+            currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/chat/message`, {
                 method: 'POST',
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                 body: formData,
+                signal: currentAbortController.signal,
             });
+            currentAbortController = null;
 
             removeLoadingMessage();
 
@@ -475,6 +479,8 @@
                 setStatus('대화 중');
             }
         } catch (error) {
+            currentAbortController = null;
+            if (error.name === 'AbortError') return;
             removeLoadingMessage();
             addBotMessage(`연결 오류: ${error.message}`);
             setStatus('오류');
@@ -561,10 +567,23 @@
                     <div class="typing-dot"></div>
                 </div>
                 <div class="text-xs text-neutral-400 mt-1">분석 중... (약 5-15초 소요)</div>
+                <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+    }
+
+    function cancelRequest() {
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+        }
+        removeLoadingMessage();
+        addBotMessage('요청이 취소되었습니다.');
+        setStatus('대기');
+        isAnalyzing = false;
+        updateSendButton();
     }
 
     function removeLoadingMessage() {
