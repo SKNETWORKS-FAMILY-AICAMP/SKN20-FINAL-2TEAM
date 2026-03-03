@@ -1035,6 +1035,11 @@
             const meta = a.metadata || {};
             const title = meta.invention_title || a.patent_id || '특허';
             const applyNum = meta.apply_num || a.patent_id || '';
+            const regitNum = meta.regit_num || '';
+            const registerStatus = meta.register_status || '';
+            const applicant = meta.applicant || '';
+            const applicationDate = meta.application_date || '';
+            const registerDate = meta.register_date || '';
             const label = a.label || '';
             const labelMap = {
                 '침해':       { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA', text: '침해 가능성 높음' },
@@ -1057,20 +1062,29 @@
                 </tr>`;
             }).join('');
 
+            // 특허 정보 행들
+            const infoRows = [];
+            if (applyNum) infoRows.push(`<span style="color:#6B7280;">출원번호:</span> <span style="font-weight:600;">${escapeHtml(applyNum)}</span>`);
+            if (regitNum) infoRows.push(`<span style="color:#6B7280;">등록번호:</span> <span style="font-weight:600;">${escapeHtml(regitNum)}</span>`);
+            if (registerStatus) infoRows.push(`<span style="color:#6B7280;">상태:</span> <span style="font-weight:600; color:${registerStatus === '등록' ? '#16A34A' : '#D97706'};">${escapeHtml(registerStatus)}</span>`);
+            if (applicant) infoRows.push(`<span style="color:#6B7280;">특허권자:</span> <span style="font-weight:600;">${escapeHtml(applicant)}</span>`);
+            if (applicationDate) infoRows.push(`<span style="color:#6B7280;">출원일:</span> ${escapeHtml(applicationDate)}`);
+            if (registerDate) infoRows.push(`<span style="color:#6B7280;">등록일:</span> ${escapeHtml(registerDate)}`);
+
             return `
                 <div style="page-break-inside:avoid; border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
-                    <table style="border:none; margin-bottom:10px;"><tr>
+                    <table style="border:none; margin-bottom:6px;"><tr>
                         <td style="border:none; padding:0 10px 0 0; vertical-align:middle; width:28px;">
                             <div style="width:24px; height:24px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; text-align:center; line-height:24px; font-size:11px; font-weight:800; color:#EA580C;">${i + 1}</div>
                         </td>
                         <td style="border:none; padding:0; vertical-align:middle;">
                             <div style="font-size:13px; font-weight:700; color:#1a1a1a;">${escapeHtml(title)}</div>
-                            <div style="font-size:10px; color:#9CA3AF;">${escapeHtml(applyNum)}</div>
                         </td>
                     </tr></table>
+                    ${infoRows.length > 0 ? `<div style="font-size:10px; color:#4B5563; line-height:1.8; padding:8px 12px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; margin-bottom:10px;">${infoRows.join(' &nbsp;|&nbsp; ')}</div>` : ''}
                     <div style="background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; padding:8px 12px; margin-bottom:12px;">
                         <span style="font-size:11px; font-weight:700; color:${ls.color};">${ls.text}</span>
-                        <span style="font-size:10px; color:${ls.color}; margin-left:8px;">대응 ${matchCount}/${comps.length}</span>
+                        <span style="font-size:10px; color:${ls.color}; margin-left:8px;">구성 요소 대응 ${matchCount}/${comps.length}</span>
                     </div>
                     ${comps.length > 0 ? `
                     <table style="width:100%; border-collapse:collapse; margin-bottom:12px; border:1px solid #E5E7EB;">
@@ -1101,7 +1115,7 @@
             return `<td style="border:1px solid #E5E7EB; border-radius:4px; padding:10px; text-align:center;">
                 <div style="font-size:10px; color:#9CA3AF;">TOP ${i+1}</div>
                 <div style="font-size:12px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
-                <div style="font-size:10px; color:#6B7280;">대응 ${mc}/${c.length}</div>
+                <div style="font-size:10px; color:#6B7280;">구성 요소 대응 ${mc}/${c.length}</div>
             </td>`;
         }).join('');
 
