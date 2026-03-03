@@ -34,6 +34,42 @@ def analyze_product(
     )
 
 
+def analyze_single_patent(
+    search_result: dict,
+    user_query: str,
+    verbose: bool = False,
+) -> dict:
+    """단일 특허 sLLM 분석. 프론트엔드 개별 호출용.
+
+    Args:
+        search_result: search_only() 결과 리스트의 개별 항목.
+        user_query: 사용자 제품 설명.
+        verbose: 중간 로그 출력.
+
+    Returns:
+        parse_response() 결과 + patent_id, score, metadata 포함.
+    """
+    from .generate import build_prompt, call_llm, parse_response
+
+    patent_id = search_result.get("patent_id", "unknown")
+    if verbose:
+        print(f"[G-single] {patent_id} 분석 시작")
+
+    messages = build_prompt(search_result, user_query)
+    raw_output = call_llm(messages)
+    parsed = parse_response(raw_output)
+
+    parsed["patent_id"] = patent_id
+    parsed["score"] = search_result.get("score", 0)
+    parsed["metadata"] = search_result.get("metadata", {})
+    parsed["estoppel_claim_numbers"] = search_result.get("estoppel_claim_numbers", [])
+
+    if verbose:
+        print(f"[G-single] {patent_id} -> {parsed.get('label', '?')}")
+
+    return parsed
+
+
 def search_only(
     product_description: str,
     top_k: int = 10,

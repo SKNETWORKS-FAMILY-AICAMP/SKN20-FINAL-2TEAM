@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     HF_MODEL_ID: str = "itsbini/qwen2.5-14b-fto"
 
     # 개발 모드 (배포 시 False로 변경!)
-    DEV_BYPASS_AUTH: bool = True
+    DEV_BYPASS_AUTH: bool = False
 
     # Hugging Face
     HF_TOKEN: str = ""

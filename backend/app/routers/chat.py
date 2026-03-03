@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
 from openai import OpenAI
+import json
 import os
 import sys
 import time
@@ -316,3 +317,205 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
     #         return f"모델 호출 중 오류가 발생했습니다 (vLLM + GPT 모두 실패): {str(gpt_err)}"
 
     return "모델 서버에 연결할 수 없습니다. RunPod 설정(.env)을 확인하세요."
+
+
+# ==================== 단계별 분석 API ====================
+
+class SearchResultItem(BaseModel):
+    patent_id: str
+    score: float
+    metadata: dict
+
+class SearchResponse(BaseModel):
+    session_id: int
+    message_id: int
+    search_token: str
+    search_results: list[SearchResultItem]
+
+class PatentAnalysisResponse(BaseModel):
+    patent_id: str
+    patent_index: int
+    label: str
+    comparisons: list[dict]
+    analysis_text: str
+    conclusion_text: str
+    raw_output: str
+    metadata: dict
+
+class FinalizeResponse(BaseModel):
+    analysis_id: int
+    session_id: int
+    risk_level: str
+
+
+@router.post("/search", response_model=SearchResponse)
+async def search_patents(
+    message: str = Form(""),
+    session_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+):
+    """Phase 1: RAG 검색만 수행하여 TOP 10 특허 반환."""
+    chat_service = ChatService(db)
+
+    # 세션 처리 (기존 로직 재사용)
+    chat_id = None
+    if session_id and session_id.strip() and session_id not in ("null", "undefined", ""):
+        try:
+            chat_id = int(session_id)
+            chat = chat_service.get_chat(chat_id, current_user.id)
+            if not chat:
+                chat_id = None
+        except (ValueError, TypeError):
+            chat_id = None
+
+    if not chat_id:
+        title = message[:30] + "..." if len(message) > 30 else message
+        chat = chat_service.create_chat(current_user.id, title)
+        chat_id = chat.id
+
+    # 사용자 메시지 저장
+    user_msg = chat_service.add_message(
+        chat_id=chat_id, role="user", content=message, message_type="text"
+    )
+
+    # RAG 검색
+    from rag.backend_adapter import search_only
+    search_results = search_only(message, verbose=True)
+
+    # 캐시에 저장 (message_id를 키로)
+    from app.utils.search_cache import store as cache_store
+    cache_key = str(user_msg.id)
+    cache_store(cache_key, {
+        "search_results": search_results,
+        "user_query": message,
+        "chat_id": chat_id,
+        "message_id": user_msg.id,
+    })
+
+    # 프론트에 전달할 간소화된 결과
+    items = []
+    for r in search_results:
+        meta = r.get("metadata", {})
+        items.append(SearchResultItem(
+            patent_id=r.get("patent_id", ""),
+            score=r.get("score", 0.0),
+            metadata={
+                "apply_num": meta.get("apply_num", ""),
+                "regit_num": meta.get("regit_num", ""),
+                "invention_title": meta.get("invention_title", ""),
+            },
+        ))
+
+    return SearchResponse(
+        session_id=chat_id,
+        message_id=user_msg.id,
+        search_token=cache_key,
+        search_results=items,
+    )
+
+
+@router.post("/analyze-patent", response_model=PatentAnalysisResponse)
+async def analyze_single_patent_endpoint(
+    search_token: str = Form(""),
+    patent_index: int = Form(0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+):
+    """Phase 2: 단일 특허 sLLM 분석. 프론트에서 0, 1, 2 순서로 호출."""
+    from app.utils.search_cache import get as cache_get
+
+    cached = cache_get(search_token)
+    if not cached:
+        raise HTTPException(status_code=404, detail="검색 결과가 만료되었습니다. 다시 검색해주세요.")
+
+    search_results = cached["search_results"]
+    user_query = cached["user_query"]
+
+    if patent_index < 0 or patent_index >= len(search_results):
+        raise HTTPException(status_code=400, detail=f"patent_index {patent_index}가 범위를 벗어났습니다.")
+
+    from rag.backend_adapter import analyze_single_patent
+    result = analyze_single_patent(search_results[patent_index], user_query, verbose=True)
+
+    return PatentAnalysisResponse(
+        patent_id=result.get("patent_id", ""),
+        patent_index=patent_index,
+        label=result.get("label", ""),
+        comparisons=result.get("comparisons", []),
+        analysis_text=result.get("analysis_text", ""),
+        conclusion_text=result.get("conclusion_text", ""),
+        raw_output=result.get("raw_output", ""),
+        metadata=result.get("metadata", {}),
+    )
+
+
+@router.post("/finalize", response_model=FinalizeResponse)
+async def finalize_analysis(
+    search_token: str = Form(""),
+    patent_analyses_json: str = Form("[]"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+):
+    """Phase 3: 분석 결과를 analyses 테이블에 저장."""
+    from app.utils.search_cache import get as cache_get, delete as cache_delete
+    from app.models.analysis import Analysis, InputTypeEnum, RiskLevelEnum as ModelRiskLevel
+
+    cached = cache_get(search_token)
+    if not cached:
+        raise HTTPException(status_code=404, detail="검색 결과가 만료되었습니다.")
+
+    search_results = cached["search_results"]
+    message_id = cached["message_id"]
+    chat_id = cached["chat_id"]
+
+    patent_analyses = json.loads(patent_analyses_json)
+
+    # risk_level 결정
+    labels = [p.get("label", "") for p in patent_analyses]
+    if any(l == "침해" for l in labels):
+        risk_val = "high"
+    elif any(l in ("침해_전문가", "애매") for l in labels):
+        risk_val = "medium"
+    else:
+        risk_val = "low"
+
+    # 기존 analyze_product() 형식과 동일한 result_json 구성
+    rag_result = {
+        "query": cached["user_query"],
+        "search_results": search_results,
+        "fto_result": {
+            "patent_analyses": patent_analyses,
+            "fto_opinion": "",
+            "raw_output": "",
+        },
+    }
+
+    analysis_obj = Analysis(
+        message_id=message_id,
+        input_type=InputTypeEnum.text,
+        risk_level=ModelRiskLevel(risk_val),
+        result_json=rag_result,
+        model_used=VLLM_MODEL,
+        processing_time_ms=0,
+    )
+    db.add(analysis_obj)
+    db.commit()
+    db.refresh(analysis_obj)
+
+    # 어시스턴트 응답 저장
+    chat_service = ChatService(db)
+    chat_service.add_message(
+        chat_id=chat_id,
+        role="assistant",
+        content="FTO 분석이 완료되었습니다.",
+        message_type="text",
+    )
+
+    cache_delete(search_token)
+
+    return FinalizeResponse(
+        analysis_id=analysis_obj.id,
+        session_id=chat_id,
+        risk_level=risk_val,
+    )

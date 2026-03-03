@@ -215,6 +215,167 @@
         .step-num.step-1 { background: var(--primary); }
         .step-num.step-2 { background: var(--primary-light); }
         .step-num.step-3 { background: var(--primary-dark); }
+
+        /* ===== TOP 10 특허 리스트 ===== */
+        .patent-list-card {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .patent-list-header {
+            padding: 0.875rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04));
+            border-bottom: 1px solid var(--primary-border);
+        }
+        .patent-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 0.8rem;
+            transition: background 0.15s;
+        }
+        .patent-list-item:hover { background: #FAFAFA; }
+        .patent-list-item:last-child { border-bottom: none; }
+        .patent-rank-badge {
+            width: 1.5rem; height: 1.5rem;
+            border-radius: 0.375rem;
+            background: rgba(255,107,53,0.08);
+            color: var(--primary);
+            font-size: 0.65rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .patent-status-badge {
+            font-size: 0.6rem; font-weight: 600;
+            padding: 0.1rem 0.35rem; border-radius: 0.25rem;
+        }
+        .patent-status-badge.registered { background: #DCFCE7; color: #16A34A; }
+        .patent-status-badge.published { background: #DBEAFE; color: #2563EB; }
+
+        /* ===== 분석 프로그레스 ===== */
+        .analysis-progress {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+        }
+        .progress-step-chat {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.5rem 0;
+            font-size: 0.8rem; color: #A3A3A3;
+            transition: color 0.3s;
+        }
+        .progress-step-chat.active { color: #171717; }
+        .progress-step-chat.done { color: #16A34A; }
+        .progress-step-icon {
+            width: 1.5rem; height: 1.5rem; border-radius: 50%;
+            border: 2px solid #E5E5E5;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .progress-step-chat.active .progress-step-icon {
+            border-color: var(--primary); color: var(--primary);
+            background: rgba(255,107,53,0.08);
+            animation: stepPulse 1s ease-in-out infinite;
+        }
+        .progress-step-chat.done .progress-step-icon {
+            border-color: #16A34A; color: white; background: #16A34A;
+        }
+        @keyframes stepPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.3); }
+            50% { box-shadow: 0 0 0 4px rgba(255,107,53,0); }
+        }
+
+        /* ===== 오른쪽 결과 패널 ===== */
+        #resultPanel {
+            position: fixed;
+            top: 80px;
+            right: 0;
+            bottom: 0;
+            width: 55%;
+            max-width: 720px;
+            background: white;
+            border-left: 1px solid #E5E5E5;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+            z-index: 50;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+        #resultPanel.open { transform: translateX(0); }
+        #resultPanel::-webkit-scrollbar { width: 6px; }
+        #resultPanel::-webkit-scrollbar-track { background: transparent; }
+        #resultPanel::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+
+        #mainContent.panel-open {
+            margin-right: 55%;
+            transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 결과보기 버튼 */
+        .result-view-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+            white-space: nowrap;
+        }
+        .result-view-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+        }
+
+        /* 패널 내부 카드 */
+        .panel-patent-card {
+            border: 1px solid #E5E5E5;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            background: #FAFAFA;
+        }
+        .panel-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .panel-table th {
+            background: #F5F5F5;
+            font-weight: 700;
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 2px solid #E5E5E5;
+            font-size: 0.75rem;
+            color: #525252;
+        }
+        .panel-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #F0F0F0;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .corr-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .corr-badge.match { background: #FEE2E2; color: #DC2626; }
+        .corr-badge.no-match { background: #DBEAFE; color: #2563EB; }
+        .corr-badge.unknown { background: #F5F5F5; color: #737373; }
     </style>
 </head>
 
@@ -359,19 +520,22 @@
         </main>
     </div>
 
-    <!-- 개발 환경 인증 우회 -->
-    <script>
-        (function() {
-            const header  = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-            const payload = btoa(JSON.stringify({ sub: 'dev', exp: Math.floor(Date.now() / 1000) + 86400 * 365 }));
-            const devToken = `${header}.${payload}.dev_signature`;
-            const devUser  = JSON.stringify({ id: 'dev', name: '개발자', email: 'dev@ftoguard.com' });
-            if (!localStorage.getItem('authToken')) {
-                localStorage.setItem('authToken', devToken);
-                localStorage.setItem('user', devUser);
-            }
-        })();
-    </script>
+    <!-- 오른쪽 결과 패널 -->
+    <div id="resultPanel">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-bold text-black flex items-center gap-2">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    TOP3 구성 대비 결과
+                </h2>
+                <button onclick="closeResultPanel()" class="icon-btn" title="닫기">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="resultPanelContent"></div>
+        </div>
+    </div>
+
     <script src="toast.js"></script>
     <script src="script.js"></script>
 
@@ -380,10 +544,15 @@
     const API_BASE = '/api';
 
     // ==================== 상태 ====================
-    let threadId = null;      // 현재 대화 스레드
+    let threadId = null;
     let sessionCount = 0;
     let isAnalyzing = false;
     let currentAbortController = null;
+    let searchToken = null;
+    let searchResults = null;
+    let patentAnalyses = [];
+    let currentAnalysisId = null;
+    const analysesHistory = new Map(); // analysisId → patentAnalyses 보존
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -422,7 +591,62 @@
         messageInput.focus();
     }
 
-    // ==================== 메인 전송 ====================
+    // ==================== API 호출 ====================
+
+    function authHeaders() {
+        const token = localStorage.getItem('authToken') || '';
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    async function callSearchAPI(message) {
+        const formData = new FormData();
+        formData.append('message', message);
+        if (threadId) formData.append('session_id', threadId);
+        const resp = await fetch(`${API_BASE}/chat/search`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: formData,
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || `검색 실패: HTTP ${resp.status}`);
+        }
+        return resp.json();
+    }
+
+    async function callAnalyzePatentAPI(token, index) {
+        const formData = new FormData();
+        formData.append('search_token', token);
+        formData.append('patent_index', index);
+        const resp = await fetch(`${API_BASE}/chat/analyze-patent`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: formData,
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || `분석 실패: HTTP ${resp.status}`);
+        }
+        return resp.json();
+    }
+
+    async function callFinalizeAPI(token, analyses) {
+        const formData = new FormData();
+        formData.append('search_token', token);
+        formData.append('patent_analyses_json', JSON.stringify(analyses));
+        const resp = await fetch(`${API_BASE}/chat/finalize`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: formData,
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || `저장 실패: HTTP ${resp.status}`);
+        }
+        return resp.json();
+    }
+
+    // ==================== 메인 전송 (3단계) ====================
 
     async function handleSend() {
         const text = messageInput.value.trim();
@@ -435,54 +659,52 @@
         messageInput.style.height = 'auto';
         isAnalyzing = true;
         updateSendButton();
-        setStatus('분석 중');
-        addLoadingMessage();
 
         try {
-            const formData = new FormData();
-            formData.append('message', text);
-            if (threadId) formData.append('session_id', threadId);
-            formData.append('analysis_type', 'fto');
+            // ── Phase 1: 검색 ──
+            setStatus('검색 중');
+            addLoadingMessage('유사 특허 검색 중...');
 
-            const token = localStorage.getItem('authToken') || '';
-            currentAbortController = new AbortController();
-            const response = await fetch(`${API_BASE}/chat/message`, {
-                method: 'POST',
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-                body: formData,
-                signal: currentAbortController.signal,
-            });
-            currentAbortController = null;
+            const searchResp = await callSearchAPI(text);
 
             removeLoadingMessage();
+            threadId = searchResp.session_id;
+            searchToken = searchResp.search_token;
+            searchResults = searchResp.search_results;
 
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.detail || `HTTP ${response.status}`);
+            addPatentListMessage(searchResults);
+
+            // ── Phase 2: TOP 3 분석 ──
+            setStatus('분석 중');
+            const analyzeCount = Math.min(3, searchResults.length);
+            const progressEl = addAnalysisProgress(analyzeCount);
+            patentAnalyses = [];
+
+            for (let i = 0; i < analyzeCount; i++) {
+                setProgressStep(progressEl, i, 'active');
+                const result = await callAnalyzePatentAPI(searchToken, i);
+                patentAnalyses.push(result);
+                setProgressStep(progressEl, i, 'done');
             }
 
-            const result = await response.json();
+            // ── Phase 3: 저장 ──
+            const finalResp = await callFinalizeAPI(searchToken, patentAnalyses);
+            currentAnalysisId = finalResp.analysis_id;
 
-            threadId = result.session_id;
+            // 분석 결과를 ID별로 보존 (덮어쓰기 방지)
+            analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
 
-            // 봇 답변 표시
-            addBotMessage(result.message);
+            addResultViewButton(patentAnalyses, currentAnalysisId);
 
-            // 분석 완료 시 결과 페이지로 이동 가능
-            if (result.analysis_complete && result.analysis_id) {
-                sessionCount++;
-                updateTotalCount();
-                addSessionCard(text, result.analysis_id);
-                setStatus('완료');
-                showResultReadyBanner(result.analysis_id);
-            } else {
-                setStatus('대화 중');
-            }
+            sessionCount++;
+            updateTotalCount();
+            addSessionCard(text, currentAnalysisId);
+            setStatus('완료');
+
         } catch (error) {
-            currentAbortController = null;
             if (error.name === 'AbortError') return;
             removeLoadingMessage();
-            addBotMessage(`연결 오류: ${error.message}`);
+            addBotMessage(`분석 오류: ${error.message}`);
             setStatus('오류');
         } finally {
             isAnalyzing = false;
@@ -490,11 +712,107 @@
         }
     }
 
-    // ==================== 결과 준비 배너 ====================
+    // ==================== TOP 10 특허 리스트 ====================
 
-    function showResultReadyBanner(tid) {
+    function addPatentListMessage(results) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
+        const rows = results.slice(0, 10).map((r, i) => {
+            const meta = r.metadata || {};
+            const hasRegit = meta.regit_num && meta.regit_num.trim();
+            const statusText = hasRegit ? '등록' : '공개';
+            const statusClass = hasRegit ? 'registered' : 'published';
+            const title = meta.invention_title || '(제목 없음)';
+            const applyNum = meta.apply_num || r.patent_id || '-';
+            return `
+                <div class="patent-list-item">
+                    <div class="patent-rank-badge">${i + 1}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <code class="text-xs text-neutral-400 font-mono">${escapeHtml(applyNum)}</code>
+                            <span class="patent-status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="text-xs text-neutral-700 mt-0.5 truncate">${escapeHtml(title)}</div>
+                    </div>
+                </div>`;
+        }).join('');
+
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content" style="max-width:90%;">
+                <div class="patent-list-card">
+                    <div class="patent-list-header">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-search text-primary text-xs"></i>
+                            <span class="text-sm font-bold text-black">유사 특허 TOP 10</span>
+                            <span class="text-xs text-neutral-500">${results.length}건 검색됨</span>
+                        </div>
+                    </div>
+                    ${rows}
+                </div>
+            </div>`;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    // ==================== 분석 프로그레스 ====================
+
+    function addAnalysisProgress(count) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.id = 'analysisProgress';
+        const steps = Array.from({ length: count }, (_, i) => `
+            <div class="progress-step-chat" id="progressStep${i}">
+                <div class="progress-step-icon">
+                    <i class="fas fa-circle" style="font-size:5px;"></i>
+                </div>
+                <span>${i + 1}번째 특허 구성대비 확인 대기</span>
+            </div>`).join('');
+
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="analysis-progress">
+                    <div class="text-xs font-bold text-neutral-700 mb-2 flex items-center gap-1.5">
+                        <i class="fas fa-cog fa-spin text-primary"></i>
+                        sLLM 침해 분석 진행 중
+                    </div>
+                    ${steps}
+                </div>
+            </div>`;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+        return div;
+    }
+
+    function setProgressStep(container, index, state) {
+        const step = container.querySelector(`#progressStep${index}`);
+        if (!step) return;
+        step.classList.remove('active', 'done');
+        step.classList.add(state);
+        const icon = step.querySelector('.progress-step-icon');
+        const span = step.querySelector('span');
+        if (state === 'active') {
+            icon.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:8px;"></i>';
+            span.textContent = `${index + 1}번째 특허 구성대비 확인중...`;
+        } else if (state === 'done') {
+            icon.innerHTML = '<i class="fas fa-check" style="font-size:8px;"></i>';
+            span.textContent = `${index + 1}번째 특허 구성대비 완료`;
+        }
+        scrollToBottom();
+    }
+
+    // ==================== 결과보기 버튼 ====================
+
+    function addResultViewButton(analyses, analysisId) {
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+
+        const labels = analyses.map(a => a.label || '');
+        let riskText = '침해 가능성 낮음';
+        if (labels.some(l => l === '침해')) riskText = '침해 가능 특허 존재';
+        else if (labels.some(l => l === '침해_전문가' || l === '애매')) riskText = '전문가 검토 권장';
+
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
             <div class="msg-content">
@@ -503,23 +821,116 @@
                         <i class="fas fa-chart-bar text-primary"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm font-bold text-black mb-0.5">분석에 충분한 정보가 수집되었습니다</p>
-                        <p class="text-xs text-neutral-500">상세 침해 리스크 리포트를 확인하세요</p>
+                        <p class="text-sm font-bold text-black mb-0.5">TOP3 침해 분석 완료</p>
+                        <p class="text-xs text-neutral-500">${riskText}</p>
                     </div>
-                    <button onclick="goToResult('${tid}')"
-                        class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-xs transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 whitespace-nowrap">
-                        결과 보기
-                        <i class="fas fa-arrow-right text-xs"></i>
+                    <button onclick="openResultPanel(${analysisId})" class="result-view-btn">
+                        <i class="fas fa-table"></i>
+                        TOP3 구성 대비 결과보기
                     </button>
                 </div>
-            </div>
-        `;
+            </div>`;
         messagesWrapper.appendChild(div);
         scrollToBottom();
     }
 
-    function goToResult(analysisId) {
-        window.location.href = `results.html?id=${analysisId}`;
+    // ==================== 결과 패널 ====================
+
+    function openResultPanel(analysisId) {
+        const panel = document.getElementById('resultPanel');
+        const content = document.getElementById('resultPanelContent');
+        // analysisId가 있으면 저장된 결과 사용, 없으면 현재 결과
+        const data = analysisId ? (analysesHistory.get(analysisId) || patentAnalyses) : patentAnalyses;
+        content.innerHTML = renderResultPanelContent(data);
+        panel.classList.add('open');
+        document.getElementById('mainContent').classList.add('panel-open');
+    }
+
+    function closeResultPanel() {
+        document.getElementById('resultPanel').classList.remove('open');
+        document.getElementById('mainContent').classList.remove('panel-open');
+    }
+
+    function corrBadgeClass(value) {
+        if (!value) return 'unknown';
+        if (value === '대응') return 'match';
+        if (value.startsWith('미대응')) return 'no-match';
+        return 'unknown'; // 확인불가 등
+    }
+
+    function renderResultPanelContent(analyses) {
+        return analyses.map((a, i) => {
+            const meta = a.metadata || {};
+            const title = meta.invention_title || a.patent_id || '특허';
+            const applyNum = meta.apply_num || a.patent_id || '';
+
+            // 라벨별 스타일
+            const labelStyles = {
+                '침해':       { bg: 'background:#FEE2E2;', color: 'color:#DC2626;', text: '침해 가능성 높음', icon: 'fa-exclamation-triangle' },
+                '침해_전문가': { bg: 'background:#FEF3C7;', color: 'color:#D97706;', text: '전문가 검토 필요', icon: 'fa-exclamation-circle' },
+                '애매':       { bg: 'background:#FEF3C7;', color: 'color:#D97706;', text: '추가 정보 필요', icon: 'fa-question-circle' },
+                '비침해':     { bg: 'background:#DCFCE7;', color: 'color:#16A34A;', text: '침해 가능성 낮음', icon: 'fa-check-circle' },
+            };
+            const ls = labelStyles[a.label] || labelStyles['비침해'];
+
+            // 구성 대비 테이블
+            const compRows = (a.comparisons || []).map(c => {
+                const cls = corrBadgeClass(c.correspondence);
+                return `<tr>
+                    <td>${escapeHtml(c.patent_element || '-')}</td>
+                    <td>${escapeHtml(c.user_element || '-')}</td>
+                    <td style="text-align:center;">
+                        <span class="corr-badge ${cls}">${escapeHtml(c.correspondence || '-')}</span>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            return `
+                <div class="panel-patent-card">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="patent-rank-badge">${i + 1}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-bold text-black truncate">${escapeHtml(title)}</div>
+                            <code class="text-xs text-neutral-400">${escapeHtml(applyNum)}</code>
+                        </div>
+                    </div>
+
+                    <!-- 판정 배지 -->
+                    <div class="flex items-center gap-2 mb-3 p-2.5 rounded-lg" style="${ls.bg} border:1px solid rgba(0,0,0,0.06);">
+                        <i class="fas ${ls.icon}" style="${ls.color}"></i>
+                        <span class="text-xs font-semibold" style="${ls.color}">${ls.text}</span>
+                    </div>
+
+                    <!-- 구성 대비 테이블 -->
+                    ${compRows ? `
+                    <div class="overflow-x-auto rounded-lg border border-neutral-200 mb-3">
+                        <table class="panel-table">
+                            <thead>
+                                <tr>
+                                    <th>특허 구성</th>
+                                    <th>사용자 제품 구성</th>
+                                    <th style="text-align:center;">대응 여부</th>
+                                </tr>
+                            </thead>
+                            <tbody>${compRows}</tbody>
+                        </table>
+                    </div>` : ''}
+
+                    <!-- 판단 -->
+                    ${a.analysis_text ? `
+                    <div class="mb-3">
+                        <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-search-plus mr-1 text-primary"></i>판단</div>
+                        <div class="text-xs text-neutral-600 leading-relaxed p-3 bg-white rounded-lg border border-neutral-100" style="white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                    </div>` : ''}
+
+                    <!-- 결론 -->
+                    ${a.conclusion_text ? `
+                    <div>
+                        <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
+                        <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                    </div>` : ''}
+                </div>`;
+        }).join('');
     }
 
     // ==================== 메시지 렌더링 ====================
@@ -540,7 +951,6 @@
     function addBotMessage(text) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
-        // 마크다운 굵게(**text**) 간단 처리
         const formatted = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
@@ -554,7 +964,7 @@
 
     // ==================== 로딩 ====================
 
-    function addLoadingMessage() {
+    function addLoadingMessage(msg) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
         div.id = 'loadingMessage';
@@ -566,7 +976,7 @@
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                 </div>
-                <div class="text-xs text-neutral-400 mt-1">분석 중... (약 5-15초 소요)</div>
+                <div class="text-xs text-neutral-400 mt-1">${escapeHtml(msg || '처리 중...')}</div>
                 <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
@@ -593,9 +1003,8 @@
 
     // ==================== 세션 카드 ====================
 
-    function addSessionCard(firstMessage, tid) {
+    function addSessionCard(firstMessage, analysisId) {
         const container = document.getElementById('chatSessions');
-        // 빈 상태 placeholder 제거
         const placeholder = container.querySelector('.text-center');
         if (placeholder) placeholder.remove();
 
@@ -610,9 +1019,8 @@
                 ${escapeHtml(firstMessage)}
             </h4>
         `;
-        card.onclick = () => goToResult(tid);
+        card.onclick = () => { window.location.href = `results.html?id=${analysisId}`; };
 
-        // 기존 active 해제
         container.querySelectorAll('.session-card').forEach(c => c.classList.remove('active'));
         container.prepend(card);
     }
@@ -622,10 +1030,15 @@
     function startNewChat() {
         threadId = null;
         isAnalyzing = false;
+        searchToken = null;
+        searchResults = null;
+        patentAnalyses = [];
+        currentAnalysisId = null;
         messageInput.value = '';
         messageInput.style.height = 'auto';
         updateSendButton();
         setStatus('대기');
+        closeResultPanel();
 
         messagesWrapper.innerHTML = `
             <div id="welcomeMessage" class="text-center py-10">
@@ -634,7 +1047,7 @@
                 </div>
                 <h1 class="text-xl font-bold text-black mb-2">특허·실용신안 리스크 분석 AI</h1>
                 <p class="text-neutral-500 text-sm mb-6">
-                    화장품 기술 구성을 입력하면 AI가 대화를 통해 리스크를 분석하고<br>충분한 정보가 모이면 상세 결과 리포트를 제공합니다
+                    화장품 기술 구성을 입력하면 AI가 유사 특허를 검색하고<br>상위 특허에 대한 침해 분석을 수행합니다
                 </p>
                 <div class="border rounded-xl p-4 mb-5 max-w-md mx-auto" style="background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04)); border-color: var(--primary-border);">
                     <p class="text-xs font-bold text-black mb-3 flex items-center justify-center gap-1.5">
@@ -644,28 +1057,23 @@
                     <div class="flex flex-col gap-2.5 text-left">
                         <div class="flex items-center gap-3">
                             <div class="step-num step-1"><span>1</span></div>
-                            <span class="text-xs text-neutral-700">기술 구성 입력 → AI가 추가 정보 요청</span>
+                            <span class="text-xs text-neutral-700">기술 구성 입력 → 유사 특허 TOP 10 검색</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="step-num step-2"><span>2</span></div>
-                            <span class="text-xs text-neutral-700">대화를 통해 성분·제형·목적 구체화</span>
+                            <span class="text-xs text-neutral-700">상위 3건 sLLM 구성대비 분석</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="step-num step-3"><span>3</span></div>
-                            <span class="text-xs text-neutral-700">충분한 정보 수집 → 상세 결과 리포트</span>
+                            <span class="text-xs text-neutral-700">구성 대비 결과 확인</span>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-center gap-3">
-                    <button onclick="fillQuery('세라마이드·판테놀 기반 피부장벽 강화 크림 조성물을 분석해줘')"
-                        class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
-                        <i class="fas fa-bolt"></i>
-                        예시로 시작하기
-                    </button>
+                <div class="flex justify-center">
                     <button onclick="document.getElementById('messageInput').focus()"
-                        class="px-5 py-2.5 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-full font-semibold text-sm transition-all">
-                        <i class="fas fa-pencil-alt mr-1"></i>
-                        직접 입력하기
+                        class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                        <i class="fas fa-pencil-alt"></i>
+                        기술 구성 입력하기
                     </button>
                 </div>
             </div>
@@ -692,6 +1100,88 @@
         if (typeof str !== 'string') return String(str ?? '');
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // ==================== 페이지 로드 시 대화 목록 불러오기 ====================
+
+    async function loadChatSessions() {
+        try {
+            const resp = await fetch(`${API_BASE}/chat`, {
+                headers: authHeaders(),
+            });
+            if (!resp.ok) return;
+
+            const chats = await resp.json();
+            if (!chats || chats.length === 0) return;
+
+            const container = document.getElementById('chatSessions');
+            // 빈 상태 placeholder 제거
+            const placeholder = container.querySelector('.text-center');
+            if (placeholder) placeholder.remove();
+
+            sessionCount = chats.length;
+            updateTotalCount();
+
+            chats.forEach(chat => {
+                const card = document.createElement('div');
+                card.className = 'session-card';
+                const dateStr = new Date(chat.updated_at).toLocaleDateString('ko-KR', {
+                    month: 'short', day: 'numeric'
+                });
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="type-badge"><i class="fas fa-file-alt mr-1"></i>특허·실용신안</span>
+                        <span class="text-xs text-neutral-500">${dateStr}</span>
+                    </div>
+                    <h4 class="text-sm font-semibold text-black leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                        ${escapeHtml(chat.title || '제목 없음')}
+                    </h4>
+                `;
+                card.onclick = () => loadChatDetail(chat.id);
+                container.appendChild(card);
+            });
+        } catch (e) {
+            console.error('대화 목록 로드 실패:', e);
+        }
+    }
+
+    async function loadChatDetail(chatId) {
+        try {
+            const resp = await fetch(`${API_BASE}/chat/${chatId}`, {
+                headers: authHeaders(),
+            });
+            if (!resp.ok) return;
+
+            const chat = await resp.json();
+            threadId = chat.id;
+
+            // 웰컴 메시지 제거
+            const welcome = document.getElementById('welcomeMessage');
+            if (welcome) welcome.remove();
+
+            // 기존 메시지 지우고 대화 복원
+            messagesWrapper.innerHTML = '';
+            if (chat.messages && chat.messages.length > 0) {
+                chat.messages.forEach(msg => {
+                    if (msg.role === 'user') {
+                        addUserMessage(msg.content);
+                    } else {
+                        addBotMessage(msg.content);
+                    }
+                });
+            }
+
+            // 사이드바 active 상태 변경
+            document.querySelectorAll('.session-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget?.classList?.add('active');
+
+            setStatus('대화 중');
+        } catch (e) {
+            console.error('대화 상세 로드 실패:', e);
+        }
+    }
+
+    // 페이지 로드 시 실행
+    loadChatSessions();
 
     // ==================== 사이드바 토글 ====================
 

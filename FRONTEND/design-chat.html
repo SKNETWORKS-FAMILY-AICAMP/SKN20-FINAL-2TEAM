@@ -522,19 +522,6 @@
         </main>
     </div>
 
-    <!-- 개발 환경 인증 우회 -->
-    <script>
-        (function() {
-            const header  = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-            const payload = btoa(JSON.stringify({ sub: 'dev', exp: Math.floor(Date.now() / 1000) + 86400 * 365 }));
-            const devToken = `${header}.${payload}.dev_signature`;
-            const devUser  = JSON.stringify({ id: 'dev', name: '개발자', email: 'dev@ftoguard.com' });
-            if (!localStorage.getItem('authToken')) {
-                localStorage.setItem('authToken', devToken);
-                localStorage.setItem('user', devUser);
-            }
-        })();
-    </script>
     <script src="toast.js"></script>
     <script src="script.js"></script>
 
