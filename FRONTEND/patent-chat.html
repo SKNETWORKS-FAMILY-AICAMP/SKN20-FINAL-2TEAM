@@ -6,6 +6,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Toast System -->
     <link rel="stylesheet" href="toast.css">
@@ -255,6 +256,42 @@
         .patent-status-badge.registered { background: #DCFCE7; color: #16A34A; }
         .patent-status-badge.published { background: #DBEAFE; color: #2563EB; }
 
+        /* 개별 분석 버튼 */
+        .patent-analyze-btn {
+            font-size: 0.6rem; font-weight: 700;
+            padding: 0.2rem 0.5rem; border-radius: 0.375rem;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .patent-analyze-btn:hover { background: var(--primary); color: white; }
+        .patent-analyze-btn:disabled { border-color: #D4D4D4; color: #A3A3A3; cursor: default; background: #F5F5F5; }
+        .patent-analyze-btn.done { border-color: #16A34A; color: #16A34A; background: #F0FDF4; cursor: pointer; }
+        .patent-analyze-btn.done:hover { background: #16A34A; color: white; }
+        .patent-analyze-btn.risk-high { border-color: #DC2626; color: #DC2626; background: #FEF2F2; cursor: pointer; font-size: 0.55rem; }
+        .patent-analyze-btn.risk-high:hover { background: #DC2626; color: white; }
+        .patent-analyze-btn.risk-medium { border-color: #D97706; color: #D97706; background: #FFFBEB; cursor: pointer; font-size: 0.55rem; }
+        .patent-analyze-btn.risk-medium:hover { background: #D97706; color: white; }
+        .patent-analyze-btn.risk-low { border-color: #16A34A; color: #16A34A; background: #F0FDF4; cursor: pointer; font-size: 0.55rem; }
+        .patent-analyze-btn.risk-low:hover { background: #16A34A; color: white; }
+
+        /* PDF 저장 버튼 */
+        .pdf-export-btn {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            width: 100%; padding: 0.75rem;
+            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+            color: white; border: none; border-radius: 0.75rem;
+            font-size: 0.8rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            margin-top: 1rem;
+        }
+        .pdf-export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,64,175,0.3); }
+        .pdf-export-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
         /* ===== 분석 프로그레스 ===== */
         .analysis-progress {
             background: white;
@@ -311,6 +348,8 @@
         #resultPanel::-webkit-scrollbar-track { background: transparent; }
         #resultPanel::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
 
+        /* (패널 닫기 탭 제거됨 — X 버튼 sticky로 대체) */
+
         #mainContent.panel-open {
             margin-right: 55%;
             transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -349,29 +388,37 @@
         .panel-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            table-layout: fixed;
         }
         .panel-table th {
             background: #F5F5F5;
             font-weight: 700;
             text-align: left;
-            padding: 0.5rem 0.75rem;
+            padding: 0.5rem 0.6rem;
             border-bottom: 2px solid #E5E5E5;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #525252;
+            white-space: nowrap;
         }
+        .panel-table th:nth-child(1) { width: 42%; }
+        .panel-table th:nth-child(2) { width: 42%; }
+        .panel-table th:nth-child(3) { width: 16%; text-align: center; }
         .panel-table td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.5rem 0.6rem;
             border-bottom: 1px solid #F0F0F0;
             vertical-align: top;
-            line-height: 1.5;
+            line-height: 1.4;
+            word-break: break-word;
         }
+        .panel-table td:nth-child(3) { text-align: center; white-space: nowrap; }
         .corr-badge {
             display: inline-block;
             padding: 0.15rem 0.4rem;
             border-radius: 0.25rem;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
+            white-space: nowrap;
         }
         .corr-badge.match { background: #FEE2E2; color: #DC2626; }
         .corr-badge.no-match { background: #DBEAFE; color: #2563EB; }
@@ -522,17 +569,23 @@
 
     <!-- 오른쪽 결과 패널 -->
     <div id="resultPanel">
-        <div class="p-6">
+        <div style="position:sticky; top:0; background:white; z-index:10; padding:1.5rem 1.5rem 0 1.5rem;">
             <div class="flex items-center justify-between mb-5">
-                <h2 class="text-base font-bold text-black flex items-center gap-2">
+                <h2 id="resultPanelTitle" class="text-base font-bold text-black flex items-center gap-2">
                     <i class="fas fa-chart-bar text-primary"></i>
-                    TOP3 구성 대비 결과
+                    구성 대비 결과
                 </h2>
                 <button onclick="closeResultPanel()" class="icon-btn" title="닫기">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div id="resultPanelContent"></div>
+        </div>
+        <div id="resultPanelContent" style="padding:0 1.5rem 1.5rem 1.5rem;"></div>
+        <div style="padding:0 1.5rem 1.5rem 1.5rem;">
+            <button class="pdf-export-btn" onclick="exportResultPDF()">
+                <i class="fas fa-file-pdf"></i>
+                PDF로 저장하기
+            </button>
         </div>
     </div>
 
@@ -683,9 +736,14 @@
             for (let i = 0; i < analyzeCount; i++) {
                 setProgressStep(progressEl, i, 'active');
                 const result = await callAnalyzePatentAPI(searchToken, i);
+                result.patent_index = i;
                 patentAnalyses.push(result);
                 setProgressStep(progressEl, i, 'done');
+                updatePatentButton(i, result);
             }
+
+            // 4~10번 분석 버튼 활성화
+            enableRemainingButtons();
 
             // ── Phase 3: 저장 ──
             const finalResp = await callFinalizeAPI(searchToken, patentAnalyses);
@@ -724,16 +782,29 @@
             const statusClass = hasRegit ? 'registered' : 'published';
             const title = meta.invention_title || '(제목 없음)';
             const applyNum = meta.apply_num || r.patent_id || '-';
+            const isTop3 = i < 3;
             return `
                 <div class="patent-list-item">
                     <div class="patent-rank-badge">${i + 1}</div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
-                            <code class="text-xs text-neutral-400 font-mono">${escapeHtml(applyNum)}</code>
+                            <span class="text-xs text-neutral-400">출원번호:</span>
+                            <a href="https://kpat.kipris.or.kr/kpat/searchLogina.do?next=MainSearch&method=search&searchText=${encodeURIComponent(applyNum)}"
+                               target="_blank" rel="noopener"
+                               class="text-xs font-mono hover:underline"
+                               style="color: var(--primary);"
+                               title="KIPRIS에서 조회"
+                               onclick="event.stopPropagation();">${escapeHtml(applyNum)}</a>
                             <span class="patent-status-badge ${statusClass}">${statusText}</span>
                         </div>
                         <div class="text-xs text-neutral-700 mt-0.5 truncate">${escapeHtml(title)}</div>
                     </div>
+                    <button class="patent-analyze-btn"
+                            data-patent-index="${i}"
+                            onclick="analyzeSinglePatent(this, ${i})"
+                            ${isTop3 ? '' : 'disabled'}>
+                        ${isTop3 ? '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석 예정' : '<i class="fas fa-microscope" style="font-size:7px;"></i> 분석'}
+                    </button>
                 </div>`;
         }).join('');
 
@@ -802,6 +873,68 @@
         scrollToBottom();
     }
 
+    // ==================== 개별 특허 분석 ====================
+
+    function updatePatentButton(index, analysis) {
+        const btn = document.querySelector(`.patent-analyze-btn[data-patent-index="${index}"]`);
+        if (!btn) return;
+        const comps = analysis.comparisons || [];
+        const matchCount = comps.filter(c => c.correspondence === '대응').length;
+        const total = comps.length;
+        const label = analysis.label || '';
+
+        let riskClass = 'risk-low';
+        let labelText = '비침해';
+        if (label === '침해') { riskClass = 'risk-high'; labelText = '침해'; }
+        else if (label === '침해_전문가' || label === '애매') { riskClass = 'risk-medium'; labelText = label === '애매' ? '추가확인' : '전문가검토'; }
+
+        btn.disabled = false;
+        btn.className = `patent-analyze-btn ${riskClass}`;
+        btn.innerHTML = `${labelText} | 대응 ${matchCount}/${total}`;
+    }
+
+    function enableRemainingButtons() {
+        document.querySelectorAll('.patent-analyze-btn[disabled]').forEach(btn => {
+            btn.disabled = false;
+        });
+    }
+
+    async function analyzeSinglePatent(btn, index) {
+        // 이미 분석 완료된 항목이면 결과 패널 열기
+        const existing = patentAnalyses.find(a => a.patent_index === index);
+        if (existing) {
+            openResultPanelSingle(existing);
+            return;
+        }
+
+        if (!searchToken || isAnalyzing) return;
+
+        // 버튼 로딩 상태
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석중...';
+
+        try {
+            const result = await callAnalyzePatentAPI(searchToken, index);
+            result.patent_index = index;
+            patentAnalyses.push(result);
+
+            // 현재 analysisId에 업데이트
+            if (currentAnalysisId) {
+                analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
+            }
+
+            // 버튼에 판정+대응비율 표시
+            updatePatentButton(index, result);
+
+            // 결과 패널에 해당 특허 표시
+            openResultPanelSingle(result);
+        } catch (e) {
+            console.error('개별 분석 실패:', e);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-microscope" style="font-size:7px;"></i> 재시도';
+        }
+    }
+
     // ==================== 결과보기 버튼 ====================
 
     function addResultViewButton(analyses, analysisId) {
@@ -836,12 +969,27 @@
 
     // ==================== 결과 패널 ====================
 
+    let lastPanelAnalyses = []; // PDF 출력용 현재 패널 데이터
+
     function openResultPanel(analysisId) {
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
-        // analysisId가 있으면 저장된 결과 사용, 없으면 현재 결과
         const data = analysisId ? (analysesHistory.get(analysisId) || patentAnalyses) : patentAnalyses;
+        lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP${data.length} 구성 대비 결과`;
+        panel.classList.add('open');
+        document.getElementById('mainContent').classList.add('panel-open');
+    }
+
+    function openResultPanelSingle(analysis) {
+        const panel = document.getElementById('resultPanel');
+        const content = document.getElementById('resultPanelContent');
+        lastPanelAnalyses = [analysis];
+        content.innerHTML = renderResultPanelContent([analysis]);
+        const meta = analysis.metadata || {};
+        const title = meta.invention_title || analysis.patent_id || '특허';
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> ${escapeHtml(title).substring(0, 20)}...`;
         panel.classList.add('open');
         document.getElementById('mainContent').classList.add('panel-open');
     }
@@ -849,6 +997,65 @@
     function closeResultPanel() {
         document.getElementById('resultPanel').classList.remove('open');
         document.getElementById('mainContent').classList.remove('panel-open');
+    }
+
+    // ==================== PDF 내보내기 ====================
+
+    function exportResultPDF() {
+        const btn = document.querySelector('.pdf-export-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF 생성 중...';
+
+        // 사용자 쿼리 가져오기
+        const userMsgs = document.querySelectorAll('.msg.user .msg-bubble');
+        const userQuery = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].textContent.trim() : '(질문 없음)';
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const fileDate = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+
+        // PDF용 임시 컨테이너
+        const pdfDiv = document.createElement('div');
+        pdfDiv.style.cssText = 'width:700px; padding:40px; font-family:sans-serif; color:#333;';
+
+        // 상단 헤더
+        pdfDiv.innerHTML = `
+            <div style="border-bottom:3px solid #FF6B35; padding-bottom:16px; margin-bottom:24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1 style="font-size:22px; font-weight:800; color:#1a1a1a; margin:0;">FTOGuard 특허 침해 분석 리포트</h1>
+                    <span style="font-size:11px; color:#999;">REPORT</span>
+                </div>
+                <div style="margin-top:12px; font-size:12px; color:#666;">
+                    <div><strong>생성일시:</strong> ${dateStr}</div>
+                    <div style="margin-top:4px;"><strong>분석 질문:</strong> ${escapeHtml(userQuery)}</div>
+                </div>
+            </div>
+            ${document.getElementById('resultPanelContent').innerHTML}
+            <div style="margin-top:32px; padding:16px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; font-size:10px; color:#6B7280; line-height:1.6;">
+                <strong style="color:#374151;">법적 고지</strong><br>
+                본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, 법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. 최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.
+            </div>
+        `;
+
+        document.body.appendChild(pdfDiv);
+
+        html2pdf().set({
+            margin: 10,
+            filename: `FTO분석결과_${fileDate}.pdf`,
+            image: { type: 'jpeg', quality: 0.95 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+        }).from(pdfDiv).save().then(() => {
+            document.body.removeChild(pdfDiv);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+        }).catch(err => {
+            console.error('PDF 생성 실패:', err);
+            document.body.removeChild(pdfDiv);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+        });
     }
 
     function corrBadgeClass(value) {
@@ -1184,6 +1391,24 @@
         }
     }
 
+    async function deleteChat(chatId, cardElement) {
+        if (!confirm('이 대화를 삭제할까요?')) return;
+        try {
+            const resp = await fetch(`${API_BASE}/chat/${chatId}`, {
+                method: 'DELETE',
+                headers: authHeaders(),
+            });
+            if (resp.ok) {
+                cardElement.remove();
+                sessionCount--;
+                updateTotalCount();
+                if (threadId == chatId) startNewChat();
+            }
+        } catch (e) {
+            console.error('삭제 실패:', e);
+        }
+    }
+
     async function loadChatHistory(chatId) {
         try {
             const response = await fetch(`${API_BASE}/chat/${chatId}`, {
@@ -1202,8 +1427,10 @@
             // 메시지 영역 초기화
             if (welcomeMessage) welcomeMessage.remove();
             messagesWrapper.innerHTML = '';
+            closeResultPanel();
 
-            // 메시지 렌더링 (시간 포함)
+            // 메시지 렌더링 + 분석 결과 복원
+            const analysisIds = [];
             if (chat.messages && chat.messages.length > 0) {
                 chat.messages.forEach(msg => {
                     if (msg.role === 'user') {
@@ -1211,7 +1438,30 @@
                     } else if (msg.role === 'assistant') {
                         addBotMessage(msg.content, msg.created_at);
                     }
+                    // analysis는 user 메시지에 연결되어 있음
+                    if (msg.analysis_id) {
+                        analysisIds.push(msg.analysis_id);
+                    }
                 });
+            }
+
+            // 분석 결과가 있으면 복원
+            for (const aid of analysisIds) {
+                try {
+                    const aResp = await fetch(`${API_BASE}/chat/analysis/${aid}`, {
+                        headers: authHeaders(),
+                    });
+                    if (aResp.ok) {
+                        const aData = await aResp.json();
+                        const analyses = aData.patent_analyses || [];
+                        if (analyses.length > 0) {
+                            analysesHistory.set(aid, analyses);
+                            addResultViewButton(analyses, aid);
+                        }
+                    }
+                } catch (e) {
+                    console.error('분석 결과 로드 실패:', e);
+                }
             }
 
             setStatus('대화 중');

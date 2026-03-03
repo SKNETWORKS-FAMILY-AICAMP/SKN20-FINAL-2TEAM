@@ -653,36 +653,9 @@
             }, 500);
         }
 
-        // Load mock sessions
+        // Load sessions (mock 데이터 제거 — 실제 API 연동 필요)
         function loadMockSessions() {
-            const mockSessions = [
-                {
-                    id: 'session-001',
-                    type: 'fto',
-                    productName: '세라마이드·판테놀 기반 피부장벽 강화 크림 특허 분석',
-                    risk: 'safe',
-                    date: '오늘',
-                    timestamp: new Date()
-                },
-                {
-                    id: 'session-002',
-                    type: 'design',
-                    productName: '쿠션 팩트 케이스 타원형 슬림 디자인 유사도 검증',
-                    risk: 'warning',
-                    date: '어제',
-                    timestamp: new Date(Date.now() - 86400000)
-                },
-                {
-                    id: 'session-003',
-                    type: 'fto',
-                    productName: '무기자차 자외선 차단 선크림 조성물 특허 침해 분석',
-                    risk: 'safe',
-                    date: '2일 전',
-                    timestamp: new Date(Date.now() - 172800000)
-                }
-            ];
-
-            updateSessionList(mockSessions);
+            updateSessionList([]);
         }
 
         // Sidebar toggle

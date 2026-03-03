@@ -196,7 +196,7 @@ if (loginForm) {
             
             // Redirect to analysis page
             setTimeout(() => {
-                window.location.href = 'analysis.html';
+                window.location.href = 'select-analysis-type.html';
             }, 1000);
             
         } catch (error) {
