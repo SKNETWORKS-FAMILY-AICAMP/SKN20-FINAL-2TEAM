@@ -53,6 +53,13 @@ class Settings(BaseSettings):
     # OpenAI GPT 폴백
     OPENAI_API_KEY: str = ""
 
+    # AWS S3
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "ap-northeast-2"
+    S3_BUCKET_NAME: str = "ftoguard-design-images"
+    S3_DESIGN_PREFIX: str = "design-sessions/"
+
     class Config:
         env_file = _ENV_FILE
         extra = "allow"

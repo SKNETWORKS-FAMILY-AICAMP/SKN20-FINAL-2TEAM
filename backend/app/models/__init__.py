@@ -8,6 +8,14 @@ from app.models.analysis import (
     ClaimMatch
 )
 from app.models.patent import Patent
+from app.models.design_session import (
+    DesignSession,
+    DesignSessionImage,
+    DesignSessionMessage,
+    DesignSessionStatus,
+    ImageType,
+    MessageRole,
+)
 
 __all__ = [
     "User",
@@ -19,4 +27,10 @@ __all__ = [
     "ImageMatch",
     "ClaimMatch",
     "Patent",
+    "DesignSession",
+    "DesignSessionImage",
+    "DesignSessionMessage",
+    "DesignSessionStatus",
+    "ImageType",
+    "MessageRole",
 ]
