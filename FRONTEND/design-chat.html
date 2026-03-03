@@ -548,6 +548,7 @@
     let conversationThreadId = null;
     let imageContextThreadId = null;
     let sessionCount = 0;
+    let currentAbortController = null;
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -695,10 +696,13 @@
         updateSendButton();
 
         try {
+            currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/image`, {
                 method: 'POST',
                 body: formData,
+                signal: currentAbortController.signal,
             });
+            currentAbortController = null;
 
             removeLoadingMessage();
 
@@ -720,6 +724,8 @@
                 setStatus('오류');
             }
         } catch (error) {
+            currentAbortController = null;
+            if (error.name === 'AbortError') return;
             removeLoadingMessage();
             addBotMessage(`오류: ${error.message}`);
             setStatus('오류');
@@ -742,10 +748,13 @@
         formData.append('selected_index', index);
 
         try {
+            currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/select`, {
                 method: 'POST',
                 body: formData,
+                signal: currentAbortController.signal,
             });
+            currentAbortController = null;
 
             removeLoadingMessage();
 
@@ -766,6 +775,8 @@
                 addBotMessage('상세 비교 중 오류가 발생했습니다.');
             }
         } catch (error) {
+            currentAbortController = null;
+            if (error.name === 'AbortError') return;
             removeLoadingMessage();
             addBotMessage(`오류: ${error.message}`);
         }
@@ -792,10 +803,13 @@
         if (imageContextThreadId) formData.append('image_thread_id', imageContextThreadId);
 
         try {
+            currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/text`, {
                 method: 'POST',
                 body: formData,
+                signal: currentAbortController.signal,
             });
+            currentAbortController = null;
 
             removeLoadingMessage();
 
@@ -818,6 +832,8 @@
                 addBotMessage('답변 생성 중 오류가 발생했습니다.');
             }
         } catch (error) {
+            currentAbortController = null;
+            if (error.name === 'AbortError') return;
             removeLoadingMessage();
             addBotMessage(`오류: ${error.message}`);
             setStatus('오류');
@@ -966,10 +982,21 @@
                     <div class="typing-dot"></div>
                 </div>
                 <div class="text-xs text-neutral-400 mt-1">분석 중... (약 10-30초 소요)</div>
+                <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+    }
+
+    function cancelRequest() {
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+        }
+        removeLoadingMessage();
+        addBotMessage('요청이 취소되었습니다.');
+        setStatus('대기');
     }
 
     function removeLoadingMessage() {
