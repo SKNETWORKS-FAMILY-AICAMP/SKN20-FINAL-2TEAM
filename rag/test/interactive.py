@@ -26,7 +26,7 @@ from rag.search.retriever import (
     reciprocal_rank_fusion, patent_collapse,
     _get_collection,
 )
-from rag.generate import build_fto_prompt, call_llm, parse_fto_response
+from rag.generate import generate, build_prompt, call_llm, parse_response
 
 
 def step(num, total, msg):
@@ -115,28 +115,34 @@ def run_search(query):
 
 
 def run_fto(search_results, query):
-    """FTO 분석을 단계별로 실행."""
-    total = 3
+    """FTO 분석을 단계별로 실행 (1건씩 sLLM 호출)."""
+    top_n = config.GENERATE_TOP_N
+    total_steps = top_n
+    analyses = []
 
-    # 1. 프롬프트 조립
-    step(1, total, "FTO 프롬프트 조립 중")
-    messages = build_fto_prompt(search_results, query)
-    sys_len = len(messages[0]["content"])
-    usr_len = len(messages[1]["content"])
-    done(f"system={sys_len}자, user={usr_len}자")
+    for i, result in enumerate(search_results[:top_n]):
+        patent_id = result.get("patent_id", "unknown")
+        meta = result.get("metadata", {})
+        title = meta.get("invention_title", "")[:40]
 
-    # 2. GPT 호출
-    step(2, total, "GPT-4o-mini 호출 중 (시간 소요)")
-    raw = call_llm(messages)
-    done(f"응답 {len(raw)}자")
+        # 프롬프트 조립 + sLLM 호출
+        step(i + 1, total_steps, f"sLLM 분석 중: {patent_id} ({title})")
+        messages = build_prompt(result, query)
 
-    # 3. 파싱
-    step(3, total, "응답 파싱 중")
-    parsed = parse_fto_response(raw)
-    n = len(parsed.get("patent_analyses", []))
-    done(f"{n}건 분석")
+        try:
+            raw = call_llm(messages)
+            parsed = parse_response(raw)
+            parsed["patent_id"] = patent_id
+            parsed["score"] = result.get("score", 0)
+            parsed["metadata"] = meta
+            parsed["estoppel_claim_numbers"] = result.get("estoppel_claim_numbers", [])
+            analyses.append(parsed)
+            done(f"{parsed.get('label', '?')}")
+        except Exception as e:
+            done(f"실패: {e}")
+            analyses.append({"patent_id": patent_id, "error": str(e)})
 
-    return parsed
+    return {"patent_analyses": analyses, "fto_opinion": "", "raw_output": ""}
 
 
 def print_search_results(results):

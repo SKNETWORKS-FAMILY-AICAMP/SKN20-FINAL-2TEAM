@@ -22,7 +22,7 @@ RAG_DIR = _rag_dir
 PROJECT_DIR = RAG_DIR.parent                  # SKN20-FINAL-2TEAM
 DATA_DIR = RAG_DIR / "data"
 INDEX_DIR = RAG_DIR / "index"
-CHROMA_DIR = INDEX_DIR / "chroma_db"
+CHROMA_DIR = PROJECT_DIR / "data" / "chroma-patent"  # data/chroma-patent/ (Docker/EC2 공유)
 SPARSE_INDEX_DIR = INDEX_DIR / "bm25_index"
 CLAIM_KEYWORDS_SQLITE_PATH = INDEX_DIR / "claim_keywords.sqlite"
 PARENT_DB_PATH = INDEX_DIR / "parent_store" / "parents.sqlite"
@@ -187,8 +187,8 @@ RUNPOD_TEXT_BASE_URL = os.environ.get("RUNPOD_TEXT_BASE_URL", "")
 RUNPOD_DESIGN_BASE_URL = os.environ.get("RUNPOD_DESIGN_BASE_URL", "")
 
 # vLLM 설정 (RunPod 서버리스 또는 로컬)
-VLLM_API_URL = os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")
-VLLM_MODEL_NAME = os.environ.get("VLLM_MODEL_NAME") or os.environ.get("VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
+VLLM_API_URL = os.environ.get("RUNPOD_PATENT_BASE_URL") or os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")
+VLLM_MODEL_NAME = os.environ.get("PATENT_VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
 VLLM_TIMEOUT = 300  # 서버리스 Cold Start 고려하여 5분
 
 GPT_FALLBACK_MODEL = "gpt-4o-mini"

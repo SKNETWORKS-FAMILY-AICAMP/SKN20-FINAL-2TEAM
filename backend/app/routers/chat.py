@@ -21,8 +21,8 @@ from app.models.user import User
 router = APIRouter()
 
 # vLLM 클라이언트 (RunPod 서버리스)
-VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
-VLLM_MODEL = os.getenv("VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
+VLLM_BASE_URL = os.getenv("RUNPOD_PATENT_BASE_URL") or os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
+VLLM_MODEL = os.getenv("PATENT_VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
 
 SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
@@ -211,7 +211,7 @@ async def send_chat_message(
             from rag.backend_adapter import analyze_product
             from app.models.analysis import Analysis, InputTypeEnum, RiskLevelEnum as ModelRiskLevel
 
-            rag_result = analyze_product(message)
+            rag_result = analyze_product(message, verbose=True)
             fto_result = rag_result.get("fto_result", {})
             fto_opinion = fto_result.get("fto_opinion", "")
             patent_analyses = fto_result.get("patent_analyses", [])
@@ -300,19 +300,19 @@ def _call_vllm_fallback(db, chat_id: int, user_id: int, chat_service: "ChatServi
     except Exception as vllm_err:
         print(f"[vLLM 폴백] RunPod 서버리스 호출 실패: {vllm_err}")
 
-    # 2순위: OpenAI GPT-4o-mini
-    openai_key = os.getenv("OPENAI_API_KEY", "")
-    if openai_key:
-        try:
-            client = OpenAI(api_key=openai_key, timeout=60)
-            resp = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages_payload,
-                max_tokens=2048,
-                temperature=0.1,
-            )
-            return resp.choices[0].message.content
-        except Exception as gpt_err:
-            return f"모델 호출 중 오류가 발생했습니다 (vLLM + GPT 모두 실패): {str(gpt_err)}"
+    # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+    # openai_key = os.getenv("OPENAI_API_KEY", "")
+    # if openai_key:
+    #     try:
+    #         client = OpenAI(api_key=openai_key, timeout=60)
+    #         resp = client.chat.completions.create(
+    #             model="gpt-4o-mini",
+    #             messages=messages_payload,
+    #             max_tokens=2048,
+    #             temperature=0.1,
+    #         )
+    #         return resp.choices[0].message.content
+    #     except Exception as gpt_err:
+    #         return f"모델 호출 중 오류가 발생했습니다 (vLLM + GPT 모두 실패): {str(gpt_err)}"
 
-    return "모델 서버에 연결할 수 없습니다. vLLM 서버를 시작하거나 OPENAI_API_KEY를 설정하세요."
+    return "모델 서버에 연결할 수 없습니다. RunPod 설정(.env)을 확인하세요."

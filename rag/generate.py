@@ -333,19 +333,16 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
 # ══════════════════════════════════════════════════════
 
 def call_llm(messages: list[dict]) -> str:
-    """LLM 호출. vLLM(1순위) -> GPT-4o-mini(폴백)."""
-    # 1순위: vLLM
-    if config.VLLM_API_URL:
-        try:
-            return _call_vllm(messages)
-        except Exception as e:
-            print(f"[WARN] vLLM 호출 실패: {e} -> GPT 폴백")
+    """LLM 호출. vLLM 전용 (보안 정책: 외부 API 폴백 비활성화)."""
+    if not config.VLLM_API_URL:
+        raise RuntimeError(
+            "[rag] VLLM_API_URL 미설정. .env 파일을 확인하세요."
+        )
+    return _call_vllm(messages)
 
-    # 2순위: GPT-4o-mini
-    if config.OPENAI_API_KEY:
-        return _call_openai(messages)
-
-    raise RuntimeError("LLM 호출 불가: VLLM_API_URL과 OPENAI_API_KEY 모두 미설정")
+    # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+    # if config.OPENAI_API_KEY:
+    #     return _call_openai(messages)
 
 
 def _call_vllm(messages: list[dict]) -> str:
@@ -369,20 +366,21 @@ def _call_vllm(messages: list[dict]) -> str:
     return resp.choices[0].message.content
 
 
-def _call_openai(messages: list[dict]) -> str:
-    """GPT-4o-mini OpenAI API 호출."""
-    from openai import OpenAI
-    client = OpenAI(
-        api_key=config.OPENAI_API_KEY,
-        timeout=config.GPT_TIMEOUT,
-    )
-    resp = client.chat.completions.create(
-        model=config.GPT_FALLBACK_MODEL,
-        messages=messages,
-        max_tokens=config.GENERATE_MAX_TOKENS,
-        temperature=config.GENERATE_TEMPERATURE,
-    )
-    return resp.choices[0].message.content
+# GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
+# def _call_openai(messages: list[dict]) -> str:
+#     """GPT-4o-mini OpenAI API 호출."""
+#     from openai import OpenAI
+#     client = OpenAI(
+#         api_key=config.OPENAI_API_KEY,
+#         timeout=config.GPT_TIMEOUT,
+#     )
+#     resp = client.chat.completions.create(
+#         model=config.GPT_FALLBACK_MODEL,
+#         messages=messages,
+#         max_tokens=config.GENERATE_MAX_TOKENS,
+#         temperature=config.GENERATE_TEMPERATURE,
+#     )
+#     return resp.choices[0].message.content
 
 
 # ══════════════════════════════════════════════════════

@@ -160,14 +160,21 @@ def analyze(
     Returns:
         {"query": str, "search_results": list, "fto_result": dict}
     """
-    from ..generate import generate_fto
+    from ..generate import generate
 
     search_results = search(query, top_k=top_k, verbose=verbose, **search_kwargs)
 
     if verbose:
-        print(f"\n[FTO 분석 시작] 상위 {config.GENERATE_INPUT_N}건 → {config.GENERATE_OUTPUT_N}건 선별")
+        print(f"\n[FTO 분석 시작] 상위 {config.GENERATE_TOP_N}건 → 1건씩 sLLM 호출")
 
-    fto_result = generate_fto(search_results, query, verbose=verbose)
+    analyses = generate(search_results, query, verbose=verbose)
+
+    # generate()는 list[dict] 반환 → generate_fto() 호환 형식으로 래핑
+    fto_result = {
+        "patent_analyses": analyses,
+        "fto_opinion": "",
+        "raw_output": "",
+    }
 
     return {
         "query": query,
