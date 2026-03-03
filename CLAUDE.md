@@ -67,6 +67,69 @@ claim_keywords.chunk_id ←→ claim_components.chunk_id
 
 ---
 
+## AWS EC2 설정 (2026-03-03 업데이트)
+
+### 인스턴스 정보
+
+| 항목 | 값 |
+|------|-----|
+| 인스턴스 유형 | `r6i.large` (변경 예정) |
+| 리전 | ap-northeast-2 (서울) |
+| OS | Amazon Linux 2023 또는 Ubuntu 22.04 |
+
+### 인스턴스 유형 변경 방법
+
+```bash
+# EC2 콘솔에서:
+1. 인스턴스 선택
+2. 인스턴스 상태 → 인스턴스 중지 (Stop)
+3. 작업 → 인스턴스 설정 → 인스턴스 유형 변경
+4. r6i.large 선택 → 적용
+5. 인스턴스 상태 → 인스턴스 시작 (Start)
+```
+
+**주의**: 중지 → 시작 시 퍼블릭 IP가 바뀔 수 있음 (Elastic IP 없으면)
+
+### EC2 초기 설정 (인스턴스 시작 후)
+
+```bash
+# 1. 시스템 업데이트
+sudo yum update -y  # Amazon Linux
+# 또는
+sudo apt update && sudo apt upgrade -y  # Ubuntu
+
+# 2. Docker 설치
+sudo yum install -y docker  # Amazon Linux
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+
+# 3. Docker Compose 설치
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# 4. 프로젝트 클론
+git clone https://github.com/your-repo/SKN20-FINAL-2TEAM.git
+cd SKN20-FINAL-2TEAM
+
+# 5. ChromaDB 데이터 복원 (S3에서 또는 로컬에서)
+# TODO: S3 버킷에서 /data/chroma/ 복원
+
+# 6. Docker Compose 실행
+docker-compose up -d
+```
+
+### EC2에서 필요한 포트 (보안 그룹)
+
+| 포트 | 용도 | 소스 |
+|------|------|------|
+| 22 | SSH | 내 IP |
+| 80 | HTTP (Nginx) | 0.0.0.0/0 |
+| 443 | HTTPS | 0.0.0.0/0 |
+| 8080 | FastAPI (내부) | VPC 내부 |
+
+---
+
 ## 이미지 분석 (디자인 특허)
 
 **RDS 사용 안 함** - ChromaDB만 사용
@@ -82,7 +145,7 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 
 ---
 
-## 현재 구현 상태 (2026-03-02 업데이트)
+## 현재 구현 상태 (2026-03-03 업데이트)
 
 ### 완료된 것
 - [x] Qwen2.5-14B LoRA → 베이스 병합 (`itsbini/qwen2.5-14b-fto-merged`)
@@ -95,18 +158,19 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
   - 디자인 이미지용: `hmh882ms5azjye`
 - [x] **claim_keywords RDS 교체 완료 (2026-03-02)** - 10,027,989건 + 인덱스 3개
 - [x] **claim_components RDS 교체 완료 (2026-03-02)** - 127,893건 (등록 청구항 기준)
+- [x] **멀티턴 대화 지원 (2026-03-03)** - history를 RAG 파이프라인에 전달
 
 ---
 
-## 할 일 목록 (2026-03-02 연휴 작업)
+## 할 일 목록 (2026-03-03 업데이트)
 
 ### 1. 인프라 작업
 
 | 작업 | 상태 | 비고 |
 |------|------|------|
-| ChromaDB Docker화 | ⬜ | EC2 직접 설치 → Docker Compose로 변경 |
-| EC2 인스턴스 유형 변경 | ⬜ | r6i.large (KURE 때문) - 멘토/강사님 확인 필요 |
-| 디자인 ChromaDB Docker | ⬜ | 이미지용 ChromaDB 컨테이너 |
+| EC2 인스턴스 유형 변경 | ⬜ | r6i.large로 변경 (KURE 임베딩 모델 때문) |
+| ChromaDB Docker화 | ⬜ | 특허 + 디자인 ChromaDB → Docker Compose |
+| 코드 배포 (git pull) | ⬜ | EC2에서 최신 코드 pull |
 
 ### 2. 백엔드 작업
 
@@ -115,6 +179,7 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 | pre-filter 키워드 RDS 교체 | ✅ | claim_keywords 10,027,989건 + 인덱스 3개 |
 | component 키워드 RDS 교체 | ✅ | claim_components 127,893건 (등록 청구항) |
 | RunPod 서버리스 설정 | ✅ | 14B + VL 7B 엔드포인트 완료 |
+| 멀티턴 대화 지원 | ✅ | history 파라미터 추가 완료 |
 | 백엔드 → 서버리스 연결 | ⬜ | chat.py에서 RunPod API 호출로 변경 |
 
 ### 3. 프론트엔드 작업
@@ -132,10 +197,20 @@ ChromaDB 위치: EC2 `/data/chroma/images/`
 ```
 1. ~~pre-filter 키워드 RDS 교체~~ ✅
 2. ~~component 키워드 RDS 교체~~ ✅
-3. 백엔드 → RunPod 서버리스 연결 (테스트)
-4. 디자인 ChromaDB Docker화
-5. 프론트엔드 개선
+3. ~~멀티턴 대화 지원~~ ✅
+4. EC2 인스턴스 유형 변경 (r6i.large)
+5. ChromaDB Docker Compose 설정
+6. 백엔드 → RunPod 서버리스 연결 (테스트)
+7. 프론트엔드 개선
 ```
+
+### EC2 변경 후 확인사항
+- [ ] 인스턴스 유형이 r6i.large로 변경되었는지 확인
+- [ ] EBS 볼륨 (ChromaDB 데이터) 정상 마운트 확인
+- [ ] git pull로 최신 코드 반영
+- [ ] Docker Compose로 서비스 실행
+- [ ] RDS 연결 테스트
+- [ ] RunPod 서버리스 연결 테스트
 
 ---
 

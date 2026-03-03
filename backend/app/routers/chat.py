@@ -212,7 +212,17 @@ async def send_chat_message(
             from rag.backend_adapter import analyze_product
             from app.models.analysis import Analysis, InputTypeEnum, RiskLevelEnum as ModelRiskLevel
 
-            rag_result = analyze_product(message, verbose=True)
+            # 대화 히스토리 조회 (멀티턴 지원)
+            history_messages = []
+            if chat_id:
+                chat_with_messages = chat_service.get_chat(chat_id, current_user.id)
+                if chat_with_messages and hasattr(chat_with_messages, 'messages'):
+                    for msg in list(chat_with_messages.messages)[-10:]:  # 최근 10개만
+                        role = str(msg.role.value) if hasattr(msg.role, 'value') else str(msg.role)
+                        if role in ("user", "assistant"):
+                            history_messages.append({"role": role, "content": msg.content})
+
+            rag_result = analyze_product(message, verbose=True, history=history_messages)
             fto_result = rag_result.get("fto_result", {})
             fto_opinion = fto_result.get("fto_opinion", "")
             patent_analyses = fto_result.get("patent_analyses", [])
