@@ -114,17 +114,19 @@ def search(
     if verbose:
         print(f"[Collapse] {len(collapsed)}개 특허")
 
-    # 6. ParentDB 필터링 + 보강 (등록 상태 확인 + 메타데이터·청구항 원문·청크 구조 통합)
+    # 6. ParentDB 필터링 + 보강 (AWS RDS 우선 사용)
     try:
-        parent_db = ParentDB()
-    except FileNotFoundError:
+        parent_db = MySQLParentDB()
+        if verbose:
+            print("[ParentDB] AWS RDS 사용")
+    except Exception as e:
         try:
-            parent_db = MySQLParentDB()
+            parent_db = ParentDB()
             if verbose:
-                print("[ParentDB] SQLite 없음 → MySQL RDS 폴백 사용")
-        except Exception as e:
+                print(f"[ParentDB] RDS 실패({e}) → 로컬 SQLite 폴백")
+        except FileNotFoundError:
             if verbose:
-                print(f"[ParentDB] MySQL 폴백도 실패: {e} → 메타데이터 보강 없이 반환")
+                print(f"[ParentDB] SQLite도 없음 → 메타데이터 보강 없이 반환")
             return collapsed
 
     results = apply_rdb_filter(collapsed, parent_db)
