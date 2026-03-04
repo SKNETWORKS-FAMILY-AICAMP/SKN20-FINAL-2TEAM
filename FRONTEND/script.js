@@ -8,8 +8,8 @@ const DEV_BYPASS_AUTH = false;
 // ==========================
 class AuthManager {
     constructor() {
-        this.token = localStorage.getItem('authToken');
-        this.user = JSON.parse(localStorage.getItem('user') || 'null');
+        this.token = sessionStorage.getItem('authToken');
+        this.user = JSON.parse(sessionStorage.getItem('user') || 'null');
     }
 
     isAuthenticated() {
@@ -29,12 +29,12 @@ class AuthManager {
     login(token, user) {
         this.token = token;
         this.user = user;
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('authToken', token);
+        sessionStorage.setItem('user', JSON.stringify(user));
     }
 
     logout() {
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = 'login.html';
     }
 
@@ -146,8 +146,8 @@ function updateAuthUI() {
     if (!loginBtn && !loginBtnMobile) return;
 
     if (authManager.token && !authManager.isTokenValid()) {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("authToken");
+        sessionStorage.removeItem("user");
         authManager.token = null;
         authManager.user = null;
     }

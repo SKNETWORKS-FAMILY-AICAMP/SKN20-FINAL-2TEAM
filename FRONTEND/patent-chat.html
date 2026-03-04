@@ -364,8 +364,8 @@
             top: 80px;
             right: 0;
             bottom: 0;
-            width: 55%;
-            max-width: 720px;
+            width: 48%;
+            max-width: 650px;
             background: white;
             border-left: 1px solid #E5E5E5;
             box-shadow: -4px 0 24px rgba(0,0,0,0.08);
@@ -379,14 +379,12 @@
         #resultPanel::-webkit-scrollbar-track { background: transparent; }
         #resultPanel::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
 
-        /* (패널 닫기 탭 제거됨 — X 버튼 sticky로 대체) */
-
         /* 패널 열림 시 메인 콘텐츠 축소 (패널과 나란히 표시) */
         #mainContent {
             transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #mainContent.panel-open {
-            margin-right: min(55%, 720px);
+            margin-right: min(48%, 650px);
         }
 
         /* 결과보기 버튼 */
@@ -682,7 +680,7 @@
     // ==================== API 호출 ====================
 
     function authHeaders() {
-        const token = localStorage.getItem('authToken') || '';
+        const token = sessionStorage.getItem('authToken') || '';
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
@@ -1718,14 +1716,19 @@
                 method: 'DELETE',
                 headers: authHeaders(),
             });
-            if (resp.ok) {
+            if (resp.ok || resp.status === 204) {
                 cardElement.remove();
                 sessionCount--;
                 updateTotalCount();
                 if (threadId == chatId) startNewChat();
+            } else {
+                const err = await resp.text().catch(() => '');
+                console.error('삭제 실패:', resp.status, err);
+                alert(`삭제 실패 (${resp.status})`);
             }
         } catch (e) {
             console.error('삭제 실패:', e);
+            alert('삭제 중 오류가 발생했습니다.');
         }
     }
 
