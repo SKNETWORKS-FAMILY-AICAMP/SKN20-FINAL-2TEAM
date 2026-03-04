@@ -668,7 +668,7 @@
         // 사용자 메시지 표시
         addUserMessage(query, file);
         setStatus('분석 중');
-        addLoadingMessage();
+        addLoadingMessage('image');
 
         const formData = new FormData();
         formData.append('image', file);
@@ -918,7 +918,7 @@
             </div>
         `;
         messagesWrapper.appendChild(div);
-        scrollToBottom();
+        div.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function addReportMessage(result) {
@@ -966,7 +966,11 @@
 
     // ==================== 로딩 ====================
 
-    function addLoadingMessage() {
+    let _loadingTimer1 = null;
+    let _loadingTimer2 = null;
+    let _loadingInterval = null;
+
+    function addLoadingMessage(mode = 'default') {
         const div = document.createElement('div');
         div.className = 'msg assistant';
         div.id = 'loadingMessage';
@@ -978,12 +982,55 @@
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                 </div>
-                <div class="text-xs text-neutral-400 mt-1">분석 중... (약 10-30초 소요)</div>
+                <div id="loadingText" class="text-xs text-neutral-400 mt-1" style="min-height:1.2em;"></div>
                 <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+
+        if (mode === 'image') {
+            _runImageLoadingStages();
+        } else {
+            _setLoadingText('분석 중... (약 10-30초 소요)');
+        }
+    }
+
+    function _setLoadingText(text) {
+        const el = document.getElementById('loadingText');
+        if (el) el.textContent = text;
+    }
+
+    function _runImageLoadingStages() {
+        const DB_TOTAL = 21801; // ChromaDB 디자인 DB 총 건수
+
+        // 1단계: VLM 분석
+        _setLoadingText('VLM 모델이 이미지 특징을 추출하고 있습니다...');
+
+        // 2단계: DB 검색 카운터 (3초 후)
+        _loadingTimer1 = setTimeout(() => {
+            if (!document.getElementById('loadingMessage')) return;
+            let count = 0;
+            const tickAmount = Math.ceil(DB_TOTAL / 45); // ~4.5초 안에 완료
+            _loadingInterval = setInterval(() => {
+                const el = document.getElementById('loadingText');
+                if (!el) { clearInterval(_loadingInterval); return; }
+                count = Math.min(count + tickAmount + Math.floor(Math.random() * 300), DB_TOTAL);
+                el.textContent = `${count.toLocaleString()}건의 디자인 DB 검색 중...`;
+                if (count >= DB_TOTAL) {
+                    clearInterval(_loadingInterval);
+                    _loadingInterval = null;
+                }
+            }, 100);
+        }, 3000);
+
+        // 3단계: 매칭 정리 (8초 후)
+        _loadingTimer2 = setTimeout(() => {
+            if (!document.getElementById('loadingMessage')) return;
+            clearInterval(_loadingInterval);
+            _loadingInterval = null;
+            _setLoadingText('유사 디자인 후보를 매칭하고 있습니다...');
+        }, 8000);
     }
 
     function cancelRequest() {
@@ -997,6 +1044,12 @@
     }
 
     function removeLoadingMessage() {
+        clearInterval(_loadingInterval);
+        clearTimeout(_loadingTimer1);
+        clearTimeout(_loadingTimer2);
+        _loadingInterval = null;
+        _loadingTimer1 = null;
+        _loadingTimer2 = null;
         const el = document.getElementById('loadingMessage');
         if (el) el.remove();
     }
