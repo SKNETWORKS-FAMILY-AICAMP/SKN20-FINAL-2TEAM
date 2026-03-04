@@ -23,6 +23,12 @@ import importlib.util
 
 from .. import config
 
+try:
+    from app.logger import logger as _logger
+except ImportError:
+    import logging as _logging
+    _logger = _logging.getLogger(__name__)
+
 # tokenizer.py는 index/ 폴더에 bm25.pkl과 함께 배포됨 (패키지가 아닌 데이터 폴더)
 # 파일이 없으면 sparse 검색 비활성화 (dense-only fallback)
 morpheme_tokenize = None
@@ -34,7 +40,7 @@ try:
         _spec.loader.exec_module(_tokenizer_mod)
         morpheme_tokenize = _tokenizer_mod.morpheme_tokenize
 except Exception as e:
-    print(f"[retriever] tokenizer 로드 실패 (sparse 검색 비활성): {e}")
+    _logger.warning(f"[retriever] tokenizer 로드 실패 (sparse 검색 비활성): {e}")
 
 
 # ══════════════════════════════════════════════════════
@@ -49,9 +55,9 @@ def _get_model() -> SentenceTransformer:
     """KURE-v1 임베딩 모델 싱글톤. 최초 호출 시 1회 로드."""
     global _model
     if _model is None:
-        print(f"[RAG] 임베딩 모델 로딩 중... ({config.EMBED_MODEL})")
+        _logger.info(f"[RAG] 임베딩 모델 로딩 중... ({config.EMBED_MODEL})")
         _model = SentenceTransformer(config.EMBED_MODEL)
-        print(f"[RAG] 임베딩 모델 로드 완료")
+        _logger.info(f"[RAG] 임베딩 모델 로드 완료")
     return _model
 
 
@@ -67,14 +73,14 @@ def _get_collection() -> chromadb.Collection:
         chroma_host = os.environ.get("CHROMA_HOST", "")
         if chroma_host:
             chroma_port = int(os.environ.get("CHROMA_PORT", 8001))
-            print(f"[RAG] ChromaDB 연결 중... ({chroma_host}:{chroma_port})")
+            _logger.info(f"[RAG] ChromaDB 연결 중... ({chroma_host}:{chroma_port})")
             client = chromadb.HttpClient(
                 host=chroma_host,
                 port=chroma_port,
                 settings=Settings(anonymized_telemetry=False),
             )
         else:
-            print(f"[RAG] ChromaDB 로컬 로딩 중... ({config.CHROMA_DIR})")
+            _logger.info(f"[RAG] ChromaDB 로컬 로딩 중... ({config.CHROMA_DIR})")
             client = chromadb.PersistentClient(
                 path=str(config.CHROMA_DIR),
                 settings=Settings(anonymized_telemetry=False),
@@ -84,7 +90,7 @@ def _get_collection() -> chromadb.Collection:
             metadata={"hnsw:space": "cosine"},
         )
         count = _collection.count()
-        print(f"[RAG] ChromaDB 로드 완료 ({config.CHROMA_COLLECTION}: {count:,}건)")
+        _logger.info(f"[RAG] ChromaDB 로드 완료 ({config.CHROMA_COLLECTION}: {count:,}건)")
     return _collection
 
 
@@ -142,7 +148,7 @@ def _load_sparse_index() -> dict:
     global _sparse_index
     if _sparse_index is None:
         idx_dir = config.SPARSE_INDEX_DIR
-        print(f"[RAG] BM25 인덱스 로딩 중... ({idx_dir})")
+        _logger.info(f"[RAG] BM25 인덱스 로딩 중... ({idx_dir})")
         _sparse_index = {
             "postings": pickle.loads((idx_dir / "postings.pkl").read_bytes()),
             "idf": pickle.loads((idx_dir / "idf.pkl").read_bytes()),
@@ -151,7 +157,7 @@ def _load_sparse_index() -> dict:
         }
         with open(idx_dir / "meta.json", "r") as f:
             _sparse_index["meta"] = json.load(f)
-        print(f"[RAG] BM25 인덱스 로드 완료 ({_sparse_index['meta'].get('total_docs', '?')}건)")
+        _logger.info(f"[RAG] BM25 인덱스 로드 완료 ({_sparse_index['meta'].get('total_docs', '?')}건)")
         # chunk_id → doc_id 역방향 매핑 (사전필터링용)
         _sparse_index["reverse_doc_map"] = {v: k for k, v in _sparse_index["doc_map"].items()}
         # 분할 청크 prefix 맵 구축 (1회): 기본 chunk_id → [분할 doc_ids]
@@ -183,7 +189,7 @@ def sparse_search(query: str, top_k: int = None, allowed_chunk_ids: list[str] = 
     try:
         return _sparse_search_bm25(query, top_k, allowed_chunk_ids)
     except FileNotFoundError:
-        print("[sparse_search] BM25 인덱스 파일 없음 — dense-only 검색으로 진행")
+        _logger.warning("[sparse_search] BM25 인덱스 파일 없음 — dense-only 검색으로 진행")
         return []
 
 

@@ -62,7 +62,7 @@ def analyze_single_patent(
     # ── 공개 특허: sLLM 스킵 ──
     if register_status != "등록":
         if verbose:
-            print(f"[G-single] {patent_id} 공개 특허 → sLLM 스킵")
+            print(f"[sLLM] {patent_id} 공개 특허 → sLLM 스킵")
 
         claims = search_result.get("claims", {})
         claim_pub = (
@@ -94,22 +94,25 @@ def analyze_single_patent(
 
     # ── 등록 특허: sLLM 분석 수행 ──
     from .generate import build_prompt, call_llm, parse_response
+    from app.logger import logger as _logger
 
     if verbose:
-        print(f"[G-single] {patent_id} 분석 시작")
+        _logger.info(f"[sLLM] {patent_id} 분석 시작")
 
     messages = build_prompt(search_result, user_query)
 
     if verbose:
         components_list = search_result.get("components", [])
         has_claims = bool(search_result.get("claims", {}).get("claim_regit_text", ""))
-        print(f"[G-single] {patent_id} 입력: components={len(components_list)}건, claim_regit={'O' if has_claims else 'X'}")
+        _logger.info(f"[sLLM] {patent_id} 입력: components={len(components_list)}건, claim_regit={'O' if has_claims else 'X'}")
 
+    import time as _time
+    t_llm = _time.time()
     raw_output = call_llm(messages)
+    llm_elapsed = _time.time() - t_llm
 
     if verbose:
-        print(f"[G-single] {patent_id} raw_output ({len(raw_output)}자):")
-        print(f"--- RAW START ---\n{raw_output}\n--- RAW END ---")
+        _logger.info(f"[sLLM] {patent_id} 응답 {llm_elapsed:.1f}s ({len(raw_output)}자):\n--- RAW START ---\n{raw_output}\n--- RAW END ---")
 
     parsed = parse_response(raw_output)
 
@@ -119,7 +122,7 @@ def analyze_single_patent(
     parsed["estoppel_claim_numbers"] = search_result.get("estoppel_claim_numbers", [])
 
     if verbose:
-        print(f"[G-single] {patent_id} -> {parsed.get('label', '?')} | sections={parsed.get('sections_found', {})} | comparisons={len(parsed.get('comparisons', []))}행")
+        _logger.info(f"[sLLM] {patent_id} -> {parsed.get('label', '?')} | sections={parsed.get('sections_found', {})} | comparisons={len(parsed.get('comparisons', []))}행")
 
     return parsed
 
@@ -153,6 +156,8 @@ def rewrite_query(
         "- 사용자가 대체(대신)하라는 경우, 해당 성분을 새 성분으로 교체하고 나머지는 모두 유지하세요.\n"
         "- 사용자가 추가하라는 경우, 기존 성분 전부 + 새 성분을 함께 나열하세요.\n"
         "- '제외한', '빼고', '없이', '대신' 같은 부정/대체 표현 없이, 최종 성분만 나열하세요.\n"
+        "- 사용자가 수치(중량%, 함량 등)를 변경하라는 경우, 기존 수치를 새 수치로 교체하세요.\n"
+        "- 특허 분석 결과나 청구항 내용은 포함하지 마세요. 사용자의 제품 설명만 반영하세요.\n"
         "- 재작성된 제품 설명만 출력하세요. 다른 설명이나 인사말은 불필요합니다.\n\n"
         "[예시 1: 성분 제거]\n"
         "이전 대화: 사용자가 'A, B, C, D를 포함하는 화장품'에 대해 질문함\n"
@@ -166,6 +171,10 @@ def rewrite_query(
         "이전 대화: 사용자가 '감초 추출물, 녹차 추출물, 비타민C를 포함하는 미백 크림'에 대해 질문함\n"
         "현재 질문: 감초 추출물 대신 박하엽 추출물을 넣으면?\n"
         "재작성: 박하엽 추출물, 녹차 추출물, 비타민C를 포함하는 미백 크림\n\n"
+        "[예시 4: 수치 변경]\n"
+        "이전 대화: 사용자가 '리놀레산 60중량%, 올레산, 팔미톨레산을 포함하는 탈모 치료용 화장품'에 대해 질문함\n"
+        "현재 질문: 리놀레산을 10중량%로 사용하면 판매해도 될까?\n"
+        "재작성: 리놀레산 10중량%, 올레산, 팔미톨레산을 포함하는 탈모 치료용 화장품\n\n"
         f"[이전 대화]\n{conv_text}\n\n"
         f"[현재 질문]\n{latest_message}\n\n"
         "[재작성된 제품 설명]\n"

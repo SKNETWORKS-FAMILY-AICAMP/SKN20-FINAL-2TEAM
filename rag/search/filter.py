@@ -18,6 +18,12 @@ from pathlib import Path
 
 from .. import config
 
+try:
+    from app.logger import logger as _logger
+except ImportError:
+    import logging as _logging
+    _logger = _logging.getLogger(__name__)
+
 
 # ── config에서 단어사전 로드 → compile ──────
 _JOSA_1 = re.compile(config.JOSA_PATTERN)
@@ -111,10 +117,9 @@ def _try_mysql_prefilter():
             password=_os.environ.get("MYSQL_PASSWORD", ""),
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
-            connect_timeout=5,
+            connect_timeout=30,
             read_timeout=300,
             write_timeout=300,
-            connect_timeout=30,
         )
         cur = conn.cursor()
         cur.execute("SELECT 1 FROM claim_keywords LIMIT 1")
@@ -151,18 +156,18 @@ def _init_prefilter_backend():
     if mysql_conn is not None:
         _prefilter_backend = "mysql"
         _prefilter_mysql_conn = mysql_conn
-        print("[사전필터] MySQL 백엔드 활성")
+        _logger.info("[사전필터] MySQL 백엔드 활성")
         return
 
     sqlite_conn = _try_sqlite_prefilter()
     if sqlite_conn is not None:
         _prefilter_backend = "sqlite"
         _prefilter_sqlite_conn = sqlite_conn
-        print("[사전필터] SQLite 백엔드 활성")
+        _logger.info("[사전필터] SQLite 백엔드 활성")
         return
 
     _prefilter_backend = ""
-    print("[사전필터] 백엔드 없음 — 전체 검색 fallback")
+    _logger.info("[사전필터] 백엔드 없음 — 전체 검색 fallback")
 
 
 def _prefilter_via_mysql(keywords: list[str]) -> tuple[list[str], list[str]] | None:
@@ -192,14 +197,14 @@ def _prefilter_via_mysql(keywords: list[str]) -> tuple[list[str], list[str]] | N
         f"GROUP BY chunk_id, patent_id ORDER BY cnt DESC "
         f"LIMIT {config.PREFILTER_MAX_CHUNKS}"
     )
-    print(f"[사전필터] MySQL 쿼리 시작: 키워드 {len(keywords)}개")
+    _logger.info(f"[사전필터] MySQL 쿼리 시작: 키워드 {len(keywords)}개")
     t0 = _time.time()
     cur = _prefilter_mysql_conn.cursor()
     cur.execute(sql, keywords)
     rows = cur.fetchall()
     cur.close()
     elapsed = _time.time() - t0
-    print(f"[사전필터] MySQL 쿼리 완료: {len(rows)}건, {elapsed:.2f}s")
+    _logger.info(f"[사전필터] MySQL 쿼리 완료: {len(rows)}건, {elapsed:.2f}s")
 
     if not rows:
         return None
@@ -335,10 +340,9 @@ class MySQLParentDB:
             password=_os.environ.get("MYSQL_PASSWORD", ""),
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
-            connect_timeout=5,
+            connect_timeout=30,
             read_timeout=300,
             write_timeout=300,
-            connect_timeout=30,
             cursorclass=pymysql.cursors.DictCursor,
         )
 
@@ -436,7 +440,7 @@ def _fetch_components_mysql(patent_ids: list[str]) -> dict[str, list[dict]]:
         rows = cur.fetchall()
         cur.close()
     except Exception as e:
-        print(f"[구성요소] MySQL 조회 실패: {e}")
+        _logger.warning(f"[구성요소] MySQL 조회 실패: {e}")
         return {}
 
     result: dict[str, list[dict]] = {}
@@ -462,7 +466,7 @@ def _fetch_components_sqlite(patent_ids: list[str]) -> dict[str, list[dict]]:
         rows = cur.fetchall()
         cur.close()
     except Exception as e:
-        print(f"[구성요소] SQLite 조회 실패: {e}")
+        _logger.warning(f"[구성요소] SQLite 조회 실패: {e}")
         return {}
 
     result: dict[str, list[dict]] = {}

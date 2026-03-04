@@ -1039,23 +1039,25 @@
     let progressMessageTimers = [];
     const stepMessages = [
         [ // 1번째 (오래 걸림 → 메시지 많이)
-            { text: '1번째 특허 청구항 구성요소 추출 중...', delay: 6000 },
-            { text: '특허 구성요소와 제품 구성 대비 매칭 중...', delay: 10000 },
-            { text: 'sLLM이 침해 여부를 판단하고 있어요...', delay: 14000 },
-            { text: '첫 번째 분석은 시간이 조금 걸려요, 잠시만요!', delay: 24000 },
-            { text: '거의 다 됐어요! 결과를 정리하고 있습니다...', delay: 36000 },
-            { text: '최종 판정 결과를 생성하고 있습니다...', delay: 50000 },
+            { text: '1번째 특허 청구항 구성요소 추출 중...', delay: 14000 },
+            { text: '특허 구성요소와 제품 구성 대비 매칭 중...', delay: 20000 },
+            { text: 'AI가 FTO를 분석하고 있어요!', delay: 30000 },
+            { text: '분석 결과를 정리 중...', delay: 36000 },
+            { text: '최종 분석 결과 report를 생성하고 있어요!', delay: 50000 },
         ],
         [ // 2번째
-            { text: '2번째 특허 구성요소 대비 분석 중...', delay: 6000},
-            { text: 'sLLM이 빠르게 분석하고 있어요!', delay: 10000 },
-            { text: '결과를 정리하고 있습니다...', delay: 36000 },
-            { text: '최종 판정 결과를 생성하고 있습니다...', delay: 50000 },
+            { text: '2번째 특허 구성요소 대비 분석 중...', delay: 14000},
+            { text: '특허 구성요소와 제품 구성 대비 매칭 중...', delay: 20000 },
+            { text: 'AI가 빠르게 분석하고 있어요!', delay: 14000 },
+            { text: '분석 결과를 정리 중...', delay: 36000 },
+            { text: '최종 분석 결과 report를 생성하고 있어요!', delay: 50000 },
         ],
         [ // 3번째
             { text: '마지막 특허! 구성요소 대비 분석 중...', delay: 6000 },
-            { text: '결과를 정리하고 있습니다...', delay: 36000 },
-            { text: '최종 결과를 정리 중...', delay: 6000 },
+            { text: '특허 구성요소와 제품 구성 대비 매칭 중...', delay: 20000 },
+            { text: 'AI가 빠르게 분석하고 있어요!', delay: 14000 },
+            { text: '분석 결과를 정리 중...', delay: 36000 },
+            { text: '최종 분석 결과 report를 생성하고 있어요!', delay: 50000 },
         ],
     ];
 
@@ -1160,7 +1162,7 @@
         const btnMsgTimer = setInterval(() => {
             btnMsgIdx = (btnMsgIdx + 1) % btnMsgs.length;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> ${btnMsgs[btnMsgIdx]}`;
-        }, 4000);
+        }, 8000);
 
         try {
             let result;

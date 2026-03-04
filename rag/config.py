@@ -189,13 +189,15 @@ RUNPOD_DESIGN_BASE_URL = os.environ.get("RUNPOD_DESIGN_BASE_URL", "")
 # vLLM 설정 (RunPod 서버리스 또는 로컬)
 VLLM_API_URL = os.environ.get("RUNPOD_PATENT_BASE_URL") or os.environ.get("VLLM_API_URL") or os.environ.get("VLLM_BASE_URL", "")
 VLLM_MODEL_NAME = os.environ.get("PATENT_VLLM_MODEL", "itsbini/qwen2.5-14b-fto-merged")
-VLLM_TIMEOUT = 300  # 서버리스 Cold Start 고려하여 5분
+VLLM_TIMEOUT = 600  # 서버리스 Cold Start + 추론 고려하여 10분
 
 GPT_FALLBACK_MODEL = "gpt-4o-mini"
 GPT_TIMEOUT = 60
 
 GENERATE_MAX_TOKENS = 4096
-GENERATE_TEMPERATURE = 0
+GENERATE_TEMPERATURE = 0.1
+GENERATE_TOP_P = 0.9
+GENERATE_REPETITION_PENALTY = 1.3  # 반복 루프 방지
 GENERATE_INPUT_N = 5              # LLM에 전달할 특허 수
 GENERATE_OUTPUT_N = 3             # LLM이 FTO 관점으로 선별할 특허 수
 GENERATE_TOP_N = 3                # (레거시) sLLM 개별 분석용 — 추후 삭제

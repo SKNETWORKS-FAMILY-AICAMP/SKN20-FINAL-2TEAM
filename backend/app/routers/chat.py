@@ -485,6 +485,10 @@ async def search_patents(
     search_results = await asyncio.to_thread(search_only, search_query, 10, True)
     logger.info(f"[검색] RAG 검색 {time.time()-t_search:.2f}s | {len(search_results)}건 | 쿼리: {search_query}")
 
+    # sLLM 워커 keep-alive 시작 (분석 중 cold start 방지)
+    from app.utils.runpod_keepalive import start_keepalive
+    start_keepalive()
+
     # 캐시에 저장 (message_id를 키로)
     from app.utils.search_cache import store as cache_store
     cache_key = str(user_msg.id)
@@ -617,6 +621,9 @@ async def finalize_analysis(
     current_user: User = Depends(AuthService.get_current_user_dependency),
 ):
     """Phase 3: 분석 결과를 analyses 테이블에 저장."""
+    from app.utils.runpod_keepalive import stop_keepalive
+    stop_keepalive()
+
     from app.utils.search_cache import get as cache_get, delete as cache_delete
     from app.models.analysis import Analysis, InputTypeEnum, RiskLevelEnum as ModelRiskLevel
 

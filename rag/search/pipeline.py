@@ -22,6 +22,12 @@ from .. import config
 from .retriever import dense_search, sparse_search, reciprocal_rank_fusion, patent_collapse
 from .filter import apply_rdb_filter, ParentDB, MySQLParentDB, prefilter_by_keywords, extract_keywords
 
+try:
+    from app.logger import logger as _logger
+except ImportError:
+    import logging as _logging
+    _logger = _logging.getLogger(__name__)
+
 
 # ══════════════════════════════════════════════════════
 # 검색 파이프라인 (하이브리드 → RRF → 필터)
@@ -60,16 +66,16 @@ def search(
     allowed_chunk_ids = None
     extracted_keywords = extract_keywords(query)
     if verbose:
-        print(f"[키워드 추출] {len(extracted_keywords)}개: {extracted_keywords}")
+        _logger.info(f"[키워드 추출] {len(extracted_keywords)}개: {extracted_keywords}")
 
     prefilter_result = prefilter_by_keywords(extracted_keywords)
     if prefilter_result is not None:
         _patent_ids, allowed_chunk_ids = prefilter_result
         if verbose:
-            print(f"[사전필터링] {len(allowed_chunk_ids)}개 청크, {len(_patent_ids)}개 특허로 축소")
+            _logger.info(f"[사전필터링] {len(allowed_chunk_ids)}개 청크, {len(_patent_ids)}개 특허로 축소")
     else:
         if verbose:
-            print("[사전필터링] 매칭 없음 — 전체 문서 대상 검색")
+            _logger.info("[사전필터링] 매칭 없음 — 전체 문서 대상 검색")
 
     # 2. 하이브리드 서치 (Dense+Sparse 검색)
     # Dense 검색: KURE-v1 임베딩 → ChromaDB cosine distance (사전필터링 적용)
@@ -84,8 +90,8 @@ def search(
     sparse_merged = sparse_search(query, top_k=sparse_top_k, allowed_chunk_ids=allowed_chunk_ids)
 
     if verbose:
-        print(f"[Dense] {len(dense_merged)}개 후보")
-        print(f"[Sparse] {len(sparse_merged)}개 후보")
+        _logger.info(f"[Dense] {len(dense_merged)}개 후보")
+        _logger.info(f"[Sparse] {len(sparse_merged)}개 후보")
 
     # 3. RRF
     rrf_results = reciprocal_rank_fusion(
@@ -94,7 +100,7 @@ def search(
     )
 
     if verbose:
-        print(f"[RRF] {len(rrf_results)}개 합산")
+        _logger.info(f"[RRF] {len(rrf_results)}개 합산")
 
     # 4. Sparse-only 결과의 메타데이터 보충 (Dense에 없었던 chunk는 ChromaDB에서 보충)
     sparse_only_ids = [cid for cid, _ in rrf_results if cid not in dense_meta]
@@ -112,21 +118,21 @@ def search(
     collapsed = patent_collapse(rrf_results, dense_meta, top_k=top_k)
 
     if verbose:
-        print(f"[Collapse] {len(collapsed)}개 특허")
+        _logger.info(f"[Collapse] {len(collapsed)}개 특허")
 
     # 6. ParentDB 필터링 + 보강 (AWS RDS 우선 사용)
     try:
         parent_db = MySQLParentDB()
         if verbose:
-            print("[ParentDB] AWS RDS 사용")
+            _logger.info("[ParentDB] AWS RDS 사용")
     except Exception as e:
         try:
             parent_db = ParentDB()
             if verbose:
-                print(f"[ParentDB] RDS 실패({e}) → 로컬 SQLite 폴백")
+                _logger.info(f"[ParentDB] RDS 실패({e}) → 로컬 SQLite 폴백")
         except FileNotFoundError:
             if verbose:
-                print(f"[ParentDB] SQLite도 없음 → 메타데이터 보강 없이 반환")
+                _logger.info(f"[ParentDB] SQLite도 없음 → 메타데이터 보강 없이 반환")
             return collapsed
 
     results = apply_rdb_filter(collapsed, parent_db)
@@ -136,7 +142,7 @@ def search(
         results = [r for r in results if r.get("score", 0) >= config.MIN_SCORE]
 
     if verbose:
-        print(f"[필터] {len(results)}개 최종 결과")
+        _logger.info(f"[필터] {len(results)}개 최종 결과")
 
     return results
 
@@ -169,9 +175,9 @@ def analyze(
     search_results = search(query, top_k=top_k, verbose=verbose, **search_kwargs)
 
     if verbose:
-        print(f"\n[FTO 분석 시작] 상위 {config.GENERATE_INPUT_N}건 → {config.GENERATE_OUTPUT_N}건 선별")
+        _logger.info(f"\n[FTO 분석 시작] 상위 {config.GENERATE_INPUT_N}건 → {config.GENERATE_OUTPUT_N}건 선별")
         if history:
-            print(f"[멀티턴] 이전 대화 {len(history)}개 메시지 포함")
+            _logger.info(f"[멀티턴] 이전 대화 {len(history)}개 메시지 포함")
 
     fto_result = generate_fto(search_results, query, verbose=verbose, history=history)
 
