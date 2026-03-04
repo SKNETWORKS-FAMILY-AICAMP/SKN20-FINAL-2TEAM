@@ -698,6 +698,8 @@
         addUserMessage(query, file);
         setStatus('분석 중');
         addLoadingMessage('image');
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) chatMessages.scrollTop += 10;
 
         const formData = new FormData();
         formData.append('image', file);
@@ -997,6 +999,8 @@
 
     let _loadingTimer1 = null;
     let _loadingTimer2 = null;
+    let _loadingTimer3 = null;
+    let _loadingTimer4 = null;
     let _loadingInterval = null;
 
     function addLoadingMessage(mode = 'default') {
@@ -1036,7 +1040,7 @@
         // 1단계: VLM 분석
         _setLoadingText('이미지 특징을 추출하고 있습니다...');
 
-        // 2단계: DB 검색 카운터 (3초 후)
+        // 2단계: DB 검색 카운터 (10초 후)
         _loadingTimer1 = setTimeout(() => {
             if (!document.getElementById('loadingMessage')) return;
             let count = 0;
@@ -1051,15 +1055,27 @@
                     _loadingInterval = null;
                 }
             }, 100);
-        }, 3000);
+        }, 10000);
 
-        // 3단계: 매칭 정리 (8초 후)
+        // 3단계: 매칭 정리 (15초 후)
         _loadingTimer2 = setTimeout(() => {
             if (!document.getElementById('loadingMessage')) return;
             clearInterval(_loadingInterval);
             _loadingInterval = null;
-            _setLoadingText('유사 디자인 후보를 매칭하고 있습니다...');
-        }, 8000);
+            _setLoadingText('유사한 디자인이 있는지 확인 중입니다...');
+        }, 15000);
+
+        // 4단계: 형태 비교 (20초 후)
+        _loadingTimer3 = setTimeout(() => {
+            if (!document.getElementById('loadingMessage')) return;
+            _setLoadingText('디자인의 선·면·형태를 마지막으로 비교하고 있습니다...');
+        }, 20000);
+
+        // 5단계: 마무리 (25초 후)
+        _loadingTimer4 = setTimeout(() => {
+            if (!document.getElementById('loadingMessage')) return;
+            _setLoadingText('곧 결과가 나옵니다! 유사도 순위를 정렬하고 있습니다...');
+        }, 25000);
     }
 
     function cancelRequest() {
@@ -1076,9 +1092,13 @@
         clearInterval(_loadingInterval);
         clearTimeout(_loadingTimer1);
         clearTimeout(_loadingTimer2);
+        clearTimeout(_loadingTimer3);
+        clearTimeout(_loadingTimer4);
         _loadingInterval = null;
         _loadingTimer1 = null;
         _loadingTimer2 = null;
+        _loadingTimer3 = null;
+        _loadingTimer4 = null;
         const el = document.getElementById('loadingMessage');
         if (el) el.remove();
     }
@@ -1217,14 +1237,11 @@
                     </button>
                 </div>
             </div>
-            <div style="margin-top:0.25rem; overflow:hidden;">
-                ${session.s3_url
-                    ? `<img src="${session.s3_url}" style="float:right;width:2rem;height:2rem;object-fit:cover;border-radius:0.375rem;border:1px solid #E5E5E5;margin-left:0.4rem;" />`
-                    : ''
-                }
-                <h4 class="text-sm font-semibold text-black leading-snug" style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+            <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.4rem;">
+                <h4 class="font-semibold text-black leading-snug" style="font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:0.85;min-width:0;">
                     ${escapeHtml(session.preview || '디자인 분석')}
                 </h4>
+                ${session.s3_url ? `<img src="${session.s3_url}" style="width:2rem;height:2rem;flex-shrink:0;object-fit:cover;border-radius:0.375rem;border:1px solid #E5E5E5;" />` : ''}
             </div>
         `;
         card.onclick = (e) => {
