@@ -361,41 +361,49 @@ async def select_design(
     """사용자가 선택한 디자인에 대해 상세 비교 + FTO 리포트 생성."""
     session = _sessions.get(thread_id)
 
-    # 인메모리 세션이 없으면 RDS 확인
-    if not session:
-        db_session = db.query(DesignSession).filter(
-            DesignSession.thread_id == thread_id
-        ).first()
-
-        if db_session:
-            if db_session.status == DesignSessionStatus.waiting_selection:
-                # LangGraph 상태가 없어서 재개 불가 - 재업로드 안내
-                return {
-                    "success": False,
-                    "error": "세션이 만료되었습니다. 서버 재시작으로 LangGraph 상태가 초기화되었습니다. "
-                             "이미지를 다시 업로드해주세요.",
-                    "session_expired": True,
-                }
-            elif db_session.status == DesignSessionStatus.completed:
-                # 완료된 세션 → 인메모리 데이터로 재비교 가능 여부 확인
-                mem_session = _sessions.get(thread_id)
-                if mem_session and _detailed_compare_fn and _generate_report_fn:
-                    return await _recompare_via_nodes(mem_session, selected_index, thread_id, db, db_session)
-                # 인메모리 없음 → 저장된 리포트 반환
-                return {
-                    "success": True,
-                    "final_report": db_session.final_report or "리포트가 저장되지 않았습니다.",
-                }
-
-        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
-
-    if "graph" in session:
-        return await _select_via_langgraph(session, selected_index, thread_id, db)
-    else:
+    # 인메모리 세션이 있으면 LangGraph로 처리
+    if session:
+        if "graph" in session:
+            # DB 상태 확인: 이미 completed면 LangGraph 그래프가 종료됐으므로 노드 직접 호출
+            db_session = db.query(DesignSession).filter(
+                DesignSession.thread_id == thread_id
+            ).first()
+            if db_session and db_session.status == DesignSessionStatus.completed:
+                return await _recompare_via_nodes(session, selected_index, thread_id, db, db_session)
+            return await _select_via_langgraph(session, selected_index, thread_id, db)
         return {
             "success": False,
             "error": "디자인 분석 세션이 유효하지 않습니다. 이미지를 다시 업로드해주세요.",
         }
+
+    # 인메모리 없음 → DB 확인
+    db_session = db.query(DesignSession).filter(
+        DesignSession.thread_id == thread_id
+    ).first()
+
+    if not db_session:
+        return {
+            "success": False,
+            "error": "세션을 찾을 수 없습니다. 이미지를 다시 업로드해주세요.",
+            "session_expired": True,
+        }
+
+    if db_session.status == DesignSessionStatus.completed:
+        # 완료된 세션 + 인메모리 데이터 있으면 재비교, 없으면 저장된 리포트 반환
+        if _detailed_compare_fn and _generate_report_fn:
+            return await _recompare_via_nodes(session, selected_index, thread_id, db, db_session)
+        return {
+            "success": True,
+            "final_report": db_session.final_report or "리포트가 저장되지 않았습니다.",
+        }
+
+    # waiting_selection / analyzing / error → 서버 재시작으로 LangGraph 상태 소실
+    return {
+        "success": False,
+        "error": "세션이 만료되었습니다. 서버 재시작으로 LangGraph 상태가 초기화되었습니다. "
+                 "이미지를 다시 업로드해주세요.",
+        "session_expired": True,
+    }
 
 
 async def _select_via_langgraph(
@@ -472,19 +480,40 @@ async def _select_via_langgraph(
 
 
 async def _recompare_via_nodes(
-    mem_session: dict,
+    mem_session: Optional[dict],
     selected_index: int,
     thread_id: str,
     db: Session,
     db_session,
 ) -> dict:
-    """인메모리 세션 데이터로 노드 함수를 직접 호출하여 다른 디자인과 재비교."""
+    """인메모리 또는 DB 데이터로 노드 함수를 직접 호출하여 다른 디자인과 재비교."""
     try:
-        comparison_results = mem_session.get("comparison_results", [])
-        b64_image = mem_session.get("base64_image", "")
+        # 인메모리 우선, 없으면 DB에서 복원
+        comparison_results = (mem_session or {}).get("comparison_results", [])
+        b64_image = (mem_session or {}).get("base64_image", "")          # VLM 노드용 (LangGraph 포맷)
+        user_display_b64 = (mem_session or {}).get("user_image_base64", "")  # 표시/PDF용 (원본 bytes)
+
+        # DB에서 comparison_results 복원 (인메모리에 없을 때)
+        if not comparison_results:
+            stored = db_session.comparison_results_json
+            if isinstance(stored, str):
+                stored = json.loads(stored)
+            comparison_results = stored or []
+
+        # DB에서 원본 이미지 복원 (인메모리에 없을 때)
+        if not b64_image and db_session.images:
+            user_upload = next(
+                (img for img in db_session.images if img.image_type == ImageType.user_upload),
+                None
+            )
+            if user_upload and user_upload.s3_url:
+                img_bytes = _read_image_bytes(user_upload.s3_url)
+                if img_bytes:
+                    b64_image = _image_to_base64(img_bytes)
+                    user_display_b64 = b64_image  # S3에서 복원한 경우 동일하게 사용
 
         if not comparison_results or not b64_image:
-            return {"success": False, "error": "재비교에 필요한 데이터가 없습니다."}
+            return {"success": False, "error": "재비교에 필요한 데이터가 없습니다. 이미지를 다시 업로드해주세요."}
 
         selected = next((r for r in comparison_results if r.get("index") == selected_index), None)
         if not selected:
@@ -539,8 +568,8 @@ async def _recompare_via_nodes(
         return {
             "success": True,
             "final_report": final_report,
-            "user_image_base64": b64_image,
-            "user_image_s3_url": mem_session.get("s3_url", ""),
+            "user_image_base64": user_display_b64,  # 원본 bytes 기반 base64 (표시/PDF용)
+            "user_image_s3_url": (mem_session or {}).get("s3_url", ""),
             "selected_design": {**selected_info, "image_base64": selected_image_base64},
         }
     except Exception as e:
