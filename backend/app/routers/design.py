@@ -270,7 +270,8 @@ async def _image_via_langgraph(
         input_analysis = result.get("input_analysis", "")
         session.status = DesignSessionStatus.waiting_selection
         session.input_analysis = input_analysis
-        session.comparison_results_json = result.get("comparison_results", [])
+        # similar_designs(base64 포함)를 저장 → 세션 복원 시 카드 재렌더링에 사용
+        session.comparison_results_json = similar_designs
 
         # 5. 대화 히스토리 저장
         if user_query:
@@ -614,11 +615,11 @@ async def get_session_history(
             "thread_id": db_session.thread_id,
             "status": db_session.status.value,
             "input_analysis": db_session.input_analysis,
-            "comparison_results": comparison_results,
+            "similar_designs": comparison_results,  # base64 포함된 similar_designs 포맷
             "selected_index": db_session.selected_index,
             "final_report": db_session.final_report,
-            "created_at": db_session.created_at.isoformat() if db_session.created_at else None,
-            "updated_at": db_session.updated_at.isoformat() if db_session.updated_at else None,
+            "created_at": db_session.created_at.isoformat() + "+00:00" if db_session.created_at else None,
+            "updated_at": db_session.updated_at.isoformat() + "+00:00" if db_session.updated_at else None,
         },
         "images": images,
         "messages": messages,
@@ -662,7 +663,7 @@ async def list_design_sessions(
             "status": s.status.value,
             "preview": preview,
             "s3_url": s3_url,
-            "created_at": s.created_at.isoformat() if s.created_at else None,
+            "created_at": s.created_at.isoformat() + "+00:00" if s.created_at else None,
         })
 
     return result
