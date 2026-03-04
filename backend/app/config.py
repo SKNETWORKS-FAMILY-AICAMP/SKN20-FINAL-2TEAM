@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     CHROMA_PORT: int = 8001
     CHROMA_IMAGE_PORT: int = 8002
 
+    # KIPRIS Plus API
+    KIPRIS_API_KEY: str = ""
+
     # OpenAI GPT 폴백
     OPENAI_API_KEY: str = ""
 

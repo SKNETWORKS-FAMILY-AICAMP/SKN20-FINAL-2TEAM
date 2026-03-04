@@ -13,6 +13,7 @@ import os
 import xml.etree.ElementTree as ET
 
 from app.database import get_db
+from app.config import settings
 from app.services.search_service import SearchService, extract_keywords
 
 router = APIRouter()
@@ -97,7 +98,7 @@ async def get_patent_pdf(
     apply_num: str = Query(..., description="출원번호 (예: 10-2005-0050026)"),
 ):
     """KIPRIS Plus API로 특허 원문 PDF URL을 조회하여 리다이렉트."""
-    api_key = os.getenv("KIPRIS_API_KEY", "")
+    api_key = settings.KIPRIS_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="KIPRIS API 키가 설정되지 않았습니다.")
 
