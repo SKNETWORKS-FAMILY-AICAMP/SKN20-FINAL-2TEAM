@@ -611,6 +611,7 @@
     let sessionCount = 0;
     let currentAbortController = null;
     let currentSimilarDesigns = [];
+    let currentUploadImgUrl = null; // 세션 복원 시 유저 업로드 이미지 URL
     let _ftoReportData = null; // PDF 생성용 리포트 데이터 보관
 
     // ==================== DOM ====================
@@ -856,7 +857,9 @@
     // ==================== 2단계: 디자인 선택 ====================
 
     async function selectDesign(index, applicationNumber) {
-        if (!designThreadId) return;
+        // 진행 중인 세션(designThreadId) 또는 복원된 완료 세션(imageContextThreadId) 사용
+        const activeThreadId = designThreadId || imageContextThreadId;
+        if (!activeThreadId) return;
 
         document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = true);
 
@@ -868,7 +871,7 @@
         addLoadingMessage('compare');
 
         const formData = new FormData();
-        formData.append('thread_id', designThreadId);
+        formData.append('thread_id', activeThreadId);
         formData.append('selected_index', index);
 
         try {
@@ -890,21 +893,44 @@
             const result = await response.json();
 
             if (result.success) {
+                // 세션 복원 후 재비교 시 백엔드가 이미지를 미포함할 수 있음 → 로컬 데이터로 보강
+                if (!result.user_image_base64 && !result.user_image_s3_url) {
+                    result.user_image_s3_url = currentUploadImgUrl || '';
+                }
+                if (!result.selected_design) {
+                    const localDesign = currentSimilarDesigns.find(d => d.index === index);
+                    if (localDesign) {
+                        result.selected_design = {
+                            index: localDesign.index,
+                            application_number: localDesign.application_number,
+                            article_name: localDesign.article_name,
+                            admst_stat: localDesign.admst_stat,
+                            image_base64: localDesign.image_base64 || '',
+                        };
+                    }
+                }
                 addReportMessage(result);
-                const completedThreadId = designThreadId;
-                imageContextThreadId = designThreadId;
+                const completedThreadId = activeThreadId;
+                imageContextThreadId = activeThreadId;
                 designThreadId = null;
                 setStatus('완료');
                 showContextBanner();
                 updateSessionCardStatus(completedThreadId, 'completed');
+                // 다른 디자인과 재비교할 수 있도록 버튼 재활성화
+                document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = false);
+            } else if (result.session_expired) {
+                addBotMessage('세션이 만료되었습니다. 이미지를 다시 업로드해주세요.');
+                document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = false);
             } else {
                 addBotMessage('상세 비교 중 오류가 발생했습니다.');
+                document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = false);
             }
         } catch (error) {
             currentAbortController = null;
             if (error.name === 'AbortError') return;
             removeLoadingMessage();
             addBotMessage(`오류: ${error.message}`);
+            document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = false);
         }
     }
 
@@ -1059,7 +1085,7 @@
     function addReportMessage(result) {
         const reportText = (result.final_report || '리포트 생성 실패').replace(/#+\s*/g, '');
         // PDF용 base64 우선 — S3 URL은 CORS로 html2canvas 캡처 불가
-        const userImgBase64 = result.user_image_base64 ? `data:image/jpeg;base64,${result.user_image_base64}` : '';
+        const userImgBase64 = result.user_image_base64 ? `data:image/png;base64,${result.user_image_base64}` : '';
         const userImgSrc = userImgBase64 || result.user_image_s3_url || '';
         const sel = result.selected_design;
         const selImgSrc = sel && sel.image_base64 ? `data:image/jpeg;base64,${sel.image_base64}` : '';
@@ -1196,15 +1222,17 @@
         }
     }
 
-    // 세션 복원 시 사용 — isCompleted=true면 '상세 비교' 버튼 비활성화
-    function addAnalysisResultMessageRestored(result, isCompleted = false) {
+    // 세션 복원 시 사용 — 항상 '상세 비교' 버튼 활성화, 기존 선택 디자인은 하이라이트
+    function addAnalysisResultMessageRestored(result, isCompleted = false, selectedIndex = null) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
 
         let cardsHtml = '';
         if (result.similar_designs && result.similar_designs.length > 0) {
-            const cardItems = result.similar_designs.map(d => `
-                <div class="design-card" style="margin-bottom:0;">
+            const cardItems = result.similar_designs.map(d => {
+                const isSelected = isCompleted && selectedIndex != null && d.index === selectedIndex;
+                return `
+                <div class="design-card" style="margin-bottom:0;${isSelected ? 'border-color:var(--primary);background:#FFF5F0;' : ''}">
                     ${d.image_base64
                         ? `<img src="data:image/jpeg;base64,${d.image_base64}" alt="${escapeHtml(d.article_name)}" style="width:calc(100% - 50px); aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5; display:block; margin:0 auto;" />`
                         : `<div style="width:calc(100% - 50px); aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3; margin:0 auto;">No Image</div>`
@@ -1216,12 +1244,13 @@
                             상태: ${escapeHtml(d.admst_stat)}<br/>
                             유사도: ${d.distance.toFixed(4)}
                         </div>
-                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:${isCompleted ? '#D4D4D4' : 'var(--primary)'}; color:white; border:none; border-radius:0.5rem; cursor:${isCompleted ? 'not-allowed' : 'pointer'}; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" ${isCompleted ? 'disabled' : `onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')"`}>
-                            ${isCompleted ? '분석 완료' : '상세 비교'}
+                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')">
+                            ${isSelected ? '✓ 다시 비교' : '상세 비교'}
                         </button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
             cardsHtml = `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0.625rem;">${cardItems}</div>`;
         }
 
@@ -1240,9 +1269,64 @@
                             <i class="fas fa-file-pdf"></i> PDF 저장
                         </button>
                     </div>
-                    <p class="text-xs text-neutral-500 mb-3">${isCompleted ? '분석에 사용된 디자인 목록:' : '상세 비교할 디자인을 선택하세요:'}</p>
+                    <p class="text-xs text-neutral-500 mb-3">상세 비교할 디자인을 선택하세요:</p>
                     ${cardsHtml}
                 </div>` : ''}
+            </div>
+        `;
+        messagesWrapper.appendChild(div);
+        scrollToBottom();
+    }
+
+    // 세션 복원 시 FTO 리포트 메시지 렌더 (이미지 포함 형식)
+    function addReportMessageRestored(reportText, userImgSrc, selectedDesign) {
+        const reportTextClean = (reportText || '리포트 생성 실패').replace(/#+\s*/g, '');
+        const selImgSrc = selectedDesign && selectedDesign.image_base64
+            ? `data:image/jpeg;base64,${selectedDesign.image_base64}`
+            : '';
+        const selLabel = selectedDesign
+            ? `비교 디자인 (출원번호 ${escapeHtml(selectedDesign.application_number)})`
+            : '비교 디자인';
+
+        // PDF 생성용 데이터 저장
+        _ftoReportData = { reportText: reportTextClean, userImgSrc: userImgSrc || '', selImgSrc, selLabel };
+
+        const userImgHtml = userImgSrc
+            ? `<img src="${userImgSrc}" style="width:100%; aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5;" />`
+            : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#A3A3A3;">No Image</div>`;
+        const selImgHtml = selImgSrc
+            ? `<img src="${selImgSrc}" style="width:100%; aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5;" />`
+            : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#A3A3A3;">No Image</div>`;
+
+        const div = document.createElement('div');
+        div.className = 'msg assistant';
+        div.innerHTML = `
+            <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+            <div class="msg-content">
+                <div class="msg-bubble">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4 class="font-bold text-sm text-black"><i class="fas fa-file-alt text-primary mr-1"></i>FTO 분석 리포트</h4>
+                        <button onclick="downloadFTOReportPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-file-pdf"></i> PDF 저장
+                        </button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:0.7rem; font-weight:700; color:#FF6B35; margin-bottom:0.35rem;">입력 디자인</div>
+                            ${userImgHtml}
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:0.7rem; font-weight:700; color:#525252; margin-bottom:0.35rem;">${selLabel}</div>
+                            ${selImgHtml}
+                        </div>
+                    </div>
+                    <div class="report-box">${escapeHtml(reportTextClean)}</div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
+                        새 분석 시작
+                    </button>
+                </div>
             </div>
         `;
         messagesWrapper.appendChild(div);
@@ -1432,6 +1516,7 @@
         designThreadId = null;
         conversationThreadId = null;
         imageContextThreadId = null;
+        currentUploadImgUrl = null;
         selectedFile = null;
         attachedFiles.length = 0;
         document.getElementById('imagePreviewList').innerHTML = '';
@@ -1582,33 +1667,60 @@
 
             // 메시지 영역 초기화
             messagesWrapper.innerHTML = '';
-            designThreadId = threadId;
 
-            // 업로드 이미지 URL (첫 번째 유저 메시지에 표시)
+            const isCompleted = data.session.status === 'completed';
+            const isWaiting = data.session.status === 'waiting_selection';
+
+            // 상태 설정 — 완료 세션은 텍스트 대화 이어가기 가능
+            conversationThreadId = null;
+            if (isCompleted) {
+                designThreadId = null;
+                imageContextThreadId = threadId;
+            } else if (isWaiting) {
+                designThreadId = threadId;
+                imageContextThreadId = null;
+            } else {
+                designThreadId = null;
+                imageContextThreadId = null;
+            }
+
+            // 업로드 이미지 URL
             const uploadImg = (data.images || []).find(img => img.image_type === 'user_upload');
             const uploadImgUrl = uploadImg ? uploadImg.s3_url : null;
+            currentUploadImgUrl = uploadImgUrl; // 재비교 시 이미지 보강용
 
-            // 메시지 렌더링 (첫 번째 user 메시지에만 이미지 첨부)
-            // similar_designs가 있으면 첫 번째 assistant 메시지(input_analysis)는
-            // addAnalysisResultMessage로 대체하여 카드 형식으로 표시
             const similarDesigns = data.session.similar_designs || [];
-            const isCompleted = data.session.status === 'completed';
+            const selectedIndex = data.session.selected_index;
+            const finalReport = data.session.final_report;
+
             let firstUser = true;
             let firstAssistantRendered = false;
+            const messages = data.messages || [];
 
-            (data.messages || []).forEach(msg => {
+            messages.forEach((msg, i) => {
                 if (msg.role === 'user') {
                     addUserMessageHistory(msg.content, firstUser ? uploadImgUrl : null);
                     firstUser = false;
                 } else {
-                    // 첫 번째 assistant 메시지 + similar_designs 있으면 카드 형식으로 렌더
-                    if (!firstAssistantRendered && similarDesigns.length > 0) {
+                    if (!firstAssistantRendered) {
+                        // 첫 번째 assistant = input_analysis → 카드 형식으로 렌더
                         firstAssistantRendered = true;
-                        currentSimilarDesigns = similarDesigns;
-                        addAnalysisResultMessageRestored(
-                            { input_analysis: msg.content, similar_designs: similarDesigns },
-                            isCompleted
-                        );
+                        if (similarDesigns.length > 0) {
+                            currentSimilarDesigns = similarDesigns;
+                            addAnalysisResultMessageRestored(
+                                { input_analysis: msg.content, similar_designs: similarDesigns },
+                                isCompleted,
+                                selectedIndex
+                            );
+                        } else {
+                            addBotMessage(msg.content);
+                        }
+                    } else if (isCompleted && finalReport && i === messages.length - 1) {
+                        // 마지막 assistant = FTO 리포트 → 이미지 포함 형식으로 렌더
+                        const selectedDesign = selectedIndex != null
+                            ? (similarDesigns.find(d => d.index === selectedIndex) || null)
+                            : null;
+                        addReportMessageRestored(finalReport, uploadImgUrl, selectedDesign);
                     } else {
                         addBotMessage(msg.content);
                     }
@@ -1620,17 +1732,19 @@
                 currentSimilarDesigns = similarDesigns;
                 addAnalysisResultMessageRestored(
                     { input_analysis: data.session.input_analysis || '', similar_designs: similarDesigns },
-                    isCompleted
+                    isCompleted,
+                    selectedIndex
                 );
             }
 
-            // 컨텍스트 배너 표시
-            if (uploadImg) {
-                imageContextThreadId = threadId;
+            // 컨텍스트 배너 — 완료 세션이나 이미지가 있으면 텍스트 대화 가능
+            if (isCompleted || uploadImg) {
                 showContextBanner();
+            } else {
+                hideContextBanner();
             }
 
-            setStatus(isCompleted ? '완료' : '분석 중');
+            setStatus(isCompleted ? '완료' : isWaiting ? '선택 대기' : '대기');
 
             // 스크롤 맨 위로
             document.getElementById('messagesArea').scrollTop = 0;

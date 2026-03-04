@@ -38,6 +38,8 @@ router = APIRouter()
 _DESIGN_AVAILABLE = False
 _design_graph = None
 _design_command_cls = None
+_detailed_compare_fn = None   # detailed_compare_node 함수 (재비교용)
+_generate_report_fn = None    # generate_report_node 함수 (재비교용)
 _import_error = None
 _load_lock = threading.Lock()
 
@@ -45,7 +47,7 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 
 def _ensure_design_graph_loaded() -> bool:
     """design/src/design_chatbot.py를 지연 로딩하고 그래프를 초기화한다."""
-    global _DESIGN_AVAILABLE, _design_graph, _design_command_cls, _import_error
+    global _DESIGN_AVAILABLE, _design_graph, _design_command_cls, _detailed_compare_fn, _generate_report_fn, _import_error
 
     if _DESIGN_AVAILABLE and _design_graph is not None and _design_command_cls is not None:
         return True
@@ -64,11 +66,13 @@ def _ensure_design_graph_loaded() -> bool:
             if not os.getenv("VLLM_API_BASE") and os.getenv("VLLM_BASE_URL"):
                 os.environ["VLLM_API_BASE"] = os.getenv("VLLM_BASE_URL")
 
-            from design_chatbot import create_graph
+            from design_chatbot import create_graph, detailed_compare_node, generate_report_node
             from langgraph.types import Command
 
             _design_graph = create_graph()
             _design_command_cls = Command
+            _detailed_compare_fn = detailed_compare_node
+            _generate_report_fn = generate_report_node
             _DESIGN_AVAILABLE = True
             _import_error = None
             print("[design] LangGraph 디자인 챗봇 로드 성공")
@@ -77,6 +81,8 @@ def _ensure_design_graph_loaded() -> bool:
             _DESIGN_AVAILABLE = False
             _design_graph = None
             _design_command_cls = None
+            _detailed_compare_fn = None
+            _generate_report_fn = None
             _import_error = str(e)
             print(f"[design] 디자인 모듈 로드 실패: {e}")
             return False
@@ -272,6 +278,7 @@ async def _image_via_langgraph(
                 "article_name": comp.get("article_name", "N/A"),
                 "admst_stat": comp.get("admst_stat", "N/A"),
                 "distance": comp.get("hybrid_score", 0),
+                "image_path": comp.get("image_path", ""),  # 재비교 시 직접 노드 호출용
             }
             # 이미지 base64 첨부
             img_path = comp.get("image_path")
@@ -311,11 +318,13 @@ async def _image_via_langgraph(
         db.commit()
 
         # 인메모리 세션 저장 (select 단계에서 사용)
+        # user_image_base64: LangGraph 내부 포맷 대신 원본 bytes로 직접 변환 (표시용)
         _sessions[thread_id] = {
             "graph": graph,
             "config": config,
             "comparison_results": result.get("comparison_results", []),
             "base64_image": b64_from_graph,
+            "user_image_base64": _image_to_base64(file_bytes),
             "s3_url": s3_url,
         }
 
@@ -368,7 +377,11 @@ async def select_design(
                     "session_expired": True,
                 }
             elif db_session.status == DesignSessionStatus.completed:
-                # 이미 완료된 세션
+                # 완료된 세션 → 인메모리 데이터로 재비교 가능 여부 확인
+                mem_session = _sessions.get(thread_id)
+                if mem_session and _detailed_compare_fn and _generate_report_fn:
+                    return await _recompare_via_nodes(mem_session, selected_index, thread_id, db, db_session)
+                # 인메모리 없음 → 저장된 리포트 반환
                 return {
                     "success": True,
                     "final_report": db_session.final_report or "리포트가 저장되지 않았습니다.",
@@ -450,8 +463,85 @@ async def _select_via_langgraph(
             "success": True,
             "final_report": final_report,
             "user_image_s3_url": session.get("s3_url", ""),
-            "user_image_base64": session.get("base64_image", ""),
+            "user_image_base64": session.get("user_image_base64", ""),
             "selected_design": {**selected_info, "image_base64": selected_image_base64} if selected else None,
+        }
+    except Exception as e:
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+
+async def _recompare_via_nodes(
+    mem_session: dict,
+    selected_index: int,
+    thread_id: str,
+    db: Session,
+    db_session,
+) -> dict:
+    """인메모리 세션 데이터로 노드 함수를 직접 호출하여 다른 디자인과 재비교."""
+    try:
+        comparison_results = mem_session.get("comparison_results", [])
+        b64_image = mem_session.get("base64_image", "")
+
+        if not comparison_results or not b64_image:
+            return {"success": False, "error": "재비교에 필요한 데이터가 없습니다."}
+
+        selected = next((r for r in comparison_results if r.get("index") == selected_index), None)
+        if not selected:
+            return {"success": False, "error": f"{selected_index}번 디자인을 찾을 수 없습니다."}
+
+        # 노드 함수에 넘길 상태 구성
+        state = {
+            "input_type": "image",
+            "image_path": "",
+            "text_query": "",
+            "user_query": "이 디자인과 상세 비교해줘",
+            "base64_image": b64_image,
+            "input_analysis": db_session.input_analysis or "",
+            "search_results": {},
+            "comparison_results": comparison_results,
+            "selected_index": selected_index,
+            "detailed_comparison": "",
+            "final_report": "",
+            "general_answer": "",
+            "messages": [],
+        }
+
+        # LangGraph 우회 — 노드 함수 직접 호출
+        state = _detailed_compare_fn(state)
+        state = _generate_report_fn(state)
+
+        final_report = state.get("final_report", "리포트 생성 실패")
+
+        # DB 업데이트
+        db_session.selected_index = selected_index
+        db_session.final_report = final_report
+        assistant_msg = DesignSessionMessage(
+            session_id=db_session.id,
+            role=MessageRole.assistant,
+            content=final_report,
+        )
+        db.add(assistant_msg)
+        db.commit()
+
+        # 선택 디자인 이미지
+        selected_info = {
+            "index": selected.get("index"),
+            "application_number": selected.get("application_number", ""),
+            "article_name": selected.get("article_name", ""),
+            "admst_stat": selected.get("admst_stat", ""),
+        }
+        selected_image_base64 = ""
+        img_bytes = _read_image_bytes(selected.get("image_path", ""))
+        if img_bytes:
+            selected_image_base64 = _image_to_base64(img_bytes)
+
+        return {
+            "success": True,
+            "final_report": final_report,
+            "user_image_base64": b64_image,
+            "user_image_s3_url": mem_session.get("s3_url", ""),
+            "selected_design": {**selected_info, "image_base64": selected_image_base64},
         }
     except Exception as e:
         traceback.print_exc()
@@ -731,3 +821,4 @@ async def delete_design_session(
     _sessions.pop(thread_id, None)
 
     return {"success": True}
+
