@@ -624,3 +624,46 @@ async def get_session_history(
         "images": images,
         "messages": messages,
     }
+
+
+# ══════════════════════════════════════════════════════
+# GET /design/sessions — 세션 목록 조회 (사이드바용)
+# ══════════════════════════════════════════════════════
+
+@router.get("/design/sessions")
+async def list_design_sessions(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    """디자인 분석 세션 목록 조회 (사이드바용)."""
+    sessions = (
+        db.query(DesignSession)
+        .filter(~DesignSession.thread_id.startswith("text-"))
+        .order_by(DesignSession.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    result = []
+    for s in sessions:
+        # 유저 업로드 이미지 URL (사이드바 썸네일용)
+        s3_url = None
+        for img in s.images:
+            if img.image_type == ImageType.user_upload:
+                s3_url = img.s3_url
+                break
+
+        # 미리보기 텍스트: input_analysis 첫 줄
+        preview = ""
+        if s.input_analysis:
+            preview = s.input_analysis.split('\n')[0][:60]
+
+        result.append({
+            "thread_id": s.thread_id,
+            "status": s.status.value,
+            "preview": preview,
+            "s3_url": s3_url,
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+        })
+
+    return result
