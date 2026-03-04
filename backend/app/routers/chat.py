@@ -477,13 +477,13 @@ async def search_patents(
                 from rag.backend_adapter import rewrite_query
                 t_rw = time.time()
                 search_query = await asyncio.to_thread(rewrite_query, history, message, True)
-                logger.info(f"[검색] 쿼리 재작성 {time.time()-t_rw:.2f}s | 원본: {message[:60]} → 재작성: {search_query[:100]}")
+                logger.info(f"[검색] 쿼리 재작성 {time.time()-t_rw:.2f}s | 원본: {message} → 재작성: {search_query}")
 
     # RAG 검색
     from rag.backend_adapter import search_only
     t_search = time.time()
     search_results = await asyncio.to_thread(search_only, search_query, 10, True)
-    logger.info(f"[검색] RAG 검색 {time.time()-t_search:.2f}s | {len(search_results)}건 | 쿼리: {search_query[:80]}")
+    logger.info(f"[검색] RAG 검색 {time.time()-t_search:.2f}s | {len(search_results)}건 | 쿼리: {search_query}")
 
     # 캐시에 저장 (message_id를 키로)
     from app.utils.search_cache import store as cache_store

@@ -455,6 +455,30 @@
         .corr-badge.match { background: #FEE2E2; color: #DC2626; }
         .corr-badge.no-match { background: #DBEAFE; color: #2563EB; }
         .corr-badge.unknown { background: #F5F5F5; color: #737373; }
+
+        /* 체크박스: 흰색 배경 + 차콜 체크 */
+        .pdf-check, #pdfSelectAll {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 15px; height: 15px;
+            border: 1.5px solid #D4D4D4;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: border-color 0.15s;
+        }
+        .pdf-check:hover, #pdfSelectAll:hover { border-color: #737373; }
+        .pdf-check:checked, #pdfSelectAll:checked { border-color: #525252; }
+        .pdf-check:checked::after, #pdfSelectAll:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px; font-weight: 700;
+            color: #525252; line-height: 1;
+        }
     </style>
 </head>
 
@@ -615,6 +639,14 @@
         </div>
         <div id="resultPanelContent" style="padding:0 1.5rem 1.5rem 1.5rem;"></div>
         <div style="padding:0 1.5rem 1.5rem 1.5rem;">
+            <div class="flex items-center justify-between mb-2">
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-neutral-500">
+                    <input type="checkbox" id="pdfSelectAll" checked
+                           onchange="toggleAllPdfChecks(this.checked)">
+                    전체 선택
+                </label>
+                <span id="pdfSelectedCount" class="text-xs text-neutral-400"></span>
+            </div>
             <button class="pdf-export-btn" onclick="exportResultPDF()">
                 <i class="fas fa-file-pdf"></i>
                 PDF로 저장하기
@@ -639,6 +671,8 @@
     let patentAnalyses = [];
     let currentAnalysisId = null;
     const analysesHistory = new Map(); // analysisId → patentAnalyses 보존
+    let resultBubbleDiv = null; // TOP3 결과보기 말풍선 DOM 참조
+    let additionalBubbleDiv = null; // 추가 분석(4~10) 말풍선 DOM 참조
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -780,6 +814,8 @@
             const analyzeCount = Math.min(3, searchResults.length);
             const progressEl = addAnalysisProgress(analyzeCount);
             patentAnalyses = [];
+            resultBubbleDiv = null;
+            additionalBubbleDiv = null;
 
             for (let i = 0; i < analyzeCount; i++) {
                 setProgressStep(progressEl, i, 'active');
@@ -793,9 +829,16 @@
             // 4~10번 분석 버튼 활성화
             enableRemainingButtons();
 
+            // TOP 3 분석 완료 → progress 스피너 제거
+            const progressDiv = document.getElementById('analysisProgress');
+            if (progressDiv) progressDiv.remove();
+
             // ── Phase 3: 저장 ──
             const finalResp = await callFinalizeAPI(searchToken, patentAnalyses);
             currentAnalysisId = finalResp.analysis_id;
+
+            // finalize 후 서버 캐시 삭제됨 → 4~10번은 히스토리 API 사용
+            searchToken = null;
 
             // 분석 결과를 ID별로 보존 (덮어쓰기 방지)
             analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
@@ -820,7 +863,7 @@
 
     // ==================== TOP 10 특허 리스트 ====================
 
-    function addPatentListMessage(results) {
+    function addPatentListMessage(results, historyAnalyses = null) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
         const rows = results.slice(0, 10).map((r, i) => {
@@ -831,6 +874,35 @@
             const title = meta.invention_title || '(제목 없음)';
             const applyNum = meta.apply_num || r.patent_id || '-';
             const isTop3 = i < 3;
+
+            // 히스토리 모드: 이미 분석된 항목은 결과 표시
+            let btnClass = 'patent-analyze-btn';
+            let btnDisabled = '';
+            let btnLabel = '';
+            const existing = historyAnalyses ? historyAnalyses.find(a => a.patent_index === i) : null;
+
+            if (existing) {
+                // 분석 완료된 항목 → 결과 표시
+                const comps = existing.comparisons || [];
+                const matchCount = comps.filter(c => c.correspondence === '대응').length;
+                const total = comps.length;
+                const label = existing.label || '';
+                let riskClass = 'risk-low';
+                let labelText = '비침해';
+                if (label === '침해') { riskClass = 'risk-high'; labelText = '침해'; }
+                else if (label === '침해_전문가' || label === '애매') { riskClass = 'risk-medium'; labelText = label === '애매' ? '추가확인' : '전문가검토'; }
+                else if (label === '공개') { riskClass = 'risk-info'; labelText = '공개'; }
+                btnClass += ` ${riskClass}`;
+                btnLabel = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
+            } else if (historyAnalyses) {
+                // 히스토리 모드이지만 미분석 → "분석" 버튼
+                btnLabel = '<i class="fas fa-microscope" style="font-size:7px;"></i> 분석';
+            } else {
+                // 실시간 모드
+                btnDisabled = isTop3 ? '' : 'disabled';
+                btnLabel = isTop3 ? '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석 예정' : '<i class="fas fa-microscope" style="font-size:7px;"></i> 분석';
+            }
+
             return `
                 <div class="patent-list-item">
                     <div class="patent-rank-badge">${i + 1}</div>
@@ -853,11 +925,11 @@
                         </div>
                         <div class="text-xs text-neutral-700 mt-0.5 truncate">${escapeHtml(title)}</div>
                     </div>
-                    <button class="patent-analyze-btn"
+                    <button class="${btnClass}"
                             data-patent-index="${i}"
                             onclick="analyzeSinglePatent(this, ${i})"
-                            ${isTop3 ? '' : 'disabled'}>
-                        ${isTop3 ? '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석 예정' : '<i class="fas fa-microscope" style="font-size:7px;"></i> 분석'}
+                            ${btnDisabled}>
+                        ${btnLabel}
                     </button>
                 </div>`;
         }).join('');
@@ -910,6 +982,51 @@
         return div;
     }
 
+    // 분석 단계별 진행 메시지 (시간에 따라 변경)
+    let progressMessageTimers = [];
+    const stepMessages = [
+        [ // 1번째 (오래 걸림 → 메시지 많이)
+            { text: '1번째 특허 청구항 구성요소 추출 중...', delay: 6000 },
+            { text: '특허 구성요소와 제품 구성 대비 매칭 중...', delay: 10000 },
+            { text: 'sLLM이 침해 여부를 판단하고 있어요...', delay: 14000 },
+            { text: '첫 번째 분석은 시간이 조금 걸려요, 잠시만요!', delay: 24000 },
+            { text: '거의 다 됐어요! 결과를 정리하고 있습니다...', delay: 36000 },
+            { text: '최종 판정 결과를 생성하고 있습니다...', delay: 50000 },
+        ],
+        [ // 2번째
+            { text: '2번째 특허 구성요소 대비 분석 중...', delay: 6000},
+            { text: 'sLLM이 빠르게 분석하고 있어요!', delay: 10000 },
+            { text: '결과를 정리하고 있습니다...', delay: 36000 },
+            { text: '최종 판정 결과를 생성하고 있습니다...', delay: 50000 },
+        ],
+        [ // 3번째
+            { text: '마지막 특허! 구성요소 대비 분석 중...', delay: 6000 },
+            { text: '결과를 정리하고 있습니다...', delay: 36000 },
+            { text: '최종 결과를 정리 중...', delay: 6000 },
+        ],
+    ];
+
+    function startProgressMessages(container, index) {
+        stopProgressMessages();
+        const step = container.querySelector(`#progressStep${index}`);
+        if (!step) return;
+        const span = step.querySelector('span');
+        if (!span) return;
+        const msgs = stepMessages[index] || [{ text: `${index+1}번째 특허 분석 중...`, delay: 0 }];
+        msgs.forEach(m => {
+            const timer = setTimeout(() => {
+                span.textContent = m.text;
+                scrollToBottom();
+            }, m.delay);
+            progressMessageTimers.push(timer);
+        });
+    }
+
+    function stopProgressMessages() {
+        progressMessageTimers.forEach(t => clearTimeout(t));
+        progressMessageTimers = [];
+    }
+
     function setProgressStep(container, index, state) {
         const step = container.querySelector(`#progressStep${index}`);
         if (!step) return;
@@ -919,10 +1036,11 @@
         const span = step.querySelector('span');
         if (state === 'active') {
             icon.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:8px;"></i>';
-            span.textContent = `${index + 1}번째 특허 구성대비 확인중...`;
+            startProgressMessages(container, index);
         } else if (state === 'done') {
+            stopProgressMessages();
             icon.innerHTML = '<i class="fas fa-check" style="font-size:8px;"></i>';
-            span.textContent = `${index + 1}번째 특허 구성대비 완료`;
+            span.textContent = `${index + 1}번째 특허 구성대비 완료 ✓`;
         }
         scrollToBottom();
     }
@@ -981,9 +1099,15 @@
         // searchToken 없고 currentAnalysisId도 없으면 분석 불가
         if ((!searchToken && !currentAnalysisId) || isAnalyzing) return;
 
-        // 버튼 로딩 상태
+        // 버튼 로딩 상태 (3단계 문구 순환)
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석중...';
+        const btnMsgs = ['분석중...', '판단중...', '정리중...'];
+        let btnMsgIdx = 0;
+        const btnMsgTimer = setInterval(() => {
+            btnMsgIdx = (btnMsgIdx + 1) % btnMsgs.length;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> ${btnMsgs[btnMsgIdx]}`;
+        }, 4000);
 
         try {
             let result;
@@ -994,6 +1118,7 @@
                 // 히스토리 모드: DB 기반 분석
                 result = await callAnalyzeFromHistoryAPI(currentAnalysisId, index);
             }
+            clearInterval(btnMsgTimer);
             result.patent_index = index;
             patentAnalyses.push(result);
 
@@ -1002,12 +1127,29 @@
                 analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
             }
 
-            // 버튼에 판정+대응비율 표시
-            updatePatentButton(index, result);
+            // 버튼에 판정+대응비율 표시 (직접 참조로 확실하게 업데이트)
+            const comps = result.comparisons || [];
+            const matchCount = comps.filter(c => c.correspondence === '대응').length;
+            const total = comps.length;
+            const label = result.label || '';
+            let riskClass = 'risk-low';
+            let labelText = '비침해';
+            if (label === '침해') { riskClass = 'risk-high'; labelText = '침해'; }
+            else if (label === '침해_전문가' || label === '애매') { riskClass = 'risk-medium'; labelText = label === '애매' ? '추가확인' : '전문가검토'; }
+            else if (label === '공개') { riskClass = 'risk-info'; labelText = '공개'; }
+            btn.disabled = false;
+            btn.className = `patent-analyze-btn ${riskClass}`;
+            btn.innerHTML = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
 
             // 결과 패널에 해당 특허 표시
             openResultPanelSingle(result);
+
+            // 추가 분석(4~10) → 두 번째 말풍선 생성/업데이트
+            if (index >= 3) {
+                addOrUpdateAdditionalBubble();
+            }
         } catch (e) {
+            clearInterval(btnMsgTimer);
             console.error('개별 분석 실패:', e);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-microscope" style="font-size:7px;"></i> 재시도';
@@ -1020,7 +1162,8 @@
         const div = document.createElement('div');
         div.className = 'msg assistant';
 
-        const labels = analyses.map(a => a.label || '');
+        const top3 = analyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) < 3);
+        const labels = top3.map(a => a.label || '');
         let riskText = '침해 가능성 낮음';
         if (labels.some(l => l === '침해')) riskText = '침해 가능 특허 존재';
         else if (labels.some(l => l === '침해_전문가' || l === '애매')) riskText = '전문가 검토 권장';
@@ -1043,22 +1186,88 @@
                 </div>
             </div>`;
         messagesWrapper.appendChild(div);
+        resultBubbleDiv = div;
         scrollToBottom();
+
+        // 추가 분석(4~10)이 있으면 두 번째 말풍선도 복원
+        const extras = analyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) >= 3);
+        if (extras.length > 0) {
+            addOrUpdateAdditionalBubble();
+        }
+    }
+
+    // 추가 분석(4~10) 두 번째 말풍선 (차콜 스타일, 결과는 1~N 전체)
+    function addOrUpdateAdditionalBubble() {
+        const maxIndex = Math.max(...patentAnalyses.map(a => (a.patent_index !== undefined ? a.patent_index : 0))) + 1;
+        const labels = patentAnalyses.map(a => a.label || '');
+        let riskText = '침해 가능성 낮음';
+        if (labels.some(l => l === '침해')) riskText = '침해 가능 특허 존재';
+        else if (labels.some(l => l === '침해_전문가' || l === '애매')) riskText = '전문가 검토 권장';
+
+        if (additionalBubbleDiv) {
+            // 기존 말풍선 업데이트
+            const titleEl = additionalBubbleDiv.querySelector('.additional-bubble-title');
+            const subtitleEl = additionalBubbleDiv.querySelector('.additional-bubble-subtitle');
+            const btnEl = additionalBubbleDiv.querySelector('.additional-bubble-btn');
+            if (titleEl) titleEl.textContent = `TOP${maxIndex} 침해 분석 완료`;
+            if (subtitleEl) subtitleEl.textContent = riskText;
+            if (btnEl) btnEl.innerHTML = `<i class="fas fa-table"></i> TOP1~${maxIndex} 구성 대비 결과보기`;
+        } else {
+            const div = document.createElement('div');
+            div.className = 'msg assistant';
+            div.innerHTML = `
+                <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
+                <div class="msg-content">
+                    <div class="result-ready-banner">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #F5F5F5; border: 1px solid #E5E5E5;">
+                            <i class="fas fa-layer-group" style="color:#525252;"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-black mb-0.5 additional-bubble-title">TOP${maxIndex} 침해 분석 완료</p>
+                            <p class="text-xs text-neutral-500 additional-bubble-subtitle">${riskText}</p>
+                        </div>
+                        <button onclick="openResultPanelAll()" class="result-view-btn additional-bubble-btn" style="background:linear-gradient(135deg,#525252,#333); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+                            <i class="fas fa-table"></i>
+                            TOP1~${maxIndex} 구성 대비 결과보기
+                        </button>
+                    </div>
+                </div>`;
+            messagesWrapper.appendChild(div);
+            additionalBubbleDiv = div;
+            scrollToBottom();
+        }
     }
 
     // ==================== 결과 패널 ====================
 
     let lastPanelAnalyses = []; // PDF 출력용 현재 패널 데이터
 
+    // TOP3 전용
     function openResultPanel(analysisId) {
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
-        const data = analysisId ? (analysesHistory.get(analysisId) || patentAnalyses) : patentAnalyses;
+        const allData = analysisId ? (analysesHistory.get(analysisId) || patentAnalyses) : patentAnalyses;
+        const data = allData.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) < 3);
         lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
-        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP${data.length} 구성 대비 결과`;
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP3 구성 대비 결과`;
         panel.classList.add('open');
         document.getElementById('mainContent').classList.add('panel-open');
+        updatePdfSelectedCount();
+    }
+
+    // 전체 (1~N)
+    function openResultPanelAll() {
+        const panel = document.getElementById('resultPanel');
+        const content = document.getElementById('resultPanelContent');
+        const data = patentAnalyses;
+        lastPanelAnalyses = data;
+        content.innerHTML = renderResultPanelContent(data);
+        const maxIdx = Math.max(...data.map(a => (a.patent_index !== undefined ? a.patent_index : 0))) + 1;
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP1~${maxIdx} 구성 대비 결과`;
+        panel.classList.add('open');
+        document.getElementById('mainContent').classList.add('panel-open');
+        updatePdfSelectedCount();
     }
 
     function openResultPanelSingle(analysis) {
@@ -1066,11 +1275,11 @@
         const content = document.getElementById('resultPanelContent');
         lastPanelAnalyses = [analysis];
         content.innerHTML = renderResultPanelContent([analysis]);
-        const meta = analysis.metadata || {};
-        const title = meta.invention_title || analysis.patent_id || '특허';
-        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> ${escapeHtml(title).substring(0, 20)}...`;
+        const rankNum = (analysis.patent_index !== undefined ? analysis.patent_index : 0) + 1;
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> 유사 특허 ${rankNum} 구성 대비 결과`;
         panel.classList.add('open');
         document.getElementById('mainContent').classList.add('panel-open');
+        updatePdfSelectedCount();
     }
 
     function closeResultPanel() {
@@ -1079,6 +1288,22 @@
     }
 
     // ==================== PDF 내보내기 ====================
+
+    function toggleAllPdfChecks(checked) {
+        document.querySelectorAll('#resultPanelContent .pdf-check').forEach(cb => {
+            cb.checked = checked;
+        });
+        updatePdfSelectedCount();
+    }
+
+    function updatePdfSelectedCount() {
+        const total = document.querySelectorAll('#resultPanelContent .pdf-check').length;
+        const checked = document.querySelectorAll('#resultPanelContent .pdf-check:checked').length;
+        const el = document.getElementById('pdfSelectedCount');
+        if (el) el.textContent = total > 0 ? `${checked}/${total}건 선택` : '';
+        const selectAll = document.getElementById('pdfSelectAll');
+        if (selectAll) selectAll.checked = (checked === total && total > 0);
+    }
 
     function exportResultPDF() {
         const btn = document.querySelector('.pdf-export-btn');
@@ -1094,10 +1319,21 @@
 
         let analyses = lastPanelAnalyses || [];
         if (analyses.length === 0) analyses = patentAnalyses || [];
+
+        // 체크박스로 선택된 항목만 필터링
+        const checkboxes = document.querySelectorAll('#resultPanelContent .pdf-check');
+        if (checkboxes.length > 0) {
+            const checkedIndices = new Set();
+            checkboxes.forEach(cb => {
+                if (cb.checked) checkedIndices.add(parseInt(cb.dataset.panelIndex));
+            });
+            analyses = analyses.filter((_, i) => checkedIndices.has(i));
+        }
+
         if (analyses.length === 0) {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
-            alert('분석 결과가 없습니다.');
+            alert('선택된 분석 결과가 없습니다. 체크박스를 선택해주세요.');
             return;
         }
 
@@ -1333,7 +1569,9 @@
             return `
                 <div class="panel-patent-card">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="patent-rank-badge">${i + 1}</div>
+                        <input type="checkbox" class="pdf-check" data-panel-index="${i}" checked
+                               onchange="updatePdfSelectedCount()" onclick="event.stopPropagation();">
+                        <div class="patent-rank-badge">${(a.patent_index !== undefined ? a.patent_index : i) + 1}</div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-bold text-black truncate">${escapeHtml(title)}</div>
                         </div>
@@ -1568,6 +1806,8 @@
         searchToken = null;
         searchResults = null;
         patentAnalyses = [];
+        resultBubbleDiv = null;
+        additionalBubbleDiv = null;
         currentAnalysisId = null;
         messageInput.value = '';
         messageInput.style.height = 'auto';
@@ -1637,13 +1877,16 @@
     }
 
     async function openPatentPdf(applyNum) {
-        // KIPRIS Plus API로 PDF 조회 시도 → 없으면 KIPRIS 검색으로 폴백
+        // KIPRIS Plus API로 PDF URL 조회 → 없으면 KIPRIS 검색으로 폴백
         const url = `${API_BASE}/search/patent-pdf?apply_num=${encodeURIComponent(applyNum)}`;
         try {
-            const resp = await fetch(url, { headers: authHeaders(), redirect: 'follow' });
-            if (resp.ok || resp.redirected) {
-                window.open(resp.url, '_blank');
-                return;
+            const resp = await fetch(url, { headers: authHeaders() });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.pdf_url) {
+                    window.open(data.pdf_url, '_blank');
+                    return;
+                }
             }
         } catch (e) { /* 네트워크 에러 */ }
         // PDF 없음 → 출원번호 복사 + KIPRIS 검색 열기
@@ -1773,6 +2016,8 @@
             searchToken = null;
             currentAnalysisId = null;
             patentAnalyses = [];
+            resultBubbleDiv = null;
+            additionalBubbleDiv = null;
             searchResults = [];
 
             for (const aid of analysisIds) {
@@ -1785,21 +2030,11 @@
                         const sResults = aData.search_results || [];
                         const analyses = aData.patent_analyses || [];
 
-                        // TOP10 리스트 복원
+                        // TOP10 리스트 복원 (분석 결과도 함께 전달하여 버튼에 반영)
                         if (sResults.length > 0) {
-                            addPatentListMessage(sResults);
+                            addPatentListMessage(sResults, analyses);
                             searchResults = sResults;
                             currentAnalysisId = aid;
-
-                            // 분석 완료된 특허 버튼 업데이트
-                            analyses.forEach(a => {
-                                if (a.patent_index !== undefined) {
-                                    updatePatentButton(a.patent_index, a);
-                                }
-                            });
-
-                            // 미분석 버튼 활성화 (히스토리에서도 분석 가능하게)
-                            enableRemainingButtons();
                         }
 
                         if (analyses.length > 0) {
