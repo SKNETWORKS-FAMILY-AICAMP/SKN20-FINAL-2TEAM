@@ -611,6 +611,7 @@
     let sessionCount = 0;
     let currentAbortController = null;
     let currentSimilarDesigns = [];
+    let _ftoReportData = null; // PDF 생성용 리포트 데이터 보관
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -1056,14 +1057,49 @@
     }
 
     function addReportMessage(result) {
+        const reportText = (result.final_report || '리포트 생성 실패').replace(/#+\s*/g, '');
+        // PDF용 base64 우선 — S3 URL은 CORS로 html2canvas 캡처 불가
+        const userImgBase64 = result.user_image_base64 ? `data:image/jpeg;base64,${result.user_image_base64}` : '';
+        const userImgSrc = userImgBase64 || result.user_image_s3_url || '';
+        const sel = result.selected_design;
+        const selImgSrc = sel && sel.image_base64 ? `data:image/jpeg;base64,${sel.image_base64}` : '';
+        const selLabel = sel ? `비교 디자인 (출원번호 ${escapeHtml(sel.application_number)})` : '비교 디자인';
+
+        // PDF 생성용 데이터 저장
+        _ftoReportData = { reportText, userImgSrc, selImgSrc, selLabel };
+
+        const userImgHtml = userImgSrc
+            ? `<img src="${userImgSrc}" style="width:100%; aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5;" />`
+            : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#A3A3A3;">No Image</div>`;
+        const selImgHtml = selImgSrc
+            ? `<img src="${selImgSrc}" style="width:100%; aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5;" />`
+            : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#A3A3A3;">No Image</div>`;
+
         const div = document.createElement('div');
         div.className = 'msg assistant';
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
             <div class="msg-content">
-                <div class="msg-bubble">
-                    <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-file-alt text-primary mr-1"></i>FTO 분석 리포트</h4>
-                    <div class="report-box">${escapeHtml((result.final_report || '리포트 생성 실패').replace(/#+\s*/g, ''))}</div>
+                <div class="msg-bubble" id="ftoReportBubble">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4 class="font-bold text-sm text-black"><i class="fas fa-file-alt text-primary mr-1"></i>FTO 분석 리포트</h4>
+                        <button id="ftoPdfBtn" onclick="downloadFTOReportPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-file-pdf"></i> PDF 저장
+                        </button>
+                    </div>
+                    <!-- 이미지 비교 -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:0.7rem; font-weight:700; color:#FF6B35; margin-bottom:0.35rem;">입력 디자인</div>
+                            ${userImgHtml}
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:0.7rem; font-weight:700; color:#525252; margin-bottom:0.35rem;">${selLabel}</div>
+                            ${selImgHtml}
+                        </div>
+                    </div>
+                    <!-- 리포트 본문 -->
+                    <div class="report-box" id="ftoReportText">${escapeHtml(reportText)}</div>
                 </div>
                 <div class="flex gap-2 mt-2">
                     <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
@@ -1072,8 +1108,92 @@
                 </div>
             </div>
         `;
+        // PDF에 필요한 데이터 저장
+        div._reportData = { reportText, userImgSrc, selImgSrc, sel };
         messagesWrapper.appendChild(div);
         scrollToBottom();
+    }
+
+    async function downloadFTOReportPDF() {
+        if (!_ftoReportData) return;
+        const btn = document.getElementById('ftoPdfBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 생성 중...'; }
+
+        const { reportText, userImgSrc, selImgSrc, selLabel } = _ftoReportData;
+
+        // 이미지를 정사각형 박스에 담는 헬퍼 (비율 유지, 찌그러짐 방지)
+        const imgBox = (src, size = 240) => src
+            ? `<div style="width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; background:#F8F8F8; border:1px solid #e5e5e5; border-radius:8px; overflow:hidden; margin:0 auto;">
+                   <img src="${src}" style="max-width:${size}px; max-height:${size}px; object-fit:contain; display:block;" />
+               </div>`
+            : `<div style="width:${size}px; height:${size}px; background:#f5f5f5; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:11px; margin:0 auto;">이미지 없음</div>`;
+
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position:fixed; top:-9999px; left:-9999px;
+            width:794px; background:white;
+            padding:36px 44px; box-sizing:border-box;
+            font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
+        `;
+        container.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #FF6B35;">
+                <div style="width:36px; height:36px; background:#FF6B35; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:18px; font-weight:700; color:#1a1a1a;">FTO 분석 리포트</div>
+                    <div style="font-size:11px; color:#737373; margin-top:2px;">FTOGuard · ${new Date().toLocaleDateString('ko-KR')}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:24px; justify-content:center; margin-bottom:24px;">
+                <div style="text-align:center; flex:1;">
+                    <div style="font-size:11px; font-weight:700; color:#FF6B35; margin-bottom:8px;">입력 디자인</div>
+                    ${imgBox(userImgSrc)}
+                </div>
+                <div style="text-align:center; flex:1;">
+                    <div style="font-size:11px; font-weight:700; color:#525252; margin-bottom:8px;">${selLabel}</div>
+                    ${imgBox(selImgSrc)}
+                </div>
+            </div>
+            <div style="font-size:11px; color:#333; line-height:1.9; white-space:pre-wrap; border-top:1px solid #e5e5e5; padding-top:16px;">${reportText}</div>
+            <div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e5e5; text-align:center; font-size:9px; color:#a3a3a3;">
+                본 리포트는 FTOGuard AI가 생성한 참고 자료입니다.
+            </div>
+        `;
+
+        document.body.appendChild(container);
+        try {
+            const canvas = await html2canvas(container, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+            const margin = 8;
+            const pageW = 210 - margin * 2;
+            const pageH = 297 - margin * 2;
+            const ratio = canvas.width / pageW;
+            const totalH = canvas.height / ratio;
+
+            if (totalH <= pageH) {
+                doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, totalH);
+            } else {
+                let srcY = 0;
+                let first = true;
+                while (srcY < canvas.height) {
+                    const slicePxH = Math.min(pageH * ratio, canvas.height - srcY);
+                    const slice = document.createElement('canvas');
+                    slice.width = canvas.width;
+                    slice.height = slicePxH;
+                    slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, slicePxH, 0, 0, canvas.width, slicePxH);
+                    if (!first) doc.addPage();
+                    doc.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, slicePxH / ratio);
+                    srcY += slicePxH;
+                    first = false;
+                }
+            }
+            doc.save(`fto-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+        } finally {
+            document.body.removeChild(container);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF 저장'; }
+        }
     }
 
     // 세션 복원 시 사용 — isCompleted=true면 '상세 비교' 버튼 비활성화

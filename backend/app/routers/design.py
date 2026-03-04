@@ -316,6 +316,7 @@ async def _image_via_langgraph(
             "config": config,
             "comparison_results": result.get("comparison_results", []),
             "base64_image": b64_from_graph,
+            "s3_url": s3_url,
         }
 
         return {
@@ -429,9 +430,28 @@ async def _select_via_langgraph(
             db.add(assistant_msg)
             db.commit()
 
+        # 선택된 디자인 이미지 정보
+        comparison_results = session.get("comparison_results", [])
+        selected = next((r for r in comparison_results if r.get("index") == selected_index), None)
+        selected_image_base64 = ""
+        selected_info = {}
+        if selected:
+            selected_info = {
+                "index": selected.get("index"),
+                "application_number": selected.get("application_number", ""),
+                "article_name": selected.get("article_name", ""),
+                "admst_stat": selected.get("admst_stat", ""),
+            }
+            img_bytes = _read_image_bytes(selected.get("image_path", ""))
+            if img_bytes:
+                selected_image_base64 = _image_to_base64(img_bytes)
+
         return {
             "success": True,
             "final_report": final_report,
+            "user_image_s3_url": session.get("s3_url", ""),
+            "user_image_base64": session.get("base64_image", ""),
+            "selected_design": {**selected_info, "image_base64": selected_image_base64} if selected else None,
         }
     except Exception as e:
         traceback.print_exc()
