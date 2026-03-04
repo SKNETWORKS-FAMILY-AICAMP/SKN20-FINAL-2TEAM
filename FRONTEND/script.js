@@ -8,6 +8,11 @@ const DEV_BYPASS_AUTH = false;
 // ==========================
 class AuthManager {
     constructor() {
+        // localStorage → sessionStorage 마이그레이션 (1회성 정리)
+        if (localStorage.getItem('authToken')) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+        }
         this.token = sessionStorage.getItem('authToken');
         this.user = JSON.parse(sessionStorage.getItem('user') || 'null');
     }
