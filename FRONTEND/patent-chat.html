@@ -381,9 +381,12 @@
 
         /* (패널 닫기 탭 제거됨 — X 버튼 sticky로 대체) */
 
-        #mainContent.panel-open {
-            margin-right: 55%;
+        /* 패널 열림 시 메인 콘텐츠 축소 (패널과 나란히 표시) */
+        #mainContent {
             transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #mainContent.panel-open {
+            margin-right: min(55%, 720px);
         }
 
         /* 결과보기 버튼 */
@@ -836,12 +839,18 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-neutral-400">출원번호:</span>
-                            <a href="https://kportal.kipris.or.kr/kportal/search/search_patent.do?queryText=AN%3D${applyNum.replace(/-/g, '')}"
-                               target="_blank" rel="noopener"
-                               class="text-xs font-mono hover:underline"
+                            <a href="#" class="text-xs font-mono hover:underline"
                                style="color: var(--primary);"
-                               title="KIPRIS에서 조회"
-                               onclick="event.stopPropagation();">${escapeHtml(applyNum)}</a>
+                               title="특허 원문 PDF 보기 (없으면 KIPRIS 검색)"
+                               onclick="event.stopPropagation(); event.preventDefault(); openPatentPdf('${applyNum}');">${escapeHtml(applyNum)}</a>
+                            <a href="https://www.kipris.or.kr/khome/search/searchResult.do?tab=patent"
+                               target="_blank" rel="noopener"
+                               class="text-xs hover:opacity-70"
+                               style="color: #6B7280;"
+                               title="KIPRIS 열기 (출원번호 복사됨)"
+                               onclick="event.stopPropagation(); navigator.clipboard.writeText('${applyNum}');">
+                               <i class="fas fa-external-link-alt" style="font-size:9px;"></i>
+                            </a>
                             <span class="patent-status-badge ${statusClass}">${statusText}</span>
                         </div>
                         <div class="text-xs text-neutral-700 mt-0.5 truncate">${escapeHtml(title)}</div>
@@ -1162,14 +1171,25 @@
                         </tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table>` : ''}
-                    ${a.analysis_text ? `<div style="margin-bottom:10px;">
-                        <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">분석</div>
-                        <div style="font-size:11px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
-                    </div>` : ''}
-                    ${a.conclusion_text ? `<div>
-                        <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
-                        <div style="font-size:11px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
-                    </div>` : ''}
+                    ${a.label === '공개' ? `
+                        ${a.conclusion_text ? `<div style="margin-bottom:10px;">
+                            <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
+                            <div style="font-size:11px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                        </div>` : ''}
+                        ${a.analysis_text ? `<div>
+                            <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">현재 청구항</div>
+                            <div style="font-size:11px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                        </div>` : ''}
+                    ` : `
+                        ${a.analysis_text ? `<div style="margin-bottom:10px;">
+                            <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">분석</div>
+                            <div style="font-size:11px; color:#4B5563; line-height:1.6; padding:10px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                        </div>` : ''}
+                        ${a.conclusion_text ? `<div>
+                            <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">결론</div>
+                            <div style="font-size:11px; color:${ls.color}; line-height:1.6; padding:10px; background:${ls.bg}; border:1px solid ${ls.border}; border-radius:4px; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                        </div>` : ''}
+                    `}
                 </div>`;
         }).join('');
 
@@ -1345,19 +1365,31 @@
                         </table>
                     </div>` : ''}
 
-                    <!-- 판단 -->
-                    ${a.analysis_text ? `
-                    <div class="mb-3">
-                        <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-search-plus mr-1 text-primary"></i>판단</div>
-                        <div class="text-xs text-neutral-600 leading-relaxed p-3 bg-white rounded-lg border border-neutral-100" style="white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
-                    </div>` : ''}
-
-                    <!-- 결론 -->
-                    ${a.conclusion_text ? `
-                    <div>
-                        <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
-                        <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
-                    </div>` : ''}
+                    ${a.label === '공개' ? `
+                        <!-- 공개: 결론 → 현재 청구항 -->
+                        ${a.conclusion_text ? `
+                        <div class="mb-3">
+                            <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
+                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                        </div>` : ''}
+                        ${a.analysis_text ? `
+                        <div>
+                            <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-search-plus mr-1 text-primary"></i>현재 청구항</div>
+                            <div class="text-xs text-neutral-600 leading-relaxed p-3 bg-white rounded-lg border border-neutral-100" style="white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                        </div>` : ''}
+                    ` : `
+                        <!-- 등록: 판단 → 결론 -->
+                        ${a.analysis_text ? `
+                        <div class="mb-3">
+                            <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-search-plus mr-1 text-primary"></i>판단</div>
+                            <div class="text-xs text-neutral-600 leading-relaxed p-3 bg-white rounded-lg border border-neutral-100" style="white-space:pre-wrap;">${escapeHtml(a.analysis_text)}</div>
+                        </div>` : ''}
+                        ${a.conclusion_text ? `
+                        <div>
+                            <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
+                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                        </div>` : ''}
+                    `}
                 </div>`;
         }).join('');
     }
@@ -1396,7 +1428,13 @@
     }
 
     function formatMessageTime(dateInput) {
-        const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        let date;
+        if (typeof dateInput === 'string') {
+            const raw = dateInput.endsWith('Z') || dateInput.includes('+') ? dateInput : dateInput + 'Z';
+            date = new Date(raw);
+        } else {
+            date = dateInput;
+        }
         const hours = date.getHours();
         const minutes = date.getMinutes().toString().padStart(2, '0');
         const ampm = hours >= 12 ? '오후' : '오전';
@@ -1764,7 +1802,9 @@
 
     function formatTimeAgo(dateStr) {
         if (!dateStr) return '';
-        const date = new Date(dateStr);
+        // 서버(RDS)가 UTC로 저장하므로, 'Z' 없으면 UTC로 파싱되도록 보정
+        const raw = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+        const date = new Date(raw);
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
 
