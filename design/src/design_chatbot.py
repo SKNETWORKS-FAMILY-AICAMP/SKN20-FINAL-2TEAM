@@ -401,8 +401,15 @@ def generate_report_node(state: GraphState) -> GraphState:
         "user_query": state.get('user_query', 'FTO 리포트를 작성해줘') # 사용자 요청
     })
 
-    state['final_report'] = report
-    print(f"  리포트 완료 ({len(report)}자)")
+    LEGAL_NOTICE = (
+        "\n\n---\n"
+        "## ⚠️ 법적 고지\n"
+        "> **본 분석 결과는 AI 기반 자동화 도구에 의해 생성된 참고 자료이며, "
+        "법적 자문이나 변리사의 공식 의견을 대체하지 않습니다. "
+        "최종 제품 출시 전 반드시 변리사 또는 특허 변호사와 상담하시기 바랍니다.**"
+    )
+    state['final_report'] = report + LEGAL_NOTICE
+    print(f"  리포트 완료 ({len(state['final_report'])}자)")
     return state
 
 
