@@ -266,6 +266,11 @@ class ParentDB:
             raise FileNotFoundError(f"ParentDB 없음: {db_path}")
         self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
+        try:
+            self._conn.execute("SELECT 1 FROM parents LIMIT 1")
+        except sqlite3.OperationalError:
+            self._conn.close()
+            raise FileNotFoundError(f"parents 테이블 없음 (빈 DB): {db_path}")
 
     def get_parent(self, apply_num: str) -> dict | None:
         """출원번호로 특허 데이터 전체 조회."""
