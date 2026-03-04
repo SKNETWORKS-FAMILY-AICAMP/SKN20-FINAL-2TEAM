@@ -112,6 +112,9 @@ def _try_mysql_prefilter():
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
             connect_timeout=5,
+            read_timeout=300,
+            write_timeout=300,
+            connect_timeout=30,
         )
         cur = conn.cursor()
         cur.execute("SELECT 1 FROM claim_keywords LIMIT 1")
@@ -175,7 +178,12 @@ def _prefilter_via_mysql(keywords: list[str]) -> tuple[list[str], list[str]] | N
             password=_os.environ.get("MYSQL_PASSWORD", ""),
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
+            read_timeout=300,
+            write_timeout=300,
+            connect_timeout=30,
         )
+
+    import time as _time
 
     placeholders = ", ".join(["%s"] * len(keywords))
     sql = (
@@ -184,10 +192,14 @@ def _prefilter_via_mysql(keywords: list[str]) -> tuple[list[str], list[str]] | N
         f"GROUP BY chunk_id, patent_id ORDER BY cnt DESC "
         f"LIMIT {config.PREFILTER_MAX_CHUNKS}"
     )
+    print(f"[사전필터] MySQL 쿼리 시작: 키워드 {len(keywords)}개")
+    t0 = _time.time()
     cur = _prefilter_mysql_conn.cursor()
     cur.execute(sql, keywords)
     rows = cur.fetchall()
     cur.close()
+    elapsed = _time.time() - t0
+    print(f"[사전필터] MySQL 쿼리 완료: {len(rows)}건, {elapsed:.2f}s")
 
     if not rows:
         return None
@@ -324,6 +336,9 @@ class MySQLParentDB:
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
             connect_timeout=5,
+            read_timeout=300,
+            write_timeout=300,
+            connect_timeout=30,
             cursorclass=pymysql.cursors.DictCursor,
         )
 
@@ -405,6 +420,9 @@ def _fetch_components_mysql(patent_ids: list[str]) -> dict[str, list[dict]]:
             password=_os.environ.get("MYSQL_PASSWORD", ""),
             database=_os.environ.get("MYSQL_DATABASE", "fto"),
             charset="utf8mb4",
+            read_timeout=300,
+            write_timeout=300,
+            connect_timeout=30,
         )
 
     placeholders = ", ".join(["%s"] * len(patent_ids))
