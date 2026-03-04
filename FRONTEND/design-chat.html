@@ -396,6 +396,48 @@
         <i class="fas fa-chevron-right text-xs"></i>
     </button>
 
+    <!-- 저장 한도 초과 팝업 -->
+    <div id="sessionLimitModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; max-width:360px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                <div style="width:2.5rem; height:2.5rem; background:#FFF3ED; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-exclamation-triangle" style="color:#FF6B35; font-size:1rem;"></i>
+                </div>
+                <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a;">저장 한도 초과</h3>
+            </div>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:0.5rem;">
+                무료 플랜은 최대 <strong>30개</strong>까지 분석 기록을 저장할 수 있습니다.
+            </p>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:1.5rem;">
+                유료 플랜으로 업그레이드하시면 <strong>무제한</strong>으로 저장하실 수 있습니다.
+            </p>
+            <div style="display:flex; gap:0.75rem;">
+                <button onclick="_onSessionLimitUpgrade()" style="flex:1; padding:0.625rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">업그레이드</button>
+                <button onclick="_onSessionLimitSkip()" style="flex:1; padding:0.625rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자동 삭제 안내 팝업 -->
+    <div id="sessionAutoDeleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; max-width:340px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                <div style="width:2.5rem; height:2.5rem; background:#FEF2F2; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-trash-alt" style="color:#EF4444; font-size:1rem;"></i>
+                </div>
+                <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a;">오래된 기록 자동 삭제</h3>
+            </div>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:1.5rem;">
+                저장 한도를 초과하여 <strong>가장 오래된 분석 기록</strong>이 자동으로 삭제됩니다.<br/>
+                계속 진행하시겠습니까?
+            </p>
+            <div style="display:flex; gap:0.75rem;">
+                <button onclick="_onAutoDeleteConfirm()" style="flex:1; padding:0.625rem; background:#EF4444; color:white; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">확인</button>
+                <button onclick="_onAutoDeleteCancel()" style="flex:1; padding:0.625rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">취소</button>
+            </div>
+        </div>
+    </div>
+
     <div class="flex h-screen">
         <div id="sidebarBackdrop" onclick="toggleSidebar()"></div>
         <!-- 사이드바 -->
@@ -684,9 +726,58 @@
         }
     }
 
+    // ==================== 저장 한도 팝업 ====================
+
+    let _sessionLimitResolve = null;
+
+    function _showSessionLimitModal() {
+        return new Promise(resolve => {
+            _sessionLimitResolve = resolve;
+            const modal = document.getElementById('sessionLimitModal');
+            modal.style.display = 'flex';
+        });
+    }
+
+    function _onSessionLimitUpgrade() {
+        document.getElementById('sessionLimitModal').style.display = 'none';
+        if (_sessionLimitResolve) { _sessionLimitResolve('upgrade'); _sessionLimitResolve = null; }
+    }
+
+    function _onSessionLimitSkip() {
+        document.getElementById('sessionLimitModal').style.display = 'none';
+        // 2차 팝업: 자동 삭제 안내
+        document.getElementById('sessionAutoDeleteModal').style.display = 'flex';
+    }
+
+    function _onAutoDeleteConfirm() {
+        document.getElementById('sessionAutoDeleteModal').style.display = 'none';
+        if (_sessionLimitResolve) { _sessionLimitResolve('skip'); _sessionLimitResolve = null; }
+    }
+
+    function _onAutoDeleteCancel() {
+        document.getElementById('sessionAutoDeleteModal').style.display = 'none';
+        if (_sessionLimitResolve) { _sessionLimitResolve('cancel'); _sessionLimitResolve = null; }
+    }
+
     // ==================== 1단계: 이미지 분석 ====================
 
     async function handleImageAnalysis() {
+        // 30개 한도 체크
+        if (sessionCount >= 30) {
+            const choice = await _showSessionLimitModal();
+            if (choice === 'upgrade') {
+                // TODO: 결제 페이지로 이동
+                return;
+            }
+            if (choice === 'cancel') return; // 2차 팝업에서 취소
+            // 'skip' → 확인 완료, 사이드바에서 가장 오래된 카드 제거 (백엔드도 자동 삭제)
+            const container = document.getElementById('chatSessions');
+            const cards = container.querySelectorAll('.session-card');
+            if (cards.length >= 30) cards[cards.length - 1].remove();
+            sessionCount = Math.max(0, sessionCount - 1);
+            updateTotalCount();
+        }
+
         const query = messageInput.value.trim() || '이 제품과 유사한 디자인을 분석해줘';
         const file = attachedFiles[0].file; // 첫 번째 파일 사용
 
@@ -763,14 +854,17 @@
 
     // ==================== 2단계: 디자인 선택 ====================
 
-    async function selectDesign(index) {
+    async function selectDesign(index, applicationNumber) {
         if (!designThreadId) return;
 
         document.querySelectorAll('.design-select-btn').forEach(b => b.disabled = true);
 
-        addUserMessage(`#${index} 디자인 상세 비교 요청`);
+        const msgText = applicationNumber
+            ? `${index}번 출원번호 ${applicationNumber} 의 디자인과 상세 비교 요청`
+            : `${index}번 디자인 상세 비교 요청`;
+        addUserMessage(msgText);
         setStatus('상세 비교 중');
-        addLoadingMessage();
+        addLoadingMessage('compare');
 
         const formData = new FormData();
         formData.append('thread_id', designThreadId);
@@ -922,13 +1016,13 @@
                         : `<div style="width:calc(100% - 50px); aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3; margin:0 auto;">No Image</div>`
                     }
                     <div style="margin-top:0.5rem;">
-                        <div class="font-bold text-xs text-black">#${d.index} ${escapeHtml(d.article_name)}</div>
+                        <div class="font-bold text-xs text-black">${d.index} ${escapeHtml(d.article_name)}</div>
                         <div style="font-size:0.7rem; color:#737373; margin-top:0.25rem; line-height:1.5;">
                             출원번호: ${escapeHtml(d.application_number)}<br/>
                             상태: ${escapeHtml(d.admst_stat)}<br/>
                             유사도: ${d.distance.toFixed(4)}
                         </div>
-                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index})">
+                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')">
                             상세 비교
                         </button>
                     </div>
@@ -969,7 +1063,7 @@
             <div class="msg-content">
                 <div class="msg-bubble">
                     <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-file-alt text-primary mr-1"></i>FTO 분석 리포트</h4>
-                    <div class="report-box">${escapeHtml(result.final_report || '리포트 생성 실패')}</div>
+                    <div class="report-box">${escapeHtml((result.final_report || '리포트 생성 실패').replace(/#+\s*/g, ''))}</div>
                 </div>
                 <div class="flex gap-2 mt-2">
                     <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
@@ -996,13 +1090,13 @@
                         : `<div style="width:calc(100% - 50px); aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3; margin:0 auto;">No Image</div>`
                     }
                     <div style="margin-top:0.5rem;">
-                        <div class="font-bold text-xs text-black">#${d.index} ${escapeHtml(d.article_name)}</div>
+                        <div class="font-bold text-xs text-black">${d.index} ${escapeHtml(d.article_name)}</div>
                         <div style="font-size:0.7rem; color:#737373; margin-top:0.25rem; line-height:1.5;">
                             출원번호: ${escapeHtml(d.application_number)}<br/>
                             상태: ${escapeHtml(d.admst_stat)}<br/>
                             유사도: ${d.distance.toFixed(4)}
                         </div>
-                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:${isCompleted ? '#D4D4D4' : 'var(--primary)'}; color:white; border:none; border-radius:0.5rem; cursor:${isCompleted ? 'not-allowed' : 'pointer'}; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" ${isCompleted ? 'disabled' : `onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index})"`}>
+                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:${isCompleted ? '#D4D4D4' : 'var(--primary)'}; color:white; border:none; border-radius:0.5rem; cursor:${isCompleted ? 'not-allowed' : 'pointer'}; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" ${isCompleted ? 'disabled' : `onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')"`}>
                             ${isCompleted ? '분석 완료' : '상세 비교'}
                         </button>
                     </div>
@@ -1086,6 +1180,8 @@
 
         if (mode === 'image') {
             _runImageLoadingStages();
+        } else if (mode === 'compare') {
+            _runCompareLoadingStages();
         } else {
             _setLoadingText('분석 중... (약 10-30초 소요)');
         }
@@ -1148,6 +1244,16 @@
         removeLoadingMessage();
         addBotMessage('요청이 취소되었습니다.');
         setStatus('대기');
+    }
+
+    function _runCompareLoadingStages() {
+        // 1단계: 즉시
+        _setLoadingText('디자인 상세 비교 중...');
+        // 2단계: 15초 후
+        _loadingTimer1 = setTimeout(() => {
+            if (!document.getElementById('loadingMessage')) return;
+            _setLoadingText('FTO 리포트 요약 작성 중...');
+        }, 15000);
     }
 
     function removeLoadingMessage() {

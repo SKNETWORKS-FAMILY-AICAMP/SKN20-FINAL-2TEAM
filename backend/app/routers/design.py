@@ -184,7 +184,25 @@ async def _image_via_langgraph(
 ) -> dict:
     """LangGraph 디자인 챗봇으로 이미지 분석 + S3/RDS 저장."""
 
-    # 1. RDS에 세션 생성
+    # 1. RDS에 세션 생성 — 30개 초과 시 오래된 세션 자동 삭제
+    SESSION_LIMIT = 30
+    existing_count = (
+        db.query(DesignSession)
+        .filter(~DesignSession.thread_id.startswith("text-"))
+        .count()
+    )
+    if existing_count >= SESSION_LIMIT:
+        to_delete = (
+            db.query(DesignSession)
+            .filter(~DesignSession.thread_id.startswith("text-"))
+            .order_by(DesignSession.created_at.asc())
+            .limit(existing_count - SESSION_LIMIT + 1)
+            .all()
+        )
+        for old in to_delete:
+            db.delete(old)
+        db.flush()
+
     session = DesignSession(
         thread_id=thread_id,
         status=DesignSessionStatus.analyzing,
