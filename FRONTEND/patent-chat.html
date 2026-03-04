@@ -1834,6 +1834,8 @@
     // 페이지 로드 시 세션 목록 불러오기
     document.addEventListener('DOMContentLoaded', () => {
         loadChatSessions();
+        // RAG + sLLM 워밍업 (백그라운드, 실패해도 무시)
+        fetch(`${API_BASE}/chat/warmup`, { method: 'POST', headers: authHeaders() }).catch(() => {});
     });
 
     // ==================== 사이드바 토글 ====================

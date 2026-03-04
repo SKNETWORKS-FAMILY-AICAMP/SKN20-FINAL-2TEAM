@@ -393,6 +393,43 @@ class FinalizeResponse(BaseModel):
     risk_level: str
 
 
+@router.post("/warmup")
+async def warmup_patent():
+    """특허 분석 워밍업: RAG 모델 + RunPod sLLM 미리 로드."""
+    results = {}
+
+    # 1. RAG 컴포넌트 로드 (임베딩 모델, ChromaDB, BM25)
+    try:
+        def _load_rag():
+            from rag.search.retriever import _get_model, _get_collection, _load_sparse_index
+            _get_model()
+            _get_collection()
+            _load_sparse_index()
+        await asyncio.to_thread(_load_rag)
+        results["rag"] = "ok"
+    except Exception as e:
+        results["rag"] = f"fail: {e}"
+        logger.warning(f"[워밍업] RAG 로드 실패: {e}")
+
+    # 2. RunPod sLLM 워밍업 (최소 요청으로 워커 깨우기)
+    try:
+        api_key = RUNPOD_API_KEY if RUNPOD_API_KEY else "dummy"
+        client = OpenAI(base_url=VLLM_BASE_URL, api_key=api_key, timeout=30)
+        resp = await asyncio.to_thread(
+            lambda: client.chat.completions.create(
+                model=VLLM_MODEL,
+                messages=[{"role": "user", "content": "test"}],
+                max_tokens=1,
+            )
+        )
+        results["sllm"] = "ok"
+    except Exception as e:
+        results["sllm"] = f"warming: {e}"
+
+    logger.info(f"[워밍업] 특허: {results}")
+    return results
+
+
 @router.post("/search", response_model=SearchResponse)
 async def search_patents(
     message: str = Form(""),

@@ -1268,6 +1268,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         loadChatSessions();
+        // Design 모듈 + VLM 워밍업 (백그라운드, 실패해도 무시)
+        fetch(`${API_BASE}/design/status`).catch(() => {});
     });
 
     // ==================== 사이드바 토글 ====================
