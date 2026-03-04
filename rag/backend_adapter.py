@@ -99,7 +99,18 @@ def analyze_single_patent(
         print(f"[G-single] {patent_id} 분석 시작")
 
     messages = build_prompt(search_result, user_query)
+
+    if verbose:
+        components_list = search_result.get("components", [])
+        has_claims = bool(search_result.get("claims", {}).get("claim_regit_text", ""))
+        print(f"[G-single] {patent_id} 입력: components={len(components_list)}건, claim_regit={'O' if has_claims else 'X'}")
+
     raw_output = call_llm(messages)
+
+    if verbose:
+        print(f"[G-single] {patent_id} raw_output ({len(raw_output)}자):")
+        print(f"--- RAW START ---\n{raw_output}\n--- RAW END ---")
+
     parsed = parse_response(raw_output)
 
     parsed["patent_id"] = patent_id
@@ -108,7 +119,7 @@ def analyze_single_patent(
     parsed["estoppel_claim_numbers"] = search_result.get("estoppel_claim_numbers", [])
 
     if verbose:
-        print(f"[G-single] {patent_id} -> {parsed.get('label', '?')}")
+        print(f"[G-single] {patent_id} -> {parsed.get('label', '?')} | sections={parsed.get('sections_found', {})} | comparisons={len(parsed.get('comparisons', []))}행")
 
     return parsed
 

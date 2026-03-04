@@ -654,6 +654,48 @@
         </div>
     </div>
 
+    <!-- 저장 한도 초과 팝업 -->
+    <div id="sessionLimitModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; max-width:360px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                <div style="width:2.5rem; height:2.5rem; background:#FFF3ED; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-exclamation-triangle" style="color:#FF6B35; font-size:1rem;"></i>
+                </div>
+                <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a;">저장 한도 초과</h3>
+            </div>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:0.5rem;">
+                무료 플랜은 최대 <strong>30개</strong>까지 분석 기록을 저장할 수 있습니다.
+            </p>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:1.5rem;">
+                유료 플랜으로 업그레이드하시면 <strong>무제한</strong>으로 저장하실 수 있습니다.
+            </p>
+            <div style="display:flex; gap:0.75rem;">
+                <button onclick="_onSessionLimitUpgrade()" style="flex:1; padding:0.625rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">업그레이드</button>
+                <button onclick="_onSessionLimitSkip()" style="flex:1; padding:0.625rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자동 삭제 안내 팝업 -->
+    <div id="sessionAutoDeleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; max-width:340px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                <div style="width:2.5rem; height:2.5rem; background:#FEF2F2; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-trash-alt" style="color:#EF4444; font-size:1rem;"></i>
+                </div>
+                <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a;">오래된 기록 자동 삭제</h3>
+            </div>
+            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:1.5rem;">
+                저장 한도를 초과하여 <strong>가장 오래된 분석 기록</strong>이 자동으로 삭제됩니다.<br/>
+                계속 진행하시겠습니까?
+            </p>
+            <div style="display:flex; gap:0.75rem;">
+                <button onclick="_onAutoDeleteConfirm()" style="flex:1; padding:0.625rem; background:#EF4444; color:white; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">확인</button>
+                <button onclick="_onAutoDeleteCancel()" style="flex:1; padding:0.625rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">취소</button>
+            </div>
+        </div>
+    </div>
+
     <script src="toast.js"></script>
     <script src="script.js"></script>
 
@@ -789,8 +831,19 @@
                 true
             );
 
+            // 검색 중 문구 순환
+            const searchMsgs = isFollowUp
+                ? ['새로운 구성요소로 유사 특허 재검색 중...', '변경된 구성 기반으로 매칭 중...', '유사도 높은 특허를 찾고 있어요...']
+                : ['유사 특허 검색 중...', '키워드 기반 특허 필터링 중...', '구성요소 유사도 매칭 중...', '유사도 높은 특허를 찾고 있어요...', '거의 다 찾았어요! 결과 정리 중...'];
+            let searchMsgIdx = 0;
+            const searchMsgTimer = setInterval(() => {
+                searchMsgIdx = (searchMsgIdx + 1) % searchMsgs.length;
+                updateLoadingStatus(searchMsgs[searchMsgIdx]);
+            }, 10000);
+
             const searchResp = await callSearchAPI(text);
 
+            clearInterval(searchMsgTimer);
             stopSearchCounter();
             threadId = searchResp.session_id;
             searchToken = searchResp.search_token;
@@ -1198,20 +1251,23 @@
 
     // 추가 분석(4~10) 두 번째 말풍선 (차콜 스타일, 결과는 1~N 전체)
     function addOrUpdateAdditionalBubble() {
-        const maxIndex = Math.max(...patentAnalyses.map(a => (a.patent_index !== undefined ? a.patent_index : 0))) + 1;
+        const extraCount = patentAnalyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) >= 3).length;
         const labels = patentAnalyses.map(a => a.label || '');
         let riskText = '침해 가능성 낮음';
         if (labels.some(l => l === '침해')) riskText = '침해 가능 특허 존재';
         else if (labels.some(l => l === '침해_전문가' || l === '애매')) riskText = '전문가 검토 권장';
+
+        const titleText = `TOP3 + 추가 ${extraCount}건 분석 완료`;
+        const btnText = `전체 결과보기 (${patentAnalyses.length}건)`;
 
         if (additionalBubbleDiv) {
             // 기존 말풍선 업데이트
             const titleEl = additionalBubbleDiv.querySelector('.additional-bubble-title');
             const subtitleEl = additionalBubbleDiv.querySelector('.additional-bubble-subtitle');
             const btnEl = additionalBubbleDiv.querySelector('.additional-bubble-btn');
-            if (titleEl) titleEl.textContent = `TOP${maxIndex} 침해 분석 완료`;
+            if (titleEl) titleEl.textContent = titleText;
             if (subtitleEl) subtitleEl.textContent = riskText;
-            if (btnEl) btnEl.innerHTML = `<i class="fas fa-table"></i> TOP1~${maxIndex} 구성 대비 결과보기`;
+            if (btnEl) btnEl.innerHTML = `<i class="fas fa-table"></i> ${btnText}`;
         } else {
             const div = document.createElement('div');
             div.className = 'msg assistant';
@@ -1223,12 +1279,12 @@
                             <i class="fas fa-layer-group" style="color:#525252;"></i>
                         </div>
                         <div class="flex-1">
-                            <p class="text-sm font-bold text-black mb-0.5 additional-bubble-title">TOP${maxIndex} 침해 분석 완료</p>
+                            <p class="text-sm font-bold text-black mb-0.5 additional-bubble-title">${titleText}</p>
                             <p class="text-xs text-neutral-500 additional-bubble-subtitle">${riskText}</p>
                         </div>
                         <button onclick="openResultPanelAll()" class="result-view-btn additional-bubble-btn" style="background:linear-gradient(135deg,#525252,#333); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
                             <i class="fas fa-table"></i>
-                            TOP1~${maxIndex} 구성 대비 결과보기
+                            ${btnText}
                         </button>
                     </div>
                 </div>`;
@@ -1256,15 +1312,14 @@
         updatePdfSelectedCount();
     }
 
-    // 전체 (1~N)
+    // 전체 결과보기
     function openResultPanelAll() {
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
         const data = patentAnalyses;
         lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
-        const maxIdx = Math.max(...data.map(a => (a.patent_index !== undefined ? a.patent_index : 0))) + 1;
-        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP1~${maxIdx} 구성 대비 결과`;
+        document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> 전체 구성 대비 결과 (${data.length}건)`;
         panel.classList.add('open');
         document.getElementById('mainContent').classList.add('panel-open');
         updatePdfSelectedCount();
@@ -1695,7 +1750,7 @@
                     <div class="typing-dot"></div>
                 </div>
                 <div id="loadingStatusText" class="text-xs text-neutral-400 mt-1">${escapeHtml(msg || '처리 중...')}</div>
-                ${showCounter ? '<div id="searchCounterWrap" class="text-xs mt-1" style="color: var(--primary); font-variant-numeric: tabular-nums;">약 80,000건 중 <span id="searchCounter" style="font-weight:600;">0</span>건 탐색</div>' : ''}
+                ${showCounter ? '<div id="searchCounterWrap" class="text-xs mt-1" style="color: var(--primary); font-variant-numeric: tabular-nums;">78,716건 중 <span id="searchCounter" style="font-weight:600;">0</span>건 탐색</div>' : ''}
                 <button onclick="cancelRequest()" class="text-xs text-red-400 hover:text-red-300 mt-2 underline cursor-pointer">취소</button>
             </div>
         `;
@@ -1716,7 +1771,7 @@
     function startSearchCounter() {
         const counterEl = document.getElementById('searchCounter');
         if (!counterEl) return;
-        const total = 80000;
+        const total = 78716;
         const startTime = Date.now();
         const duration = 30000; // 최대 30초까지 카운터 진행
 
@@ -1740,7 +1795,7 @@
         }
         // 카운터를 최종값으로 설정
         const counterEl = document.getElementById('searchCounter');
-        if (counterEl) counterEl.textContent = '80,000';
+        if (counterEl) counterEl.textContent = '78,716';
     }
 
     function cancelRequest() {
