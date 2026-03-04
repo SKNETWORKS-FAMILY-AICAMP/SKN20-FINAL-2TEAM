@@ -7,7 +7,7 @@ import time
 
 from app.config import settings
 from app.database import init_db
-from app.routers import auth, chat, analysis, search
+from app.routers import auth, chat, analysis, search, design
 from app.logger import logger
 
 # 앱 시작 시 DB 테이블 생성
@@ -47,18 +47,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["인증"])
 app.include_router(chat.router, prefix="/api/chat", tags=["채팅"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["분석"])
 app.include_router(search.router, prefix="/api/search", tags=["검색"])
-# design 라우터: 지연 로딩 (LangGraph + VLM 초기화가 무거워서 첫 요청 시 로드)
-_design_loaded = False
-
-@app.middleware("http")
-async def lazy_load_design(request: Request, call_next):
-    global _design_loaded
-    if not _design_loaded and request.url.path.startswith("/api/analysis/design"):
-        from app.routers import design
-        app.include_router(design.router, prefix="/api/analysis", tags=["디자인분석"])
-        _design_loaded = True
-        logger.info("[design] 디자인 라우터 지연 로딩 완료")
-    return await call_next(request)
+app.include_router(design.router, prefix="/api/analysis", tags=["디자인분석"])
 
 
 @app.get("/health")

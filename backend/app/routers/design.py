@@ -82,8 +82,7 @@ def _ensure_design_graph_loaded() -> bool:
             return False
 
 
-# 앱 시작 시 1회 로드 시도 (실패해도 요청 시 재시도)
-_ensure_design_graph_loaded()
+# 앱 시작 시 로드하지 않음 (첫 요청 시 _ensure_design_graph_loaded() 호출로 지연 로딩)
 
 
 # ── 인메모리 세션 저장소 (LangGraph 상태용) ──────────────────
