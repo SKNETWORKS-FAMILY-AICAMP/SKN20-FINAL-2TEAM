@@ -54,6 +54,34 @@
             pointer-events: auto;
         }
 
+        /* 모바일: 사이드바 오버레이 모드 */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                z-index: 50;
+            }
+            #sidebar.sidebar-open {
+                transform: translateX(0);
+            }
+            #sidebarOpenBtn {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #mainContent {
+                margin-left: 0 !important;
+            }
+            #sidebarBackdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 45;
+            }
+            #sidebarBackdrop.active {
+                display: block;
+            }
+        }
+
         /* 통일 아이콘 버튼 */
         .icon-btn {
             width: 2rem;
@@ -367,8 +395,9 @@
     </button>
 
     <div class="flex h-screen">
+        <div id="sidebarBackdrop" onclick="toggleSidebar()"></div>
         <!-- 사이드바 -->
-        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col hidden lg:flex fixed left-0 top-20 bottom-0 z-40">
+        <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-20 bottom-0 z-40">
             <!-- Header -->
             <div class="p-6 border-b border-neutral-200">
                 <div class="flex items-center justify-between mb-5">
@@ -1005,18 +1034,18 @@
         const DB_TOTAL = 21801; // ChromaDB 디자인 DB 총 건수
 
         // 1단계: VLM 분석
-        _setLoadingText('VLM 모델이 이미지 특징을 추출하고 있습니다...');
+        _setLoadingText('이미지 특징을 추출하고 있습니다...');
 
         // 2단계: DB 검색 카운터 (3초 후)
         _loadingTimer1 = setTimeout(() => {
             if (!document.getElementById('loadingMessage')) return;
             let count = 0;
-            const tickAmount = Math.ceil(DB_TOTAL / 45); // ~4.5초 안에 완료
+            const tickAmount = Math.ceil(DB_TOTAL / 55); // ~4.5초 안에 완료
             _loadingInterval = setInterval(() => {
                 const el = document.getElementById('loadingText');
                 if (!el) { clearInterval(_loadingInterval); return; }
                 count = Math.min(count + tickAmount + Math.floor(Math.random() * 300), DB_TOTAL);
-                el.textContent = `${count.toLocaleString()}건의 디자인 DB 검색 중...`;
+                el.textContent = `${count.toLocaleString()}건의 디자인 검색 중...`;
                 if (count >= DB_TOTAL) {
                     clearInterval(_loadingInterval);
                     _loadingInterval = null;
@@ -1188,14 +1217,14 @@
                     </button>
                 </div>
             </div>
-            <div class="flex items-start justify-between gap-2 mt-1">
-                <h4 class="text-sm font-semibold text-black leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1;">
+            <div style="margin-top:0.25rem; overflow:hidden;">
+                ${session.s3_url
+                    ? `<img src="${session.s3_url}" style="float:right;width:2rem;height:2rem;object-fit:cover;border-radius:0.375rem;border:1px solid #E5E5E5;margin-left:0.4rem;" />`
+                    : ''
+                }
+                <h4 class="text-sm font-semibold text-black leading-snug" style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
                     ${escapeHtml(session.preview || '디자인 분석')}
                 </h4>
-                ${session.s3_url
-                    ? `<img src="${session.s3_url}" style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:0.375rem;border:1px solid #E5E5E5;flex-shrink:0;" />`
-                    : `<div style="width:2.5rem;height:2.5rem;background:#F5F5F5;border-radius:0.375rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-image" style="color:#D4D4D4;font-size:0.75rem;"></i></div>`
-                }
             </div>
         `;
         card.onclick = (e) => {
@@ -1322,19 +1351,27 @@
         const mainContent = document.getElementById('mainContent');
         const toggleIcon = document.getElementById('toggleIcon');
         const openBtn = document.getElementById('sidebarOpenBtn');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const isMobile = window.innerWidth < 1024;
 
-        sidebar.classList.toggle('sidebar-hidden');
-
-        if (sidebar.classList.contains('sidebar-hidden')) {
-            mainContent.style.marginLeft = '0';
-            toggleIcon.classList.remove('fa-chevron-left');
-            toggleIcon.classList.add('fa-chevron-right');
-            openBtn.classList.add('visible');
+        if (isMobile) {
+            // 모바일: 오버레이 모드
+            sidebar.classList.toggle('sidebar-open');
+            const isOpen = sidebar.classList.contains('sidebar-open');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
         } else {
-            mainContent.style.marginLeft = '18rem';
-            toggleIcon.classList.remove('fa-chevron-right');
-            toggleIcon.classList.add('fa-chevron-left');
-            openBtn.classList.remove('visible');
+            // 데스크톱: margin 기반 토글
+            sidebar.classList.toggle('sidebar-hidden');
+
+            if (sidebar.classList.contains('sidebar-hidden')) {
+                mainContent.style.marginLeft = '0';
+                toggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+                openBtn.classList.add('visible');
+            } else {
+                mainContent.style.marginLeft = '18rem';
+                toggleIcon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+                openBtn.classList.remove('visible');
+            }
         }
     }
     </script>
