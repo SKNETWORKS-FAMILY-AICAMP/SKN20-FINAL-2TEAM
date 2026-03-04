@@ -49,7 +49,9 @@ def _get_model() -> SentenceTransformer:
     """KURE-v1 임베딩 모델 싱글톤. 최초 호출 시 1회 로드."""
     global _model
     if _model is None:
+        print(f"[RAG] 임베딩 모델 로딩 중... ({config.EMBED_MODEL})")
         _model = SentenceTransformer(config.EMBED_MODEL)
+        print(f"[RAG] 임베딩 모델 로드 완료")
     return _model
 
 
@@ -65,12 +67,14 @@ def _get_collection() -> chromadb.Collection:
         chroma_host = os.environ.get("CHROMA_HOST", "")
         if chroma_host:
             chroma_port = int(os.environ.get("CHROMA_PORT", 8001))
+            print(f"[RAG] ChromaDB 연결 중... ({chroma_host}:{chroma_port})")
             client = chromadb.HttpClient(
                 host=chroma_host,
                 port=chroma_port,
                 settings=Settings(anonymized_telemetry=False),
             )
         else:
+            print(f"[RAG] ChromaDB 로컬 로딩 중... ({config.CHROMA_DIR})")
             client = chromadb.PersistentClient(
                 path=str(config.CHROMA_DIR),
                 settings=Settings(anonymized_telemetry=False),
@@ -79,6 +83,8 @@ def _get_collection() -> chromadb.Collection:
             name=config.CHROMA_COLLECTION,
             metadata={"hnsw:space": "cosine"},
         )
+        count = _collection.count()
+        print(f"[RAG] ChromaDB 로드 완료 ({config.CHROMA_COLLECTION}: {count:,}건)")
     return _collection
 
 
@@ -136,6 +142,7 @@ def _load_sparse_index() -> dict:
     global _sparse_index
     if _sparse_index is None:
         idx_dir = config.SPARSE_INDEX_DIR
+        print(f"[RAG] BM25 인덱스 로딩 중... ({idx_dir})")
         _sparse_index = {
             "postings": pickle.loads((idx_dir / "postings.pkl").read_bytes()),
             "idf": pickle.loads((idx_dir / "idf.pkl").read_bytes()),
@@ -144,6 +151,7 @@ def _load_sparse_index() -> dict:
         }
         with open(idx_dir / "meta.json", "r") as f:
             _sparse_index["meta"] = json.load(f)
+        print(f"[RAG] BM25 인덱스 로드 완료 ({_sparse_index['meta'].get('total_docs', '?')}건)")
         # chunk_id → doc_id 역방향 매핑 (사전필터링용)
         _sparse_index["reverse_doc_map"] = {v: k for k, v in _sparse_index["doc_map"].items()}
         # 분할 청크 prefix 맵 구축 (1회): 기본 chunk_id → [분할 doc_ids]
