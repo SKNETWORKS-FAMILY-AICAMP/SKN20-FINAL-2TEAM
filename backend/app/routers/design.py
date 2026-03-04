@@ -667,3 +667,29 @@ async def list_design_sessions(
         })
 
     return result
+
+
+# ══════════════════════════════════════════════════════
+# DELETE /design/session/{thread_id} — 세션 삭제
+# ══════════════════════════════════════════════════════
+
+@router.delete("/design/session/{thread_id}")
+async def delete_design_session(
+    thread_id: str,
+    db: Session = Depends(get_db),
+):
+    """디자인 분석 세션 삭제 (cascade: 이미지·메시지 포함)."""
+    db_session = db.query(DesignSession).filter(
+        DesignSession.thread_id == thread_id
+    ).first()
+
+    if not db_session:
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
+
+    db.delete(db_session)
+    db.commit()
+
+    # 인메모리 세션도 제거
+    _sessions.pop(thread_id, None)
+
+    return {"success": True}
