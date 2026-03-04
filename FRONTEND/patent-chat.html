@@ -1638,6 +1638,22 @@
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    async function openPatentPdf(applyNum) {
+        // KIPRIS Plus API로 PDF 조회 시도 → 없으면 KIPRIS 검색으로 폴백
+        const url = `${API_BASE}/search/patent-pdf?apply_num=${encodeURIComponent(applyNum)}`;
+        try {
+            const resp = await fetch(url, { headers: authHeaders(), redirect: 'follow' });
+            if (resp.ok || resp.redirected) {
+                window.open(resp.url, '_blank');
+                return;
+            }
+        } catch (e) { /* 네트워크 에러 */ }
+        // PDF 없음 → 출원번호 복사 + KIPRIS 검색 열기
+        navigator.clipboard.writeText(applyNum);
+        alert('PDF가 없는 특허입니다.\n출원번호가 복사되었습니다. KIPRIS에서 붙여넣기 해주세요.');
+        window.open('https://www.kipris.or.kr/khome/search/searchResult.do?tab=patent', '_blank');
+    }
+
     // ==================== 채팅 세션 로드 ====================
 
     async function loadChatSessions() {
