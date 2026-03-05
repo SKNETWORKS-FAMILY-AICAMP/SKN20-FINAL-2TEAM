@@ -195,9 +195,8 @@ GPT_FALLBACK_MODEL = "gpt-4o-mini"
 GPT_TIMEOUT = 60
 
 GENERATE_MAX_TOKENS = 4096
-GENERATE_TEMPERATURE = 0.1
-GENERATE_TOP_P = 0.9
-GENERATE_REPETITION_PENALTY = 1.3  # 반복 루프 방지
+GENERATE_TEMPERATURE = 0
+GENERATE_REPETITION_PENALTY = 1.1  # 반복 루프 방지
 GENERATE_INPUT_N = 5              # LLM에 전달할 특허 수
 GENERATE_OUTPUT_N = 3             # LLM이 FTO 관점으로 선별할 특허 수
 GENERATE_TOP_N = 3                # (레거시) sLLM 개별 분석용 — 추후 삭제

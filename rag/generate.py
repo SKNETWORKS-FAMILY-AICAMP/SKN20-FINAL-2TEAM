@@ -19,9 +19,7 @@ from . import config
 # 이 프롬프트로 17,377건을 학습했으므로 한 글자라도 바뀌면 성능 저하 가능
 # ══════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """반드시 한국어로만 출력하시오. 중국어 사용 금지!!!
-
-당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
+SYSTEM_PROMPT = """당신은 화장품 특허 침해(FTO) 분석 전문가입니다.
 
 [문구 규칙]
 - "판단"이라는 단어 사용 금지 → "분석"으로 대체
@@ -326,15 +324,10 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
     # 출력 형식 힌트 (SYSTEM_PROMPT 변경 없이 유도)
     parts.append(
         "\n[출력 형식]\n"
-        "- 반드시 한국어로만 출력하시오. 중국어 사용 금지.\n"
-        "- 사용자 제품 구성요소 열에는 대응하는 성분만 간결하게 작성 (전체 성분 나열 금지)\n\n"
+        "반드시 한국어로만 출력하시오.\n"
         "◆구성 대비◆\n"
         "| 특허 구성요소 | 사용자 제품 구성요소 | 대응 여부 |\n"
-        "|---|---|---|\n\n"
-        "◆판단◆\n"
-        "(분석 설명)\n\n"
-        "◆결론◆\n"
-        "(결론 문장)"
+        "|---|---|---|"
     )
 
     user_content = "\n".join(parts)
@@ -379,7 +372,6 @@ def _call_vllm(messages: list[dict]) -> str:
         messages=messages,
         max_tokens=config.GENERATE_MAX_TOKENS,
         temperature=config.GENERATE_TEMPERATURE,
-        top_p=config.GENERATE_TOP_P,
         extra_body={"repetition_penalty": config.GENERATE_REPETITION_PENALTY},
     )
     return resp.choices[0].message.content

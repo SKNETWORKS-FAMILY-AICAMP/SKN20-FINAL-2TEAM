@@ -461,6 +461,9 @@ async def search_patents(
         chat_id=chat_id, role="user", content=message, message_type="text"
     )
 
+    # 사용자 원본 질문 로깅
+    logger.info(f"[사용자 질문] {message}")
+
     # 후속 질문 감지 → 쿼리 재작성
     search_query = message
     t0 = time.time()
