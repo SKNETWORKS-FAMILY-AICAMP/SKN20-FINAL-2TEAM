@@ -15,6 +15,7 @@ import traceback
 import threading
 import json
 import requests
+import logger
 from typing import Optional
 
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
@@ -537,7 +538,14 @@ async def _recompare_via_nodes(
         }
 
         # LangGraph 우회 — 노드 함수 직접 호출
-        state = _detailed_compare_fn(state)
+        try:
+            state = _detailed_compare_fn(state)
+        except TypeError as e:
+            if "null value for" in str(e) or "choices" in str(e):
+                logger.warning(f"[상세비교] VLM 응답 오류 (RunPod cold start 또는 이미지 크기 초과): {e}")
+                state["detailed_comparison"] = "VLM 서버 응답 오류 — 잠시 후 다시 시도해주세요."
+            else:
+                raise
         state = _generate_report_fn(state)
 
         final_report = state.get("final_report", "리포트 생성 실패")
