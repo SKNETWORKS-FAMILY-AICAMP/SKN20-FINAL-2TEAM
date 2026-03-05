@@ -814,6 +814,12 @@
         const text = messageInput.value.trim();
         if (!text || isAnalyzing) return;
 
+        // 30개 제한 체크 (새 대화일 때만)
+        if (!threadId && sessionCount >= 30) {
+            _showSessionLimitModal();
+            return;
+        }
+
         if (welcomeMessage) welcomeMessage.remove();
 
         addUserMessage(text);
@@ -1916,6 +1922,42 @@
             </div>
         `;
         if (typeof Toast !== 'undefined') Toast.success('새 분석을 시작합니다.');
+    }
+
+    // ==================== 30개 제한 모달 ====================
+
+    function _showSessionLimitModal() {
+        const modal = document.getElementById('sessionLimitModal');
+        modal.style.display = 'flex';
+    }
+
+    function _onSessionLimitUpgrade() {
+        // 유료 플랜 페이지로 이동 (현재는 안내만)
+        document.getElementById('sessionLimitModal').style.display = 'none';
+        alert('유료 플랜은 준비 중입니다.');
+    }
+
+    function _onSessionLimitSkip() {
+        // 자동 삭제 안내 팝업으로 전환
+        document.getElementById('sessionLimitModal').style.display = 'none';
+        document.getElementById('sessionAutoDeleteModal').style.display = 'flex';
+    }
+
+    function _onAutoDeleteConfirm() {
+        document.getElementById('sessionAutoDeleteModal').style.display = 'none';
+        // 가장 오래된 세션 삭제 후 분석 진행
+        const cards = document.querySelectorAll('#chatSessions .session-card');
+        if (cards.length > 0) {
+            const oldestCard = cards[cards.length - 1];
+            const oldestId = oldestCard.dataset.chatId;
+            deleteChat(oldestId, oldestCard).then(() => {
+                handleSend();
+            });
+        }
+    }
+
+    function _onAutoDeleteCancel() {
+        document.getElementById('sessionAutoDeleteModal').style.display = 'none';
     }
 
     // ==================== 유틸 ====================

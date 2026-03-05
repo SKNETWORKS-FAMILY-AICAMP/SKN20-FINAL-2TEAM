@@ -284,12 +284,23 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
     Returns:
         OpenAI chat 형식 messages (system + user).
     """
+    # 학습 데이터와 동일한 순서: user_query → [등록 청구항] → [공개 청구항] → [구성요소] → [특허 정보]
     parts = []
 
     # 사용자 쿼리
     parts.append(user_query)
 
-    # [구성요소] — claim_components 테이블에서 사전 추출된 구성요소
+    # [등록 청구항]
+    claim_regit = search_result.get("claims", {}).get("claim_regit_text", "")
+    if claim_regit:
+        parts.append(f"\n[등록 청구항]\n{_truncate_claims(claim_regit)}")
+
+    # [공개 청구항]
+    claim_pub = search_result.get("claims", {}).get("claim_pub_text", "")
+    if claim_pub:
+        parts.append(f"\n[공개 청구항]\n{_truncate_claims(claim_pub)}")
+
+    # [구성요소]
     components_list = search_result.get("components", [])
     if components_list:
         comp_texts = []
@@ -298,17 +309,8 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
             if comp_text:
                 comp_texts.append(comp_text)
         if comp_texts:
-            parts.append(f"\n[구성요소]\n" + "\n\n".join(comp_texts))
-
-    # [등록 청구항] — parents.sqlite 원문 직접 사용
-    claim_regit = search_result.get("claims", {}).get("claim_regit_text", "")
-    if claim_regit:
-        parts.append(f"\n[등록 청구항]\n{claim_regit}")
-
-    # [공개 청구항] — parents.sqlite 원문 직접 사용
-    claim_pub = search_result.get("claims", {}).get("claim_pub_text", "")
-    if claim_pub:
-        parts.append(f"\n[공개 청구항]\n{claim_pub}")
+            joined = "\n\n".join(comp_texts)
+            parts.append(f"\n[구성요소]\n{_truncate_claims(joined)}")
 
     # [특허 정보]
     meta = search_result.get("metadata", {})
@@ -319,15 +321,6 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
             meta_parts.append(f"{name}: {val}")
     if meta_parts:
         parts.append(f"\n[특허 정보]\n" + "\n".join(meta_parts))
-
-    # 출력 형식 힌트 (SYSTEM_PROMPT 변경 없이 유도)
-    parts.append(
-        "\n[출력 형식]\n"
-        "반드시 한국어로만 출력하시오.\n"
-        "◆구성 대비◆\n"
-        "| 특허 구성요소 | 사용자 제품 구성요소 | 대응 여부 |\n"
-        "|---|---|---|"
-    )
 
     user_content = "\n".join(parts)
 
@@ -354,11 +347,19 @@ def call_llm(messages: list[dict]) -> str:
     #     return _call_openai(messages)
 
 
+def _messages_to_prompt(messages: list[dict]) -> str:
+    """OpenAI messages → Qwen2.5 chat template 프롬프트로 변환 (학습 때와 동일 형식)."""
+    parts = []
+    for msg in messages:
+        parts.append(f"<|im_start|>{msg['role']}\n{msg['content']}<|im_end|>")
+    parts.append("<|im_start|>assistant\n")
+    return "\n".join(parts)
+
+
 def _call_vllm(messages: list[dict]) -> str:
-    """vLLM OpenAI-compatible API 호출 (RunPod 서버리스 또는 로컬)."""
+    """vLLM /v1/completions API 호출 (학습 때와 동일한 프롬프트 형식)."""
     from openai import OpenAI
 
-    # RunPod 서버리스인 경우 API Key 사용
     api_key = config.RUNPOD_API_KEY if config.RUNPOD_API_KEY else "dummy"
 
     client = OpenAI(
@@ -366,15 +367,19 @@ def _call_vllm(messages: list[dict]) -> str:
         api_key=api_key,
         timeout=config.VLLM_TIMEOUT,
     )
-    resp = client.chat.completions.create(
+
+    prompt = _messages_to_prompt(messages)
+
+    resp = client.completions.create(
         model=config.VLLM_MODEL_NAME,
-        messages=messages,
+        prompt=prompt,
         max_tokens=config.GENERATE_MAX_TOKENS,
         temperature=config.GENERATE_TEMPERATURE,
+        stop=["<|im_end|>"],
     )
     if not resp.choices:
         raise RuntimeError(f"[rag] vLLM 응답에 choices가 없습니다: {resp}")
-    return resp.choices[0].message.content or ""
+    return resp.choices[0].text or ""
 
 
 # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
@@ -402,13 +407,22 @@ _REPETITION_THRESHOLD = 20  # 동일 패턴 반복 횟수 임계값
 
 
 def _has_excessive_repetition(text: str) -> bool:
-    """동일 패턴(2글자 이상)이 _REPETITION_THRESHOLD회 이상 반복되는지 검사."""
+    """동일 패턴(5글자 이상)이 _REPETITION_THRESHOLD회 이상 반복되는지 검사.
+
+    마크다운 테이블 구분선(하이픈/파이프 반복)은 제외한다.
+    """
     if not text or len(text) < 100:
         return False
-    for length in (2, 3, 4):
+    # 테이블 구분선 제거 (하이픈+파이프만으로 이루어진 행)
+    lines = text.split("\n")
+    filtered = "\n".join(
+        line for line in lines
+        if not re.match(r"^\s*\|[\s\-:|]+\|\s*$", line)
+    )
+    for length in (5, 6, 7):
         counts: dict[str, int] = {}
-        for i in range(len(text) - length + 1):
-            chunk = text[i:i + length]
+        for i in range(len(filtered) - length + 1):
+            chunk = filtered[i:i + length]
             if chunk.strip():
                 counts[chunk] = counts.get(chunk, 0) + 1
                 if counts[chunk] >= _REPETITION_THRESHOLD:
@@ -476,6 +490,10 @@ def generate(
             print(f"[G] ({i+1}/{top_n}) {patent_id} 분석 중...")
 
         messages = build_prompt(result, user_query)
+
+        if verbose:
+            prompt_str = _messages_to_prompt(messages)
+            print(f"[G] 프롬프트 길이: {len(prompt_str)}자 (~{len(prompt_str)//2} tokens)")
 
         try:
             raw_output = call_llm(messages)

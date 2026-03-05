@@ -14,6 +14,7 @@
 """
 import json
 import pickle
+import threading
 
 import chromadb
 from chromadb.config import Settings
@@ -49,15 +50,20 @@ except Exception as e:
 
 _model: SentenceTransformer | None = None
 _collection: chromadb.Collection | None = None
+_model_lock = threading.Lock()
+_collection_lock = threading.Lock()
 
 
 def _get_model() -> SentenceTransformer:
     """KURE-v1 임베딩 모델 싱글톤. 최초 호출 시 1회 로드."""
     global _model
-    if _model is None:
-        _logger.info(f"[RAG] 임베딩 모델 로딩 중... ({config.EMBED_MODEL})")
-        _model = SentenceTransformer(config.EMBED_MODEL)
-        _logger.info(f"[RAG] 임베딩 모델 로드 완료")
+    if _model is not None:
+        return _model
+    with _model_lock:
+        if _model is None:
+            _logger.info(f"[RAG] 임베딩 모델 로딩 중... ({config.EMBED_MODEL})")
+            _model = SentenceTransformer(config.EMBED_MODEL)
+            _logger.info(f"[RAG] 임베딩 모델 로드 완료")
     return _model
 
 
@@ -69,28 +75,31 @@ def _get_collection() -> chromadb.Collection:
     """
     import os
     global _collection
-    if _collection is None:
-        chroma_host = os.environ.get("CHROMA_HOST", "")
-        if chroma_host:
-            chroma_port = int(os.environ.get("CHROMA_PORT", 8001))
-            _logger.info(f"[RAG] ChromaDB 연결 중... ({chroma_host}:{chroma_port})")
-            client = chromadb.HttpClient(
-                host=chroma_host,
-                port=chroma_port,
-                settings=Settings(anonymized_telemetry=False),
+    if _collection is not None:
+        return _collection
+    with _collection_lock:
+        if _collection is None:
+            chroma_host = os.environ.get("CHROMA_HOST", "")
+            if chroma_host:
+                chroma_port = int(os.environ.get("CHROMA_PORT", 8001))
+                _logger.info(f"[RAG] ChromaDB 연결 중... ({chroma_host}:{chroma_port})")
+                client = chromadb.HttpClient(
+                    host=chroma_host,
+                    port=chroma_port,
+                    settings=Settings(anonymized_telemetry=False),
+                )
+            else:
+                _logger.info(f"[RAG] ChromaDB 로컬 로딩 중... ({config.CHROMA_DIR})")
+                client = chromadb.PersistentClient(
+                    path=str(config.CHROMA_DIR),
+                    settings=Settings(anonymized_telemetry=False),
+                )
+            _collection = client.get_or_create_collection(
+                name=config.CHROMA_COLLECTION,
+                metadata={"hnsw:space": "cosine"},
             )
-        else:
-            _logger.info(f"[RAG] ChromaDB 로컬 로딩 중... ({config.CHROMA_DIR})")
-            client = chromadb.PersistentClient(
-                path=str(config.CHROMA_DIR),
-                settings=Settings(anonymized_telemetry=False),
-            )
-        _collection = client.get_or_create_collection(
-            name=config.CHROMA_COLLECTION,
-            metadata={"hnsw:space": "cosine"},
-        )
-        count = _collection.count()
-        _logger.info(f"[RAG] ChromaDB 로드 완료 ({config.CHROMA_COLLECTION}: {count:,}건)")
+            count = _collection.count()
+            _logger.info(f"[RAG] ChromaDB 로드 완료 ({config.CHROMA_COLLECTION}: {count:,}건)")
     return _collection
 
 

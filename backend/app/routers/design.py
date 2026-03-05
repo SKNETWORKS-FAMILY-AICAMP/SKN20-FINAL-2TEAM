@@ -15,7 +15,7 @@ import traceback
 import threading
 import json
 import requests
-import logger
+from loguru import logger
 from typing import Optional
 
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
