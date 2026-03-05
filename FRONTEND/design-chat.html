@@ -378,6 +378,65 @@
         .step-num.step-2 { background: var(--primary-light); }
         .step-num.step-3 { background: var(--primary-dark); }
         .step-num.step-4 { background: #C2410C; }
+
+        /* ===== 유사 디자인 리스트 카드 ===== */
+        .design-list-card {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .design-list-header {
+            padding: 0.875rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04));
+            border-bottom: 1px solid var(--primary-border);
+            display: flex;
+            align-items: center;
+        }
+        .design-grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+        .design-grid-item {
+            border: 1px solid #E5E5E5;
+            border-radius: 0.625rem;
+            overflow: hidden;
+            background: white;
+            transition: box-shadow 0.2s;
+        }
+        .design-grid-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .design-grid-item.selected { border-color: var(--primary); background: #FFF5F0; }
+        .design-rank-badge {
+            width: 1.5rem; height: 1.5rem;
+            border-radius: 0.375rem;
+            background: rgba(255,107,53,0.08);
+            color: var(--primary);
+            font-size: 0.65rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .design-status-badge {
+            font-size: 0.6rem; font-weight: 600;
+            padding: 0.1rem 0.35rem; border-radius: 0.25rem;
+        }
+        .design-status-badge.registered { background: #DCFCE7; color: #16A34A; }
+        .design-status-badge.published { background: #DBEAFE; color: #2563EB; }
+        .design-compare-btn {
+            font-size: 0.6rem; font-weight: 700;
+            padding: 0.2rem 0.5rem; border-radius: 0.375rem;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            background: var(--primary-bg);
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .design-compare-btn:hover { background: var(--primary); color: white; }
+        .design-compare-btn.selected { border-color: #16A34A; color: #16A34A; background: #F0FDF4; }
+        .design-compare-btn.selected:hover { background: #16A34A; color: white; }
     </style>
 </head>
 
@@ -1034,48 +1093,57 @@
         const div = document.createElement('div');
         div.className = 'msg assistant';
 
-        let cardsHtml = '';
+        let listHtml = '';
         if (result.similar_designs && result.similar_designs.length > 0) {
-            const cardItems = result.similar_designs.map(d => `
-                <div class="design-card" style="margin-bottom:0;">
-                    ${d.image_base64
-                        ? `<img src="data:image/jpeg;base64,${d.image_base64}" alt="${escapeHtml(d.article_name)}" style="width:calc(100% - 50px); aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5; display:block; margin:0 auto;" />`
-                        : `<div style="width:calc(100% - 50px); aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3; margin:0 auto;">No Image</div>`
-                    }
-                    <div style="margin-top:0.5rem;">
-                        <div class="font-bold text-xs text-black">${d.index} ${escapeHtml(d.article_name)}</div>
-                        <div style="font-size:0.7rem; color:#737373; margin-top:0.25rem; line-height:1.5;">
-                            출원번호: ${escapeHtml(d.application_number)}<br/>
-                            상태: ${escapeHtml(d.admst_stat)}<br/>
-                            유사도: ${d.distance.toFixed(4)}
+            const gridItems = result.similar_designs.map((d, i) => {
+                const statusClass = d.admst_stat === '등록' ? 'registered' : 'published';
+                const imgHtml = d.image_base64
+                    ? `<img src="data:image/jpeg;base64,${d.image_base64}" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" />`
+                    : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#D4D4D4; font-size:1rem;"></i></div>`;
+                const simPct = typeof d.distance === 'number' ? (d.distance * 100).toFixed(1) + '%' : '';
+                return `
+                <div class="design-grid-item">
+                    <div style="position:relative;">
+                        ${imgHtml}
+                        <div class="design-rank-badge" style="position:absolute; top:4px; left:4px;">${i + 1}</div>
+                    </div>
+                    <div style="padding:0.4rem 0.45rem;">
+                        <div class="text-xs font-semibold text-neutral-800 truncate" style="line-height:1.3;">${escapeHtml(d.article_name)}</div>
+                        <div class="text-xs font-mono text-neutral-400 truncate" style="font-size:0.6rem; margin-top:0.15rem;">${escapeHtml(d.application_number)}</div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:0.25rem;">
+                            <span class="design-status-badge ${statusClass}">${escapeHtml(d.admst_stat)}</span>
+                            ${simPct ? `<span style="font-size:0.6rem; color:var(--primary); font-weight:700;">${simPct}</span>` : ''}
                         </div>
-                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')">
-                            상세 비교
+                        <button class="design-compare-btn" style="width:100%; margin-top:0.35rem; text-align:center;" onclick="selectDesign(${d.index}, '${d.application_number}')">
+                            <i class="fas fa-microscope" style="font-size:7px;"></i> 비교
                         </button>
                     </div>
+                </div>`;
+            }).join('');
+            listHtml = `
+            <div class="design-list-card" style="margin-top:0.75rem;">
+                <div class="design-list-header">
+                    <div class="flex items-center gap-2 flex-1">
+                        <i class="fas fa-drafting-compass text-primary text-xs"></i>
+                        <span class="text-sm font-bold text-black">유사 디자인 TOP ${result.similar_designs.length}</span>
+                        <span class="text-xs text-neutral-500">${result.similar_designs.length}건 검색됨</span>
+                    </div>
+                    <button id="pdfDownloadBtn" onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
                 </div>
-            `).join('');
-            cardsHtml = `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0.625rem;">${cardItems}</div>`;
+                <div class="design-grid-container">${gridItems}</div>
+            </div>`;
         }
 
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
-            <div class="msg-content">
+            <div class="msg-content" style="max-width:90%;">
                 <div class="msg-bubble">
                     <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-search text-primary mr-1"></i>입력 디자인 분석</h4>
                     <div style="white-space:pre-wrap; font-size:0.85rem; background:#FFF7F2; padding:0.75rem; border-radius:0.5rem; color:#525252;">${escapeHtml(result.input_analysis || '')}</div>
                 </div>
-                ${cardsHtml ? `
-                <div class="msg-bubble mt-2">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
-                        <h4 class="font-bold text-sm text-black"><i class="fas fa-images text-primary mr-1"></i>유사 디자인 ${result.similar_designs.length}개 발견</h4>
-                        <button id="pdfDownloadBtn" onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                            <i class="fas fa-file-pdf"></i> PDF 저장
-                        </button>
-                    </div>
-                    <p class="text-xs text-neutral-500 mb-3">상세 비교할 디자인을 선택하세요:</p>
-                    ${cardsHtml}
-                </div>` : ''}
+                ${listHtml}
             </div>
         `;
         messagesWrapper.appendChild(div);
@@ -1227,51 +1295,58 @@
         const div = document.createElement('div');
         div.className = 'msg assistant';
 
-        let cardsHtml = '';
+        let listHtml = '';
         if (result.similar_designs && result.similar_designs.length > 0) {
-            const cardItems = result.similar_designs.map(d => {
+            const gridItems = result.similar_designs.map((d, i) => {
                 const isSelected = isCompleted && selectedIndex != null && d.index === selectedIndex;
+                const statusClass = d.admst_stat === '등록' ? 'registered' : 'published';
+                const imgHtml = d.image_base64
+                    ? `<img src="data:image/jpeg;base64,${d.image_base64}" style="width:100%; aspect-ratio:1/1; object-fit:cover; display:block;" />`
+                    : `<div style="width:100%; aspect-ratio:1/1; background:#F5F5F5; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#D4D4D4; font-size:1rem;"></i></div>`;
+                const simPct = typeof d.distance === 'number' ? (d.distance * 100).toFixed(1) + '%' : '';
                 return `
-                <div class="design-card" style="margin-bottom:0;${isSelected ? 'border-color:var(--primary);background:#FFF5F0;' : ''}">
-                    ${d.image_base64
-                        ? `<img src="data:image/jpeg;base64,${d.image_base64}" alt="${escapeHtml(d.article_name)}" style="width:calc(100% - 50px); aspect-ratio:1/1; object-fit:contain; background:#F8F8F8; border-radius:0.5rem; border:1px solid #E5E5E5; display:block; margin:0 auto;" />`
-                        : `<div style="width:calc(100% - 50px); aspect-ratio:1/1; background:#F5F5F5; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#A3A3A3; margin:0 auto;">No Image</div>`
-                    }
-                    <div style="margin-top:0.5rem;">
-                        <div class="font-bold text-xs text-black">${d.index} ${escapeHtml(d.article_name)}</div>
-                        <div style="font-size:0.7rem; color:#737373; margin-top:0.25rem; line-height:1.5;">
-                            출원번호: ${escapeHtml(d.application_number)}<br/>
-                            상태: ${escapeHtml(d.admst_stat)}<br/>
-                            유사도: ${d.distance.toFixed(4)}
+                <div class="design-grid-item${isSelected ? ' selected' : ''}">
+                    <div style="position:relative;">
+                        ${imgHtml}
+                        <div class="design-rank-badge" style="position:absolute; top:4px; left:4px;">${i + 1}</div>
+                    </div>
+                    <div style="padding:0.4rem 0.45rem;">
+                        <div class="text-xs font-semibold text-neutral-800 truncate" style="line-height:1.3;">${escapeHtml(d.article_name)}</div>
+                        <div class="text-xs font-mono text-neutral-400 truncate" style="font-size:0.6rem; margin-top:0.15rem;">${escapeHtml(d.application_number)}</div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:0.25rem;">
+                            <span class="design-status-badge ${statusClass}">${escapeHtml(d.admst_stat)}</span>
+                            ${simPct ? `<span style="font-size:0.6rem; color:var(--primary); font-weight:700;">${simPct}</span>` : ''}
                         </div>
-                        <button class="design-select-btn" style="margin-top:0.5rem; width:100%; padding:0.375rem 0; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" onclick="selectDesign(${d.index}, '${d.application_number}')">
-                            ${isSelected ? '✓ 다시 비교' : '상세 비교'}
+                        <button class="design-compare-btn${isSelected ? ' selected' : ''}" style="width:100%; margin-top:0.35rem; text-align:center;" onclick="selectDesign(${d.index}, '${d.application_number}')">
+                            ${isSelected ? '✓ 다시 비교' : '<i class="fas fa-microscope" style="font-size:7px;"></i> 비교'}
                         </button>
                     </div>
-                </div>
-                `;
+                </div>`;
             }).join('');
-            cardsHtml = `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0.625rem;">${cardItems}</div>`;
+            listHtml = `
+            <div class="design-list-card" style="margin-top:0.75rem;">
+                <div class="design-list-header">
+                    <div class="flex items-center gap-2 flex-1">
+                        <i class="fas fa-drafting-compass text-primary text-xs"></i>
+                        <span class="text-sm font-bold text-black">유사 디자인 TOP ${result.similar_designs.length}</span>
+                        <span class="text-xs text-neutral-500">${result.similar_designs.length}건 검색됨</span>
+                    </div>
+                    <button onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+                <div class="design-grid-container">${gridItems}</div>
+            </div>`;
         }
 
         div.innerHTML = `
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
-            <div class="msg-content">
+            <div class="msg-content" style="max-width:90%;">
                 <div class="msg-bubble">
                     <h4 class="font-bold text-sm text-black mb-2"><i class="fas fa-search text-primary mr-1"></i>입력 디자인 분석</h4>
                     <div style="white-space:pre-wrap; font-size:0.85rem; background:#FFF7F2; padding:0.75rem; border-radius:0.5rem; color:#525252;">${escapeHtml(result.input_analysis || '')}</div>
                 </div>
-                ${cardsHtml ? `
-                <div class="msg-bubble mt-2">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
-                        <h4 class="font-bold text-sm text-black"><i class="fas fa-images text-primary mr-1"></i>유사 디자인 ${result.similar_designs.length}개 발견</h4>
-                        <button onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                            <i class="fas fa-file-pdf"></i> PDF 저장
-                        </button>
-                    </div>
-                    <p class="text-xs text-neutral-500 mb-3">상세 비교할 디자인을 선택하세요:</p>
-                    ${cardsHtml}
-                </div>` : ''}
+                ${listHtml}
             </div>
         `;
         messagesWrapper.appendChild(div);
