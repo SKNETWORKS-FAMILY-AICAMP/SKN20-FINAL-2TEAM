@@ -849,6 +849,11 @@
             searchToken = searchResp.search_token;
             searchResults = searchResp.search_results || [];
 
+            // 검색 완료 즉시 사이드바에 세션 카드 추가
+            sessionCount++;
+            updateTotalCount();
+            addSessionCard(text, null);
+
             if (searchResults.length === 0) {
                 removeLoadingMessage();
                 addAssistantMessage('검색 결과가 없습니다. 다른 제품 설명을 입력해 주세요.');
@@ -898,9 +903,9 @@
 
             addResultViewButton(patentAnalyses, currentAnalysisId);
 
-            sessionCount++;
-            updateTotalCount();
-            addSessionCard(text, currentAnalysisId);
+            // 사이드바 카드에 analysisId 업데이트
+            const activeCard = document.querySelector(`.session-card[data-chat-id="${threadId}"]`);
+            if (activeCard) activeCard.dataset.analysisId = currentAnalysisId;
             setStatus('완료');
 
         } catch (error) {

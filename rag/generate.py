@@ -12,7 +12,6 @@
 import re
 from . import config
 
-
 # ══════════════════════════════════════════════════════
 # 시스템 프롬프트 (학습 데이터와 동일 — 수정 금지)
 # 출처: SLLM_model/training/train_qwen_v2.py L56~83
@@ -372,9 +371,10 @@ def _call_vllm(messages: list[dict]) -> str:
         messages=messages,
         max_tokens=config.GENERATE_MAX_TOKENS,
         temperature=config.GENERATE_TEMPERATURE,
-        extra_body={"repetition_penalty": config.GENERATE_REPETITION_PENALTY},
     )
-    return resp.choices[0].message.content
+    if not resp.choices:
+        raise RuntimeError(f"[rag] vLLM 응답에 choices가 없습니다: {resp}")
+    return resp.choices[0].message.content or ""
 
 
 # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
@@ -398,6 +398,27 @@ def _call_vllm(messages: list[dict]) -> str:
 # 공개 함수 3: parse_response
 # ══════════════════════════════════════════════════════
 
+_REPETITION_THRESHOLD = 20  # 동일 패턴 반복 횟수 임계값
+
+
+def _has_excessive_repetition(text: str) -> bool:
+    """동일 패턴(2글자 이상)이 _REPETITION_THRESHOLD회 이상 반복되는지 검사."""
+    if not text or len(text) < 100:
+        return False
+    for length in (2, 3, 4):
+        counts: dict[str, int] = {}
+        for i in range(len(text) - length + 1):
+            chunk = text[i:i + length]
+            if chunk.strip():
+                counts[chunk] = counts.get(chunk, 0) + 1
+                if counts[chunk] >= _REPETITION_THRESHOLD:
+                    return True
+    return False
+
+
+_FALLBACK_ANALYSIS_TEXT = "AI 자동 분석이 어려운 특허입니다. 해당 특허는 전문가의 직접 검토를 권장합니다."
+
+
 def parse_response(raw_text: str) -> dict:
     """sLLM 출력 -> 구조화 JSON."""
     result = {"raw_output": raw_text}
@@ -409,6 +430,19 @@ def parse_response(raw_text: str) -> dict:
     result["conclusion_text"] = _extract_section_text(raw_text, "결론", None)
     result["logic_consistency"] = check_logic_consistency(result["label"], raw_text)
     result["forbidden_words"] = check_forbidden(raw_text)
+
+    # 출력 검증: 쓰레기 출력 감지 → 분석불가 처리
+    is_garbage = (
+        not result["sections_found"].get("구성 대비", False)
+        or result["table_row_count"] == 0
+        or _has_excessive_repetition(raw_text)
+    )
+    if is_garbage:
+        result["label"] = "분석불가"
+        result["comparisons"] = []
+        result["analysis_text"] = _FALLBACK_ANALYSIS_TEXT
+        result["conclusion_text"] = _FALLBACK_ANALYSIS_TEXT
+
     return result
 
 

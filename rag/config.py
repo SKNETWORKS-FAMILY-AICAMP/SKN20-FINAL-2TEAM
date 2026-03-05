@@ -168,7 +168,7 @@ ALLOWED_STATUSES = {"등록", "공개"}   # 허용할 행정상태 (이외 소�
 MIN_SCORE = 0.010               # RRF 최소 점수 (이하면 노이즈 제거). (0.2,0.8) 가중치 기준 재조정값
 
 # ── 사전필터링 ─────────────────────────────────────────
-PREFILTER_MAX_CHUNKS = 1000     # 사전필터링 후 리트리버에 전달할 최대 청크 수
+PREFILTER_MAX_CHUNKS = 2000     # 사전필터링 후 리트리버에 전달할 최대 청크 수
 
 # ── 리소스 관리 (Phase 3) ─────────────────────────────
 CHECKPOINT_PATH    = INDEX_DIR / "dense_checkpoint.json"
@@ -196,7 +196,6 @@ GPT_TIMEOUT = 60
 
 GENERATE_MAX_TOKENS = 4096
 GENERATE_TEMPERATURE = 0
-GENERATE_REPETITION_PENALTY = 1.1  # 반복 루프 방지
 GENERATE_INPUT_N = 5              # LLM에 전달할 특허 수
 GENERATE_OUTPUT_N = 3             # LLM이 FTO 관점으로 선별할 특허 수
 GENERATE_TOP_N = 3                # (레거시) sLLM 개별 분석용 — 추후 삭제

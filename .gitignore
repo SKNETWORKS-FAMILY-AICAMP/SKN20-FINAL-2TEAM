@@ -41,3 +41,4 @@ design2/
 # 캡쳐사진
 /capture/
 backend/logs/
+/backup/
