@@ -2251,6 +2251,12 @@
     }
 
     async function generateFullFTOReport() {
+        // 이미 생성된 리포트가 있으면 재생성 없이 기존 패널 열기
+        if (_storedAllFTOReports && _storedAllFTOReports.length > 0) {
+            openFullFTOPanel(_storedAllFTOReports);
+            return;
+        }
+
         const activeThreadId = designThreadId || imageContextThreadId;
         if (!activeThreadId) {
             if (typeof Toast !== 'undefined') Toast.warning('이미지 분석 결과가 없습니다. 먼저 이미지를 업로드하세요.');
@@ -2469,7 +2475,8 @@
     async function downloadSingleDesignFTOPDF(ri) {
         const item = _storedAllFTOReports[ri];
         if (!item) return;
-        await _renderFTOPagesToPDF([item], `fto-design-${item.index}-${new Date().toISOString().slice(0,10)}.pdf`);
+        const singleAppNum = (item.design && item.design.application_number) ? item.design.application_number.replace(/\s/g, '') : `design-${item.index}`;
+        await _renderFTOPagesToPDF([item], `${singleAppNum}_FTO_report.pdf`);
     }
 
     // ===== 선택 항목 전체 PDF =====
@@ -2487,7 +2494,9 @@
         const btn = document.getElementById('fullFtoPdfBtn');
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF 생성 중...'; }
         try {
-            await _renderFTOPagesToPDF(selected, `full-fto-report-${new Date().toISOString().slice(0,10)}.pdf`, true);
+            const firstAppNum = (selected[0].design && selected[0].design.application_number) ? selected[0].design.application_number.replace(/\s/g, '') : 'design';
+            const fullFilename = selected.length > 1 ? `${firstAppNum}_외${selected.length - 1}건_FTO_report.pdf` : `${firstAppNum}_FTO_report.pdf`;
+            await _renderFTOPagesToPDF(selected, fullFilename, true);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> 선택 항목 PDF로 저장하기'; }
         }
