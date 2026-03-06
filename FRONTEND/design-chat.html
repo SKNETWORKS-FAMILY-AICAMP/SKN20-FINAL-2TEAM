@@ -103,25 +103,65 @@
             background: var(--primary-bg);
         }
 
-        /* Session Card */
+        /* Session Card — 85% compact */
         .session-card {
             background: white;
             border: 1px solid #E5E5E5;
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.85rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
         .session-card:hover {
             border-color: var(--primary);
             box-shadow: 0 4px 16px rgba(255, 107, 53, 0.08);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         .session-card.active {
             background: #FFF5F0;
             border-color: var(--primary);
             box-shadow: 0 4px 16px rgba(255, 107, 53, 0.12);
+        }
+
+        /* Session More Menu */
+        .session-more-btn {
+            width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; cursor: pointer; opacity: 0; transition: opacity 0.15s;
+            color: #a3a3a3; font-size: 0.6rem;
+        }
+        .session-card:hover .session-more-btn { opacity: 1; }
+        .session-more-btn:hover { color: var(--primary); background: rgba(255,107,53,0.08); }
+
+        .session-menu {
+            position: absolute; right: 0; top: 100%; z-index: 50;
+            background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1); min-width: 120px;
+            padding: 0.25rem 0; display: none;
+        }
+        .session-menu.show { display: block; }
+        .session-menu-item {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.4rem 0.75rem; font-size: 0.7rem; cursor: pointer;
+            color: #525252; transition: background 0.1s;
+        }
+        .session-menu-item:hover { background: #f5f5f5; }
+        .session-menu-item.danger { color: #ef4444; }
+        .session-menu-item.danger:hover { background: #fef2f2; }
+
+        /* Project Button */
+        .project-btn {
+            display: flex; align-items: center; gap: 0.5rem; width: 100%;
+            padding: 0.6rem 0.85rem;
+            background: linear-gradient(135deg, var(--primary-bg), rgba(255, 140, 90, 0.04));
+            border: 1px solid var(--primary-border); border-radius: 0.75rem;
+            cursor: pointer; transition: all 0.2s ease;
+            font-size: 0.75rem; font-weight: 600; color: var(--primary-dark);
+        }
+        .project-btn:hover { background: var(--primary-bg-hover); border-color: var(--primary); transform: translateY(-1px); }
+        .project-btn .project-count {
+            margin-left: auto; background: var(--primary); color: white;
+            font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 999px; font-weight: 700;
         }
 
         /* 스크롤바 */
@@ -703,9 +743,9 @@
         <!-- 사이드바 -->
         <aside id="sidebar" class="w-72 bg-white border-r border-neutral-200 flex flex-col fixed left-0 top-20 bottom-0 z-40">
             <!-- Header -->
-            <div class="p-6 border-b border-neutral-200">
-                <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-neutral-900 text-sm font-bold">디자인 분석 기록</h3>
+            <div class="px-4 pt-4 pb-3 border-b border-neutral-200">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-neutral-900 text-xs font-bold">디자인 분석 기록</h3>
                     <div class="flex items-center gap-2">
                         <button onclick="startNewDesignChat()" class="icon-btn" title="새 분석">
                             <i class="fas fa-plus text-xs"></i>
@@ -716,27 +756,60 @@
                     </div>
                 </div>
 
-                <!-- Stats -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200">
-                        <div class="text-2xl font-bold text-black" id="totalCount">0</div>
-                        <div class="text-xs text-neutral-600 mt-1">Total</div>
+                <!-- Stats — compact -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-neutral-50 rounded-lg p-2.5 border border-neutral-200">
+                        <div class="text-lg font-bold text-black" id="totalCount">0</div>
+                        <div class="text-[0.65rem] text-neutral-600 mt-0.5">Total</div>
                     </div>
-                    <div class="rounded-xl p-4 border" style="background: var(--primary-bg); border-color: var(--primary-border);">
-                        <div class="font-bold text-primary" id="sessionStatus" style="font-size:1.125rem;">대기</div>
-                        <div class="text-xs text-neutral-600 mt-1">상태</div>
+                    <div class="rounded-lg p-2.5 border" style="background: var(--primary-bg); border-color: var(--primary-border);">
+                        <div class="text-lg font-bold text-primary" id="sessionStatus">대기</div>
+                        <div class="text-[0.65rem] text-neutral-600 mt-0.5">상태</div>
                     </div>
                 </div>
+
+                <!-- Project Button -->
+                <button class="project-btn" onclick="toggleProjectPanel()">
+                    <i class="fas fa-folder"></i>
+                    <span>프로젝트</span>
+                    <span class="project-count" id="projectCount">0</span>
+                </button>
             </div>
 
             <!-- Session List -->
-            <div class="flex-1 overflow-y-auto p-4" id="chatSessions">
-                <!-- <div class="text-center py-8">
-                    <div class="w-14 h-14 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-neutral-200">
-                        <i class="fas fa-palette text-xl text-neutral-400"></i>
+            <div class="flex-1 overflow-y-auto p-3" id="chatSessions"></div>
+
+            <!-- Project Panel (숨김 상태) -->
+            <div class="flex-1 overflow-y-auto p-3 hidden" id="projectPanel">
+                <div class="flex items-center justify-between mb-2">
+                    <button onclick="toggleProjectPanel()" class="text-[0.65rem] text-neutral-500 hover:text-primary flex items-center gap-1">
+                        <i class="fas fa-arrow-left"></i> 대화 목록
+                    </button>
+                    <button onclick="showCreateProjectInline()" class="text-[0.65rem] text-primary font-semibold hover:underline">
+                        <i class="fas fa-plus mr-0.5"></i>새 프로젝트
+                    </button>
+                </div>
+                <div id="inlineCreateProject" class="hidden mb-2">
+                    <div class="flex gap-1">
+                        <input id="inlineProjectName" type="text" placeholder="프로젝트 이름" maxlength="100"
+                            class="flex-1 px-2 py-1.5 text-xs border border-neutral-200 rounded-lg focus:outline-none focus:border-primary" />
+                        <button onclick="createProjectInline()" class="px-2 py-1.5 bg-primary text-white text-xs rounded-lg font-semibold">만들기</button>
                     </div>
-                    <p class="text-neutral-500 text-xs">이미지를 업로드하여<br>디자인 분석을 시작하세요</p>
-                </div> -->
+                </div>
+                <div id="projectListInSidebar"></div>
+                <div id="projectDetailInSidebar" class="hidden">
+                    <button onclick="backToProjectList()" class="text-[0.6rem] text-neutral-400 hover:text-primary flex items-center gap-1 mb-2">
+                        <i class="fas fa-arrow-left"></i> 프로젝트 목록
+                    </button>
+                    <div class="mb-2">
+                        <h4 id="sidebarProjectName" class="text-xs font-bold text-black"></h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span id="sidebarProjectMeta" class="text-[0.6rem] text-neutral-400"></span>
+                            <button onclick="deleteProjectFromSidebar()" class="text-[0.6rem] text-red-400 hover:text-red-600">삭제</button>
+                        </div>
+                    </div>
+                    <div id="sidebarProjectSessions"></div>
+                </div>
             </div>
         </aside>
 
@@ -854,6 +927,24 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- 프로젝트에 추가 모달 -->
+    <div id="addToProjectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:1.5rem; max-width:360px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h3 style="font-size:0.875rem; font-weight:700; color:#1a1a1a; margin-bottom:0.75rem;">
+                <i class="fas fa-folder text-primary mr-1"></i> 프로젝트에 추가
+            </h3>
+            <div id="projectSelectList" style="max-height:200px; overflow-y:auto; margin-bottom:0.75rem;"></div>
+            <div style="border-top:1px solid #e5e7eb; padding-top:0.75rem; margin-bottom:0.75rem;">
+                <input id="newProjectInput" type="text" placeholder="또는 새 프로젝트 이름 입력..." maxlength="100"
+                    style="width:100%; padding:0.4rem 0.6rem; font-size:0.75rem; border:1px solid #e5e7eb; border-radius:0.5rem; outline:none;" />
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+                <button onclick="confirmAddToProject()" style="flex:1; padding:0.5rem; background:#FF6B35; color:white; border:none; border-radius:0.5rem; font-size:0.75rem; font-weight:600; cursor:pointer;">추가</button>
+                <button onclick="closeAddToProjectModal()" style="flex:1; padding:0.5rem; background:#f5f5f5; color:#525252; border:none; border-radius:0.5rem; font-size:0.75rem; font-weight:600; cursor:pointer;">취소</button>
+            </div>
+        </div>
     </div>
 
     <script src="toast.js"></script>
@@ -1923,37 +2014,49 @@
         const timeAgo = formatTimeAgo(session.created_at);
 
         card.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <span class="type-badge"><i class="fas fa-palette mr-1"></i>디자인 분석</span>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-neutral-500">${timeAgo}</span>
-                    <button class="delete-btn icon-btn" title="삭제" style="width:1.5rem;height:1.5rem;">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
+            <div class="flex items-center gap-2">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span class="type-badge" style="font-size:0.55rem;padding:0.1rem 0.35rem;"><i class="fas fa-palette mr-0.5"></i>디자인</span>
+                        <span class="text-[0.6rem] text-neutral-400">${timeAgo}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        ${session.s3_url ? `<img src="${session.s3_url}" style="width:1.5rem;height:1.5rem;flex-shrink:0;object-fit:cover;border-radius:0.25rem;border:1px solid #E5E5E5;" />` : ''}
+                        <h4 class="text-xs font-semibold leading-snug truncate" style="color:#404040;">
+                            ${escapeHtml(session.preview || '디자인 분석')}
+                        </h4>
+                    </div>
                 </div>
-            </div>
-            <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.4rem;">
-                <h4 class="font-semibold text-black leading-snug" style="font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:0.85;min-width:0;">
-                    ${escapeHtml(session.preview || '디자인 분석')}
-                </h4>
-                ${session.s3_url ? `<img src="${session.s3_url}" style="width:2rem;height:2rem;flex-shrink:0;object-fit:cover;border-radius:0.375rem;border:1px solid #E5E5E5;" />` : ''}
+                <div class="relative flex-shrink-0">
+                    <button class="session-more-btn" title="더보기">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <div class="session-menu">
+                        <div class="session-menu-item" data-action="rename"><i class="fas fa-pen" style="font-size:0.55rem;"></i>이름 변경</div>
+                        <div class="session-menu-item" data-action="project"><i class="fas fa-folder-plus" style="font-size:0.55rem;"></i>프로젝트에 추가</div>
+                        <div class="session-menu-item danger" data-action="delete"><i class="fas fa-trash" style="font-size:0.55rem;"></i>삭제</div>
+                    </div>
+                </div>
             </div>
         `;
         card.onclick = (e) => {
-            if (!e.target.closest('.delete-btn')) openSession(session.thread_id);
+            if (!e.target.closest('.session-more-btn') && !e.target.closest('.session-menu')) openSession(session.thread_id);
         };
-        card.querySelector('.delete-btn').onclick = (e) => {
+        card.querySelector('.session-more-btn').onclick = (e) => {
             e.stopPropagation();
-            deleteSession(session.thread_id, card);
+            closeAllSessionMenus();
+            card.querySelector('.session-menu').classList.add('show');
         };
-        card.querySelector('.delete-btn').onmouseenter = (e) => {
-            e.currentTarget.style.color = '#EF4444';
-            e.currentTarget.style.background = '#FEE2E2';
-        };
-        card.querySelector('.delete-btn').onmouseleave = (e) => {
-            e.currentTarget.style.color = '#D4D4D4';
-            e.currentTarget.style.background = 'transparent';
-        };
+        card.querySelectorAll('.session-menu-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                closeAllSessionMenus();
+                const action = item.dataset.action;
+                if (action === 'delete') deleteSession(session.thread_id, card);
+                else if (action === 'project') showAddToProjectModal(session.thread_id);
+                else if (action === 'rename') renameDesignSession(session.thread_id, card);
+            };
+        });
         return card;
     }
 
@@ -2109,6 +2212,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         loadChatSessions();
+        loadProjectCount();
         // Design 모듈 + VLM 워밍업 (백그라운드, 실패해도 무시)
         fetch(`${API_BASE}/design/status`).catch(() => {});
     });
@@ -2599,6 +2703,234 @@
             }
         }
         doc.save(filename);
+    }
+
+    // ==================== 세션 메뉴 ====================
+
+    function closeAllSessionMenus() {
+        document.querySelectorAll('.session-menu.show').forEach(m => m.classList.remove('show'));
+    }
+    document.addEventListener('click', () => closeAllSessionMenus());
+
+    async function renameDesignSession(threadId, cardElement) {
+        const h4 = cardElement.querySelector('h4');
+        const oldName = h4.textContent.trim();
+        const newName = prompt('새 이름을 입력하세요:', oldName);
+        if (!newName || newName.trim() === oldName) return;
+        try {
+            const resp = await fetch(`${API_BASE}/design/session/${threadId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preview: newName.trim() }),
+            });
+            if (resp.ok) { h4.textContent = newName.trim(); Toast.success('이름이 변경되었습니다.'); }
+            else Toast.error('이름 변경 실패');
+        } catch (e) { Toast.error('이름 변경 실패'); }
+    }
+
+    // ==================== 프로젝트 ====================
+
+    let _projectListCache = [];
+    let _currentSidebarProjectId = null;
+    const PROJECT_API = '/api/projects';
+    const PROJECT_PLAN_LIMITS = { free: 5, pro: 30, max: Infinity };
+
+    function _authHeaders() {
+        const token = sessionStorage.getItem('authToken') || '';
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    function getProjectLimit() {
+        const plan = (JSON.parse(sessionStorage.getItem('user') || '{}').plan || 'free').toLowerCase();
+        return PROJECT_PLAN_LIMITS[plan] || 5;
+    }
+
+    function checkProjectLimit() {
+        const limit = getProjectLimit();
+        if (limit === Infinity) return true;
+        if (_projectListCache.length >= limit) {
+            Toast.warning(`현재 플랜은 최대 ${limit}개까지 프로젝트를 생성할 수 있습니다.`);
+            return false;
+        }
+        return true;
+    }
+
+    async function loadProjectCount() {
+        try {
+            const resp = await fetch(`${PROJECT_API}?type=design`, { headers: _authHeaders() });
+            if (!resp.ok) return;
+            const projects = await resp.json();
+            _projectListCache = projects;
+            document.getElementById('projectCount').textContent = projects.length;
+        } catch (e) { /* ignore */ }
+    }
+
+    function toggleProjectPanel() {
+        const sessions = document.getElementById('chatSessions');
+        const panel = document.getElementById('projectPanel');
+        if (panel.classList.contains('hidden')) {
+            sessions.classList.add('hidden');
+            panel.classList.remove('hidden');
+            document.getElementById('projectListInSidebar').classList.remove('hidden');
+            document.getElementById('projectDetailInSidebar').classList.add('hidden');
+            document.getElementById('inlineCreateProject').classList.add('hidden');
+            loadProjectsInSidebar();
+        } else {
+            panel.classList.add('hidden');
+            sessions.classList.remove('hidden');
+        }
+    }
+
+    async function loadProjectsInSidebar() {
+        await loadProjectCount();
+        const container = document.getElementById('projectListInSidebar');
+        if (_projectListCache.length === 0) {
+            container.innerHTML = '<div class="text-center py-6 text-neutral-400"><i class="fas fa-folder-open text-lg mb-2"></i><p class="text-[0.65rem]">프로젝트가 없습니다</p></div>';
+            return;
+        }
+        container.innerHTML = _projectListCache.map(p => `
+            <div class="session-card" style="padding:0.6rem 0.75rem;" onclick="openProjectInSidebar(${p.id}, '${escapeHtml(p.name).replace(/'/g, "\\'")}')">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-folder text-primary" style="font-size:0.7rem;"></i>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-semibold text-black truncate">${escapeHtml(p.name)}</div>
+                        <div class="text-[0.6rem] text-neutral-400 mt-0.5">${p.session_count}개 세션</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-neutral-300" style="font-size:0.5rem;"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function showCreateProjectInline() {
+        const el = document.getElementById('inlineCreateProject');
+        el.classList.toggle('hidden');
+        if (!el.classList.contains('hidden')) { document.getElementById('inlineProjectName').value = ''; document.getElementById('inlineProjectName').focus(); }
+    }
+
+    async function createProjectInline() {
+        if (!checkProjectLimit()) return;
+        const name = document.getElementById('inlineProjectName').value.trim();
+        if (!name) { Toast.warning('이름을 입력해주세요.'); return; }
+        try {
+            const resp = await fetch(PROJECT_API, { method: 'POST', headers: { ..._authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ name, type: 'design' }) });
+            if (!resp.ok) { const err = await resp.json().catch(() => ({})); Toast.error(err.detail || '생성 실패'); return; }
+            Toast.success('프로젝트가 생성되었습니다.');
+            document.getElementById('inlineCreateProject').classList.add('hidden');
+            loadProjectsInSidebar();
+        } catch (e) { Toast.error('생성 실패'); }
+    }
+
+    async function openProjectInSidebar(pid, name) {
+        _currentSidebarProjectId = pid;
+        document.getElementById('projectListInSidebar').classList.add('hidden');
+        document.getElementById('inlineCreateProject').classList.add('hidden');
+        document.getElementById('projectDetailInSidebar').classList.remove('hidden');
+        document.getElementById('sidebarProjectName').textContent = name;
+        loadProjectSessionsInSidebar();
+    }
+
+    async function loadProjectSessionsInSidebar() {
+        const container = document.getElementById('sidebarProjectSessions');
+        try {
+            const resp = await fetch(`${PROJECT_API}/${_currentSidebarProjectId}/sessions`, { headers: _authHeaders() });
+            if (!resp.ok) throw new Error();
+            const sessions = await resp.json();
+            document.getElementById('sidebarProjectMeta').textContent = `${sessions.length}개 세션`;
+            if (sessions.length === 0) { container.innerHTML = '<div class="text-center py-4 text-neutral-400"><p class="text-[0.6rem]">세션이 없습니다</p></div>'; return; }
+            container.innerHTML = sessions.map(s => `
+                <div class="session-card" style="padding:0.5rem 0.65rem;" onclick="openSession('${s.thread_id || ''}')">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[0.7rem] font-medium text-black truncate">${escapeHtml(s.title || '디자인 분석')}</span>
+                        <button onclick="event.stopPropagation(); removeSessionFromSidebar(${s.id})" class="text-neutral-300 hover:text-red-400 ml-1" title="제거">
+                            <i class="fas fa-times" style="font-size:0.5rem;"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) { container.innerHTML = '<p class="text-center text-[0.6rem] text-red-400 py-2">로드 실패</p>'; }
+    }
+
+    function backToProjectList() {
+        _currentSidebarProjectId = null;
+        document.getElementById('projectDetailInSidebar').classList.add('hidden');
+        document.getElementById('projectListInSidebar').classList.remove('hidden');
+        loadProjectsInSidebar();
+    }
+
+    async function deleteProjectFromSidebar() {
+        if (!confirm('이 프로젝트를 삭제할까요?')) return;
+        try {
+            const resp = await fetch(`${PROJECT_API}/${_currentSidebarProjectId}`, { method: 'DELETE', headers: _authHeaders() });
+            if (resp.ok) { Toast.success('삭제되었습니다.'); backToProjectList(); }
+        } catch (e) { Toast.error('삭제 실패'); }
+    }
+
+    async function removeSessionFromSidebar(sessionId) {
+        if (!confirm('세션을 프로젝트에서 제거할까요?')) return;
+        try {
+            const resp = await fetch(`${PROJECT_API}/${_currentSidebarProjectId}/sessions/${sessionId}`, { method: 'DELETE', headers: _authHeaders() });
+            if (resp.ok) { Toast.success('제거되었습니다.'); loadProjectSessionsInSidebar(); }
+        } catch (e) { Toast.error('제거 실패'); }
+    }
+
+    // === 프로젝트에 추가 모달 ===
+    let _addToThreadId = null;
+    let _selectedProjectId = null;
+
+    async function showAddToProjectModal(threadId) {
+        _addToThreadId = threadId;
+        _selectedProjectId = null;
+        document.getElementById('newProjectInput').value = '';
+        if (_projectListCache.length === 0) await loadProjectCount();
+
+        const list = document.getElementById('projectSelectList');
+        if (_projectListCache.length === 0) {
+            list.innerHTML = '<p style="font-size:0.7rem;color:#a3a3a3;text-align:center;padding:0.5rem;">프로젝트가 없습니다. 아래에서 새로 만드세요.</p>';
+        } else {
+            list.innerHTML = _projectListCache.map(p => `
+                <div class="project-select-item" data-pid="${p.id}" onclick="selectProject(${p.id}, this)"
+                    style="padding:0.5rem 0.6rem;border:1px solid #e5e7eb;border-radius:0.5rem;margin-bottom:0.35rem;cursor:pointer;font-size:0.75rem;transition:all 0.15s;display:flex;align-items:center;gap:0.4rem;">
+                    <i class="fas fa-folder" style="color:#FF6B35;font-size:0.65rem;"></i>
+                    <span style="flex:1;">${escapeHtml(p.name)}</span>
+                    <span style="font-size:0.6rem;color:#a3a3a3;">${p.session_count}개</span>
+                </div>
+            `).join('');
+        }
+        document.getElementById('addToProjectModal').style.display = 'flex';
+    }
+
+    function selectProject(pid, el) {
+        _selectedProjectId = pid;
+        document.getElementById('newProjectInput').value = '';
+        document.querySelectorAll('.project-select-item').forEach(e => { e.style.borderColor = '#e5e7eb'; e.style.background = 'white'; });
+        el.style.borderColor = '#FF6B35'; el.style.background = '#FFF7F2';
+    }
+
+    function closeAddToProjectModal() {
+        document.getElementById('addToProjectModal').style.display = 'none';
+        _addToThreadId = null; _selectedProjectId = null;
+    }
+
+    async function confirmAddToProject() {
+        const newName = document.getElementById('newProjectInput').value.trim();
+        let projectId = _selectedProjectId;
+        if (newName) {
+            if (!checkProjectLimit()) { closeAddToProjectModal(); return; }
+            try {
+                const resp = await fetch(PROJECT_API, { method: 'POST', headers: { ..._authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName, type: 'design' }) });
+                if (!resp.ok) { Toast.error('생성 실패'); return; }
+                const created = await resp.json();
+                projectId = created.id;
+            } catch (e) { Toast.error('생성 실패'); return; }
+        }
+        if (!projectId) { Toast.warning('프로젝트를 선택하거나 새로 만들어주세요.'); return; }
+        try {
+            const resp = await fetch(`${PROJECT_API}/${projectId}/sessions`, { method: 'POST', headers: { ..._authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ thread_id: _addToThreadId }) });
+            if (!resp.ok) { const err = await resp.json().catch(() => ({})); Toast.warning(err.detail || '추가 실패'); return; }
+            Toast.success('프로젝트에 추가되었습니다.');
+            closeAddToProjectModal(); loadProjectCount();
+        } catch (e) { Toast.error('추가 실패'); }
     }
 
     // ==================== 사이드바 토글 ====================

@@ -90,7 +90,7 @@
 
         <!-- 플랜 섹션 -->
         <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">플랜</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <!-- Free -->
             <div class="plan-card" id="planFree">
                 <div class="flex items-center justify-between mb-3">
@@ -98,11 +98,14 @@
                     <span class="plan-badge bg-neutral-100 text-neutral-600">현재</span>
                 </div>
                 <p class="text-2xl font-extrabold text-black mb-4">무료</p>
-                <ul class="space-y-2 text-sm text-neutral-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 30개</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 5개</li>
+                <ul class="space-y-2 text-xs text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허·실용신안 분석 <b>30개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 분석 <b>30개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허 프로젝트 <b>5개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 프로젝트 <b>5개</b></li>
                 </ul>
             </div>
+
             <!-- Pro -->
             <div class="plan-card" id="planPro">
                 <div class="flex items-center justify-between mb-3">
@@ -111,25 +114,47 @@
                 </div>
                 <p class="text-2xl font-extrabold text-black mb-1">&#8361;29,900</p>
                 <p class="text-xs text-neutral-400 mb-4">/ 월</p>
-                <ul class="space-y-2 text-sm text-neutral-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 100개</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 30개</li>
+                <ul class="space-y-2 text-xs text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허·실용신안 분석 <b>100개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 분석 <b>100개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허 프로젝트 <b>30개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 프로젝트 <b>30개</b></li>
                 </ul>
-                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors">업그레이드</button>
+                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg bg-neutral-600 text-white hover:bg-neutral-700 transition-colors">업그레이드</button>
             </div>
+
             <!-- Max -->
             <div class="plan-card" id="planMax">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-base font-bold text-black">Max</h3>
                     <span class="plan-badge bg-amber-100 text-amber-700" style="display:none;">현재</span>
                 </div>
-                <p class="text-2xl font-extrabold text-black mb-1">&#8361;99,900</p>
+                <p class="text-2xl font-extrabold text-black mb-1">&#8361;199,900</p>
                 <p class="text-xs text-neutral-400 mb-4">/ 월</p>
-                <ul class="space-y-2 text-sm text-neutral-600">
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 무제한</li>
-                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 무제한</li>
+                <ul class="space-y-2 text-xs text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허·실용신안 분석 <b>무제한</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 분석 <b>무제한</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>특허 프로젝트 <b>무제한</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>디자인 프로젝트 <b>무제한</b></li>
                 </ul>
-                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg border-2 border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors">업그레이드</button>
+                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg bg-neutral-600 text-white hover:bg-neutral-700 transition-colors">업그레이드</button>
+            </div>
+
+            <!-- Group -->
+            <div class="plan-card" id="planGroup">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-black">Group</h3>
+                    <span class="plan-badge bg-neutral-100 text-neutral-600" style="display:none;">현재</span>
+                </div>
+                <p class="text-2xl font-extrabold text-black mb-1">별도 문의</p>
+                <p class="text-xs text-neutral-400 mb-4">1년 단위 계약</p>
+                <ul class="space-y-2 text-xs text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>모든 분석 <b>무제한</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>모든 프로젝트 <b>무제한</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>사용 ID <b>50~200개</b></li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i>그룹 ID 결제 · 1년 단위</li>
+                </ul>
+                <button onclick="alert('그룹 플랜 문의: support@ftoguard.com')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg bg-neutral-600 text-white hover:bg-neutral-700 transition-colors">문의하기</button>
             </div>
         </div>
 

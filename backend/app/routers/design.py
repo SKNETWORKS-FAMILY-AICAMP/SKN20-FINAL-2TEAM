@@ -847,6 +847,26 @@ async def list_design_sessions(
 # DELETE /design/session/{thread_id} — 세션 삭제
 # ══════════════════════════════════════════════════════
 
+@router.patch("/design/session/{thread_id}")
+async def rename_design_session(
+    thread_id: str,
+    data: dict,
+    db: Session = Depends(get_db),
+):
+    """디자인 분석 세션 이름 변경."""
+    db_session = db.query(DesignSession).filter(
+        DesignSession.thread_id == thread_id
+    ).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
+    preview = data.get("preview", "").strip()
+    if not preview:
+        raise HTTPException(status_code=400, detail="이름을 입력해주세요.")
+    db_session.input_analysis = preview
+    db.commit()
+    return {"success": True, "preview": preview}
+
+
 @router.delete("/design/session/{thread_id}")
 async def delete_design_session(
     thread_id: str,
