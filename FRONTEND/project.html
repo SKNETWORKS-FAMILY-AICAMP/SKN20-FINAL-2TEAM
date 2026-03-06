@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>프로젝트 - FTOGuard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="toast.css" />
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+        * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+        :root { --primary: #FF6B35; --primary-dark: #E55A2B; }
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+
+        .tab-btn { padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; cursor: pointer; border: 1.5px solid #e5e7eb; background: white; color: #737373; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-btn:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
+        .project-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem;
+            padding: 1rem 1.25rem; cursor: pointer; transition: all 0.2s;
+        }
+        .project-card:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(255,107,53,0.08); transform: translateY(-1px); }
+
+        .session-item {
+            background: #FAFAFA; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            padding: 0.6rem 0.85rem; transition: all 0.15s; cursor: pointer;
+        }
+        .session-item:hover { border-color: var(--primary); background: #FFF7F2; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: white; border-radius: 1rem; padding: 1.5rem; width: 90%; max-width: 400px; }
+    </style>
+</head>
+<body class="bg-[#FAFAFA] min-h-screen">
+    <div id="app-header"></div>
+    <div style="height:80px;"></div>
+
+    <main class="max-w-3xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-xl font-bold text-black flex items-center gap-2">
+                    <i class="fas fa-folder text-primary"></i> 프로젝트
+                </h1>
+                <p class="text-xs text-neutral-500 mt-1">분석 세션을 프로젝트 단위로 관리하세요</p>
+            </div>
+            <button onclick="showCreateModal()" class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:opacity-90 transition">
+                <i class="fas fa-plus mr-1"></i> 새 프로젝트
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-5">
+            <button class="tab-btn active" data-type="patent" onclick="switchTab('patent')">
+                <i class="fas fa-file-alt mr-1"></i> 특허·실용신안
+            </button>
+            <button class="tab-btn" data-type="design" onclick="switchTab('design')">
+                <i class="fas fa-palette mr-1"></i> 디자인
+            </button>
+        </div>
+
+        <!-- Project List -->
+        <div id="projectList">
+            <div class="text-center py-12 text-neutral-400">
+                <i class="fas fa-folder-open text-3xl mb-3"></i>
+                <p class="text-sm">프로젝트가 없습니다</p>
+            </div>
+        </div>
+
+        <!-- Project Detail (hidden by default) -->
+        <div id="projectDetail" class="hidden">
+            <button onclick="backToList()" class="text-xs text-neutral-500 hover:text-primary mb-4 inline-flex items-center gap-1">
+                <i class="fas fa-arrow-left"></i> 프로젝트 목록으로
+            </button>
+            <div class="bg-white rounded-xl border border-neutral-200 p-5 mb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="detailName" class="text-lg font-bold text-black"></h2>
+                        <p id="detailMeta" class="text-xs text-neutral-500 mt-1"></p>
+                    </div>
+                    <button onclick="deleteCurrentProject()" class="text-xs text-red-400 hover:text-red-600 transition">
+                        <i class="fas fa-trash mr-1"></i> 삭제
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="relative mb-4">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs"></i>
+                <input id="searchInput" type="text" placeholder="프로젝트 내 대화 검색..."
+                    class="w-full pl-8 pr-4 py-2 text-xs border border-neutral-200 rounded-lg focus:outline-none focus:border-primary"
+                    oninput="debounceSearch()" />
+            </div>
+
+            <!-- Sessions in project -->
+            <div id="detailSessions"></div>
+            <!-- Search results -->
+            <div id="searchResults" class="hidden"></div>
+        </div>
+    </main>
+
+    <!-- Create Project Modal -->
+    <div id="createModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="text-sm font-bold text-black mb-3">새 프로젝트 만들기</h3>
+            <input id="newProjectName" type="text" placeholder="프로젝트 이름" maxlength="100"
+                class="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:border-primary mb-3" />
+            <div class="flex gap-2">
+                <button onclick="hideCreateModal()" class="flex-1 py-2 text-xs font-semibold border border-neutral-200 rounded-lg hover:bg-neutral-50">취소</button>
+                <button onclick="createProject()" class="flex-1 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:opacity-90">만들기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script>
+    const API_BASE = window.location.origin + '/api';
+    let currentTab = 'patent';
+    let currentProjectId = null;
+    let searchTimer = null;
+    let _allProjectsCount = 0;
+
+    const PROJECT_PLAN_LIMITS = { free: 5, pro: 30, max: Infinity };
+    function getProjectLimit() {
+        const plan = (JSON.parse(sessionStorage.getItem('user') || '{}').plan || 'free').toLowerCase();
+        return PROJECT_PLAN_LIMITS[plan] || 5;
+    }
+
+    function authHeaders() {
+        const token = sessionStorage.getItem('authToken') || '';
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    // === Tab ===
+    function switchTab(type) {
+        currentTab = type;
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.type === type);
+        });
+        loadProjects();
+    }
+
+    // === Load Projects ===
+    async function loadProjects() {
+        const container = document.getElementById('projectList');
+        try {
+            const [resp, respOther] = await Promise.all([
+                fetch(`${API_BASE}/projects?type=${currentTab}`, { headers: authHeaders() }),
+                fetch(`${API_BASE}/projects?type=${currentTab === 'patent' ? 'design' : 'patent'}`, { headers: authHeaders() }),
+            ]);
+            if (!resp.ok) throw new Error();
+            const projects = await resp.json();
+            const otherProjects = respOther.ok ? await respOther.json() : [];
+            _allProjectsCount = projects.length + otherProjects.length;
+
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-neutral-400">
+                        <i class="fas fa-folder-open text-3xl mb-3"></i>
+                        <p class="text-sm">프로젝트가 없습니다</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = projects.map(p => `
+                <div class="project-card mb-3" onclick="openProject(${p.id}, '${escapeAttr(p.name)}', '${p.created_at || ''}')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,107,53,0.08);">
+                                <i class="fas fa-folder text-primary text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-black">${escapeHtml(p.name)}</h3>
+                                <p class="text-[0.65rem] text-neutral-500 mt-0.5">${p.session_count}개 세션 · ${formatDate(p.created_at)}</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-neutral-300 text-xs"></i>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = '<p class="text-center text-sm text-red-400 py-8">프로젝트 목록을 불러올 수 없습니다.</p>';
+        }
+    }
+
+    // === Open Project Detail ===
+    async function openProject(id, name, createdAt) {
+        currentProjectId = id;
+        document.getElementById('projectList').classList.add('hidden');
+        document.getElementById('projectDetail').classList.remove('hidden');
+        document.getElementById('detailName').textContent = name;
+        document.getElementById('detailMeta').textContent = `생성: ${formatDate(createdAt)}`;
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchResults').classList.add('hidden');
+
+        // Hide tabs
+        loadProjectSessions();
+    }
+
+    async function loadProjectSessions() {
+        const container = document.getElementById('detailSessions');
+        try {
+            const resp = await fetch(`${API_BASE}/projects/${currentProjectId}/sessions`, { headers: authHeaders() });
+            if (!resp.ok) throw new Error();
+            const sessions = await resp.json();
+
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-neutral-400">
+                        <i class="fas fa-inbox text-2xl mb-2"></i>
+                        <p class="text-xs">아직 추가된 세션이 없습니다</p>
+                        <p class="text-[0.6rem] text-neutral-400 mt-1">patent-chat에서 분석 후 프로젝트에 추가하세요</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = sessions.map(s => `
+                <div class="session-item mb-2 flex items-center justify-between" onclick="goToChat(${s.chat_id})">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <i class="fas fa-comment-dots text-primary text-xs"></i>
+                        <span class="text-xs font-medium text-black truncate">${escapeHtml(s.title || '대화 #' + (s.chat_id || ''))}</span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-[0.6rem] text-neutral-400">${formatDate(s.added_at)}</span>
+                        <button onclick="event.stopPropagation(); removeSession(${s.id})" class="text-neutral-300 hover:text-red-400 transition" title="제거">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = '<p class="text-center text-xs text-red-400 py-4">세션을 불러올 수 없습니다.</p>';
+        }
+    }
+
+    function goToChat(chatId) {
+        if (chatId) window.location.href = `patent-chat.html?chat=${chatId}`;
+    }
+
+    function backToList() {
+        currentProjectId = null;
+        document.getElementById('projectDetail').classList.add('hidden');
+        document.getElementById('projectList').classList.remove('hidden');
+        loadProjects();
+    }
+
+    // === Create ===
+    function showCreateModal() {
+        document.getElementById('newProjectName').value = '';
+        document.getElementById('createModal').classList.add('show');
+        setTimeout(() => document.getElementById('newProjectName').focus(), 100);
+    }
+    function hideCreateModal() {
+        document.getElementById('createModal').classList.remove('show');
+    }
+
+    async function createProject() {
+        const limit = getProjectLimit();
+        if (limit !== Infinity && _allProjectsCount >= limit) {
+            hideCreateModal();
+            Toast.warning(`현재 플랜은 최대 ${limit}개까지 프로젝트를 생성할 수 있습니다. 업그레이드하세요.`);
+            return;
+        }
+        const name = document.getElementById('newProjectName').value.trim();
+        if (!name) { Toast.warning('프로젝트 이름을 입력해주세요.'); return; }
+
+        try {
+            const resp = await fetch(`${API_BASE}/projects`, {
+                method: 'POST',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, type: currentTab }),
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                Toast.error(err.detail || '생성 실패');
+                return;
+            }
+            hideCreateModal();
+            Toast.success('프로젝트가 생성되었습니다.');
+            loadProjects();
+        } catch (e) {
+            Toast.error('프로젝트 생성 중 오류가 발생했습니다.');
+        }
+    }
+
+    // === Delete ===
+    async function deleteCurrentProject() {
+        if (!confirm('이 프로젝트를 삭제할까요? (포함된 대화는 삭제되지 않습니다)')) return;
+        try {
+            const resp = await fetch(`${API_BASE}/projects/${currentProjectId}`, {
+                method: 'DELETE', headers: authHeaders(),
+            });
+            if (resp.ok) { Toast.success('삭제되었습니다.'); backToList(); }
+        } catch (e) { Toast.error('삭제 실패'); }
+    }
+
+    async function removeSession(sessionId) {
+        if (!confirm('이 세션을 프로젝트에서 제거할까요?')) return;
+        try {
+            const resp = await fetch(`${API_BASE}/projects/${currentProjectId}/sessions/${sessionId}`, {
+                method: 'DELETE', headers: authHeaders(),
+            });
+            if (resp.ok) { Toast.success('제거되었습니다.'); loadProjectSessions(); }
+        } catch (e) { Toast.error('제거 실패'); }
+    }
+
+    // === Search ===
+    function debounceSearch() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(searchInProject, 400);
+    }
+
+    async function searchInProject() {
+        const q = document.getElementById('searchInput').value.trim();
+        const resultsDiv = document.getElementById('searchResults');
+        const sessionsDiv = document.getElementById('detailSessions');
+
+        if (!q) {
+            resultsDiv.classList.add('hidden');
+            sessionsDiv.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const resp = await fetch(`${API_BASE}/projects/${currentProjectId}/search?q=${encodeURIComponent(q)}`, { headers: authHeaders() });
+            if (!resp.ok) throw new Error();
+            const results = await resp.json();
+
+            sessionsDiv.classList.add('hidden');
+            resultsDiv.classList.remove('hidden');
+
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-center text-xs text-neutral-400 py-6">검색 결과가 없습니다.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = `
+                <p class="text-[0.65rem] text-neutral-500 mb-2">${results.length}개 결과</p>
+                ${results.map(r => `
+                    <div class="session-item mb-2" onclick="goToChat(${r.chat_id})">
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <span class="text-[0.6rem] font-semibold ${r.role === 'user' ? 'text-blue-500' : 'text-primary'}">${r.role === 'user' ? '사용자' : 'AI'}</span>
+                            <span class="text-[0.55rem] text-neutral-400">${formatDate(r.created_at)}</span>
+                        </div>
+                        <p class="text-xs text-neutral-700 leading-relaxed">${highlightQuery(escapeHtml(r.content), q)}</p>
+                    </div>
+                `).join('')}
+            `;
+        } catch (e) {
+            resultsDiv.innerHTML = '<p class="text-center text-xs text-red-400 py-4">검색 실패</p>';
+        }
+    }
+
+    function highlightQuery(text, q) {
+        if (!q) return text;
+        const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
+    }
+
+    // === Utils ===
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+    }
+    function escapeAttr(str) {
+        return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+    function formatDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProjects();
+    });
+    </script>
+</body>
+</html>

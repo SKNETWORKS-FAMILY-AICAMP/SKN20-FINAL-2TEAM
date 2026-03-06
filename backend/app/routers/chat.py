@@ -154,6 +154,26 @@ async def get_chat(
     }
 
 
+@router.patch("/{chat_id}")
+async def rename_chat(
+    chat_id: int,
+    data: dict,
+    service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
+    db: Session = Depends(get_db),
+):
+    """채팅 이름 변경"""
+    chat = service.get_chat(chat_id, current_user.id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="채팅을 찾을 수 없습니다.")
+    title = data.get("title", "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="제목을 입력해주세요.")
+    chat.title = title
+    db.commit()
+    return {"id": chat.id, "title": chat.title}
+
+
 @router.delete("/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(
     chat_id: int,

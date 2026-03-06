@@ -68,8 +68,8 @@
                     <div class="progress-fill bg-blue-500" id="analysisProgress" style="width:0%"></div>
                 </div>
             </div>
-            <!-- 프로젝트 폴더 -->
-            <div class="stat-card">
+            <!-- 프로젝트 폴더 (클릭 시 project.html 이동) -->
+            <div class="stat-card cursor-pointer hover:border-primary transition-colors" onclick="window.location.href='project.html'">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
@@ -77,7 +77,10 @@
                         </div>
                         <span class="text-sm font-semibold text-black">프로젝트 폴더</span>
                     </div>
-                    <span class="text-xs text-neutral-400" id="projectCountLabel">0 / 5</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-neutral-400" id="projectCountLabel">0 / 5</span>
+                        <i class="fas fa-chevron-right text-neutral-300 text-xs"></i>
+                    </div>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill bg-amber-500" id="projectProgress" style="width:0%"></div>
@@ -227,11 +230,17 @@
                 document.getElementById('analysisProgress').style.width = isUnlimited ? '0%' : `${Math.min(count / max * 100, 100)}%`;
             }).catch(() => {});
 
-        // 프로젝트 수 (아직 API 없으므로 0으로 표시)
+        // 프로젝트 수 (patent + design 합산)
         const pMax = limits.project;
         const pIsUnlimited = pMax === Infinity;
-        document.getElementById('projectCountLabel').textContent = pIsUnlimited ? '0' : `0 / ${pMax}`;
-        document.getElementById('projectProgress').style.width = '0%';
+        Promise.all([
+            fetch('/api/projects?type=patent', { headers: { 'Authorization': 'Bearer ' + authManager.getToken() } }).then(r => r.json()).catch(() => []),
+            fetch('/api/projects?type=design', { headers: { 'Authorization': 'Bearer ' + authManager.getToken() } }).then(r => r.json()).catch(() => []),
+        ]).then(([patent, design]) => {
+            const pCount = patent.length + design.length;
+            document.getElementById('projectCountLabel').textContent = pIsUnlimited ? `${pCount}` : `${pCount} / ${pMax}`;
+            document.getElementById('projectProgress').style.width = pIsUnlimited ? '0%' : `${Math.min(pCount / pMax * 100, 100)}%`;
+        });
     })();
 
     async function changePassword() {

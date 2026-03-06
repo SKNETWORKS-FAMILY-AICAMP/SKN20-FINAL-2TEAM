@@ -16,6 +16,7 @@ from app.models.design_session import (
     ImageType,
     MessageRole,
 )
+from app.models.project import Project, ProjectSession, ProjectType
 
 __all__ = [
     "User",
@@ -33,4 +34,7 @@ __all__ = [
     "DesignSessionStatus",
     "ImageType",
     "MessageRole",
+    "Project",
+    "ProjectSession",
+    "ProjectType",
 ]
