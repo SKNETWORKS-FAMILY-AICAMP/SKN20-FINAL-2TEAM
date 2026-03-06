@@ -183,6 +183,7 @@ PROCESSED_FILES_PATH = INDEX_DIR / "processed_files.json"
 # ── Generation (G 모듈) ─────────────────────────────
 # RunPod 서버리스 설정
 RUNPOD_API_KEY = os.environ.get("RUNPOD_API_KEY", "")
+RUNPOD_PATENT_ENDPOINT_ID = os.environ.get("RUNPOD_PATENT_ENDPOINT_ID", "")  # 커스텀 handler용
 RUNPOD_TEXT_BASE_URL = os.environ.get("RUNPOD_TEXT_BASE_URL", "")
 RUNPOD_DESIGN_BASE_URL = os.environ.get("RUNPOD_DESIGN_BASE_URL", "")
 
@@ -194,7 +195,7 @@ VLLM_TIMEOUT = 600  # 서버리스 Cold Start + 추론 고려하여 10분
 GPT_FALLBACK_MODEL = "gpt-4o-mini"
 GPT_TIMEOUT = 60
 
-GENERATE_MAX_TOKENS = 4096
+GENERATE_MAX_TOKENS = 2048              # 평가 환경과 동일 (이전: 4096)
 GENERATE_TEMPERATURE = 0
 GENERATE_INPUT_N = 5              # LLM에 전달할 특허 수
 GENERATE_OUTPUT_N = 3             # LLM이 FTO 관점으로 선별할 특허 수

@@ -357,19 +357,27 @@ def _messages_to_prompt(messages: list[dict]) -> str:
 
 
 def _call_vllm(messages: list[dict]) -> str:
-    """vLLM /v1/completions API 호출 (학습 때와 동일한 프롬프트 형식)."""
+    """RunPod 서버리스 또는 로컬 vLLM 호출.
+
+    RUNPOD_PATENT_ENDPOINT_ID가 설정되면 RunPod /runsync API를 직접 호출.
+    그렇지 않으면 기존 OpenAI 호환 /v1/completions API 사용.
+    """
+    prompt = _messages_to_prompt(messages)
+
+    endpoint_id = config.RUNPOD_PATENT_ENDPOINT_ID
+    if endpoint_id and config.RUNPOD_API_KEY:
+        print("[rag] RunPod 커스텀 handler (LoRA) 사용")
+        return _call_runpod_serverless(prompt)
+
+    # 로컬 vLLM 또는 OpenAI 호환 API 폴백
     from openai import OpenAI
 
     api_key = config.RUNPOD_API_KEY if config.RUNPOD_API_KEY else "dummy"
-
     client = OpenAI(
         base_url=config.VLLM_API_URL,
         api_key=api_key,
         timeout=config.VLLM_TIMEOUT,
     )
-
-    prompt = _messages_to_prompt(messages)
-
     resp = client.completions.create(
         model=config.VLLM_MODEL_NAME,
         prompt=prompt,
@@ -380,6 +388,80 @@ def _call_vllm(messages: list[dict]) -> str:
     if not resp.choices:
         raise RuntimeError(f"[rag] vLLM 응답에 choices가 없습니다: {resp}")
     return resp.choices[0].text or ""
+
+
+def _call_runpod_serverless(prompt: str) -> str:
+    """RunPod 서버리스 /runsync API 직접 호출."""
+    import requests
+    import time
+
+    endpoint_id = config.RUNPOD_PATENT_ENDPOINT_ID
+    api_key = config.RUNPOD_API_KEY
+
+    # /runsync: 동기 호출 (최대 ~300초 대기, 초과 시 /run + polling)
+    url = f"https://api.runpod.ai/v2/{endpoint_id}/runsync"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "input": {
+            "prompt": prompt,
+            "max_tokens": config.GENERATE_MAX_TOKENS,
+            "temperature": config.GENERATE_TEMPERATURE,
+            "stop": ["<|im_end|>"],
+        },
+    }
+
+    resp = requests.post(url, json=payload, headers=headers, timeout=config.VLLM_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+
+    status = data.get("status")
+
+    # runsync 성공
+    if status == "COMPLETED":
+        output = data.get("output", {})
+        return output.get("text", "") or _extract_openai_text(output)
+
+    # Cold Start 등으로 runsync 타임아웃 → /status polling
+    if status == "IN_QUEUE" or status == "IN_PROGRESS":
+        run_id = data.get("id")
+        return _poll_runpod_result(endpoint_id, run_id, api_key)
+
+    raise RuntimeError(f"[rag] RunPod 오류: status={status}, data={data}")
+
+
+def _poll_runpod_result(endpoint_id: str, run_id: str, api_key: str) -> str:
+    """RunPod 비동기 작업 결과를 polling으로 대기."""
+    import requests
+    import time
+
+    url = f"https://api.runpod.ai/v2/{endpoint_id}/status/{run_id}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    for _ in range(120):  # 최대 10분 (5초 * 120)
+        time.sleep(5)
+        resp = requests.get(url, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        status = data.get("status")
+
+        if status == "COMPLETED":
+            output = data.get("output", {})
+            return output.get("text", "") or _extract_openai_text(output)
+        if status == "FAILED":
+            raise RuntimeError(f"[rag] RunPod 작업 실패: {data}")
+
+    raise RuntimeError(f"[rag] RunPod 작업 타임아웃: run_id={run_id}")
+
+
+def _extract_openai_text(output: dict) -> str:
+    """OpenAI 호환 형식의 output에서 텍스트 추출."""
+    choices = output.get("choices", [])
+    if choices:
+        return choices[0].get("text", "")
+    return str(output)
 
 
 # GPT 폴백 (보안 정책: 비활성화 — 외부 API로 데이터 유출 방지)
@@ -413,11 +495,11 @@ def _has_excessive_repetition(text: str) -> bool:
     """
     if not text or len(text) < 100:
         return False
-    # 테이블 구분선 제거 (하이픈+파이프만으로 이루어진 행)
+    # 테이블 행 전체 제외 (구분선 + 데이터 행 — 테이블 내 "미대응" 반복은 정상)
     lines = text.split("\n")
     filtered = "\n".join(
         line for line in lines
-        if not re.match(r"^\s*\|[\s\-:|]+\|\s*$", line)
+        if not line.strip().startswith("|")
     )
     for length in (5, 6, 7):
         counts: dict[str, int] = {}
@@ -573,7 +655,7 @@ FTO_SYSTEM_PROMPT = f"""당신은 화장품 특허 침해(FTO: Freedom To Operat
 """
 
 
-def _truncate_claims(text: str, max_chars: int = 3000) -> str:
+def _truncate_claims(text: str, max_chars: int = 2500) -> str:
     """청구항 텍스트를 max_chars 이내로 잘라서 토큰 초과 방지."""
     if not text or len(text) <= max_chars:
         return text
