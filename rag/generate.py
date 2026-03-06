@@ -336,9 +336,10 @@ def build_prompt(search_result: dict, user_query: str) -> list[dict]:
 
 def call_llm(messages: list[dict]) -> str:
     """LLM 호출. vLLM 전용 (보안 정책: 외부 API 폴백 비활성화)."""
-    if not config.VLLM_API_URL:
+    has_runpod = config.RUNPOD_PATENT_ENDPOINT_ID and config.RUNPOD_API_KEY
+    if not config.VLLM_API_URL and not has_runpod:
         raise RuntimeError(
-            "[rag] VLLM_API_URL 미설정. .env 파일을 확인하세요."
+            "[rag] VLLM_API_URL 또는 RUNPOD_PATENT_ENDPOINT_ID 미설정. .env 파일을 확인하세요."
         )
     return _call_vllm(messages)
 
