@@ -14,12 +14,13 @@ import tempfile
 import traceback
 import threading
 import json
+import asyncio
 import requests
 from loguru import logger
 from typing import Optional
 
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models.design_session import (
@@ -277,7 +278,7 @@ async def _image_via_langgraph(
         }
 
         # 실행 — interrupt에서 멈춤 (유사 디자인 선택 대기)
-        result = graph.invoke(initial_state, config)
+        result = await asyncio.to_thread(graph.invoke, initial_state, config)
 
         # comparison_results에서 프론트엔드 포맷으로 변환
         similar_designs = []
@@ -407,11 +408,19 @@ async def select_design(
             "final_report": db_session.final_report or "리포트가 저장되지 않았습니다.",
         }
 
-    # waiting_selection / analyzing / error → 서버 재시작으로 LangGraph 상태 소실
+    if db_session.status == DesignSessionStatus.waiting_selection:
+        # 서버 재시작으로 LangGraph 상태 소실 → DB 데이터로 직접 비교
+        if _ensure_design_graph_loaded() and _detailed_compare_fn and _generate_report_fn:
+            return await _recompare_via_nodes(session, selected_index, thread_id, db, db_session)
+        return {
+            "success": False,
+            "error": "디자인 분석 모듈을 로딩 중입니다. 잠시 후 다시 시도해주세요.",
+        }
+
+    # analyzing / error
     return {
         "success": False,
-        "error": "세션이 만료되었습니다. 서버 재시작으로 LangGraph 상태가 초기화되었습니다. "
-                 "이미지를 다시 업로드해주세요.",
+        "error": "세션이 만료되었습니다. 이미지를 다시 업로드해주세요.",
         "session_expired": True,
     }
 
@@ -437,7 +446,7 @@ async def _select_via_langgraph(
         except TypeError:
             cmd = _design_command_cls(resume=str(selected_index))
 
-        result = graph.invoke(cmd, config)
+        result = await asyncio.to_thread(graph.invoke, cmd, config)
 
         final_report = result.get("final_report", "리포트 생성에 실패했습니다.")
         print(f"[design] final_report 길이: {len(final_report)}자")
@@ -446,20 +455,6 @@ async def _select_via_langgraph(
         db_session = db.query(DesignSession).filter(
             DesignSession.thread_id == thread_id
         ).first()
-
-        if db_session:
-            db_session.status = DesignSessionStatus.completed
-            db_session.selected_index = selected_index
-            db_session.final_report = final_report
-
-            # 최종 리포트를 대화 히스토리에 추가
-            assistant_msg = DesignSessionMessage(
-                session_id=db_session.id,
-                role=MessageRole.assistant,
-                content=final_report,
-            )
-            db.add(assistant_msg)
-            db.commit()
 
         # 선택된 디자인 이미지 정보
         comparison_results = session.get("comparison_results", [])
@@ -477,13 +472,36 @@ async def _select_via_langgraph(
             if img_bytes:
                 selected_image_base64 = _image_to_base64(img_bytes)
 
-        return {
-            "success": True,
+        # 개별 분석 결과 객체
+        individual_result = {
             "final_report": final_report,
             "user_image_s3_url": session.get("s3_url", ""),
             "user_image_base64": session.get("user_image_base64", ""),
             "selected_design": {**selected_info, "image_base64": selected_image_base64} if selected else None,
         }
+
+        if db_session:
+            db_session.status = DesignSessionStatus.completed
+            db_session.selected_index = selected_index
+            db_session.final_report = final_report
+
+            # individual_reports_json에 누적 저장
+            existing = db_session.individual_reports_json or {}
+            existing[str(selected_index)] = individual_result
+            db_session.individual_reports_json = existing
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(db_session, "individual_reports_json")
+
+            # 최종 리포트를 대화 히스토리에 추가
+            assistant_msg = DesignSessionMessage(
+                session_id=db_session.id,
+                role=MessageRole.assistant,
+                content=final_report,
+            )
+            db.add(assistant_msg)
+            db.commit()
+
+        return {"success": True, **individual_result}
     except Exception as e:
         traceback.print_exc()
         return {"success": False, "error": str(e)}
@@ -509,6 +527,10 @@ async def _recompare_via_nodes(
             if isinstance(stored, str):
                 stored = json.loads(stored)
             comparison_results = stored or []
+            # DB 저장 형식(distance) → 노드 함수 기대 형식(hybrid_score) 매핑
+            for cr in comparison_results:
+                if "hybrid_score" not in cr and "distance" in cr:
+                    cr["hybrid_score"] = cr["distance"]
 
         # DB에서 원본 이미지 복원 (인메모리에 없을 때)
         if not b64_image and db_session.images:
@@ -559,17 +581,6 @@ async def _recompare_via_nodes(
 
         final_report = state.get("final_report", "리포트 생성 실패")
 
-        # DB 업데이트
-        db_session.selected_index = selected_index
-        db_session.final_report = final_report
-        assistant_msg = DesignSessionMessage(
-            session_id=db_session.id,
-            role=MessageRole.assistant,
-            content=final_report,
-        )
-        db.add(assistant_msg)
-        db.commit()
-
         # 선택 디자인 이미지
         selected_info = {
             "index": selected.get("index"),
@@ -582,13 +593,33 @@ async def _recompare_via_nodes(
         if img_bytes:
             selected_image_base64 = _image_to_base64(img_bytes)
 
-        return {
-            "success": True,
+        individual_result = {
             "final_report": final_report,
-            "user_image_base64": user_display_b64,  # 원본 bytes 기반 base64 (표시/PDF용)
+            "user_image_base64": user_display_b64,
             "user_image_s3_url": (mem_session or {}).get("s3_url", ""),
             "selected_design": {**selected_info, "image_base64": selected_image_base64},
         }
+
+        # DB 업데이트
+        db_session.selected_index = selected_index
+        db_session.final_report = final_report
+
+        # individual_reports_json에 누적 저장
+        existing = db_session.individual_reports_json or {}
+        existing[str(selected_index)] = individual_result
+        db_session.individual_reports_json = existing
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_session, "individual_reports_json")
+
+        assistant_msg = DesignSessionMessage(
+            session_id=db_session.id,
+            role=MessageRole.assistant,
+            content=final_report,
+        )
+        db.add(assistant_msg)
+        db.commit()
+
+        return {"success": True, **individual_result}
     except Exception as e:
         traceback.print_exc()
         return {"success": False, "error": str(e)}
@@ -698,7 +729,7 @@ async def _text_via_langgraph(
             "messages": messages,
         }
 
-        result = graph.invoke(initial_state, config)
+        result = await asyncio.to_thread(graph.invoke, initial_state, config)
 
         answer = result.get("general_answer", "")
 
@@ -792,6 +823,8 @@ async def get_session_history(
             "similar_designs": comparison_results,  # base64 포함된 similar_designs 포맷
             "selected_index": db_session.selected_index,
             "final_report": db_session.final_report,
+            "full_fto_reports": db_session.full_fto_reports_json,
+            "individual_reports": db_session.individual_reports_json,
             "created_at": db_session.created_at.isoformat() + "+00:00" if db_session.created_at else None,
             "updated_at": db_session.updated_at.isoformat() + "+00:00" if db_session.updated_at else None,
         },
@@ -806,12 +839,22 @@ async def get_session_history(
 
 @router.get("/design/sessions")
 async def list_design_sessions(
-    limit: int = 20,
+    limit: int = 30,
     db: Session = Depends(get_db),
 ):
-    """디자인 분석 세션 목록 조회 (사이드바용)."""
+    """디자인 분석 세션 목록 조회 (사이드바용) — 경량 쿼리."""
+    from sqlalchemy.orm import load_only
     sessions = (
         db.query(DesignSession)
+        .options(
+            load_only(
+                DesignSession.id, DesignSession.thread_id, DesignSession.status,
+                DesignSession.input_analysis, DesignSession.created_at,
+            ),
+            joinedload(DesignSession.images).load_only(
+                DesignSessionImage.image_type, DesignSessionImage.s3_url,
+            ),
+        )
         .filter(~DesignSession.thread_id.startswith("text-"))
         .order_by(DesignSession.created_at.desc())
         .limit(limit)
@@ -865,6 +908,23 @@ async def rename_design_session(
     db_session.input_analysis = preview
     db.commit()
     return {"success": True, "preview": preview}
+
+
+@router.put("/design/session/{thread_id}/full-fto")
+async def save_full_fto_reports(
+    thread_id: str,
+    data: dict,
+    db: Session = Depends(get_db),
+):
+    """전체 FTO 리포트 결과를 DB에 저장."""
+    db_session = db.query(DesignSession).filter(
+        DesignSession.thread_id == thread_id
+    ).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
+    db_session.full_fto_reports_json = data.get("reports", [])
+    db.commit()
+    return {"success": True}
 
 
 @router.delete("/design/session/{thread_id}")

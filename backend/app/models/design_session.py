@@ -43,6 +43,8 @@ class DesignSession(Base):
     comparison_results_json = Column(JSON)
     selected_index = Column(Integer)
     final_report = Column(Text)
+    full_fto_reports_json = Column(JSON)
+    individual_reports_json = Column(JSON)  # {index: {result...}} 개별 분석 결과 누적
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

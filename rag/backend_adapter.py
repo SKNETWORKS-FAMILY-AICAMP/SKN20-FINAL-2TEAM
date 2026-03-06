@@ -135,10 +135,11 @@ def rewrite_query(
     """대화 히스토리를 참고하여 후속 질문을 독립적인 제품 설명으로 재작성.
 
     sLLM(Qwen2.5-14B)에게 간단한 재작성만 요청한다.
+    RunPod 서버리스 엔드포인트가 설정되면 /runsync API로 직접 호출하여
+    서버리스 워커를 자동으로 깨운다 (generate.py와 동일 방식).
     실패 시 원본 메시지를 그대로 반환.
     """
     from . import config
-    from openai import OpenAI
 
     # 대화 맥락 구성
     conv_parts = []
@@ -147,7 +148,7 @@ def rewrite_query(
         conv_parts.append(f"{role}: {msg['content'][:500]}")
     conv_text = "\n".join(conv_parts)
 
-    prompt = (
+    prompt_text = (
         "당신은 특허 검색을 위한 질문 재작성 도우미입니다.\n"
         "이전 대화를 참고하여 사용자의 최신 질문을 독립적인 제품/기술 설명 한 문장으로 재작성하세요.\n\n"
         "핵심 규칙:\n"
@@ -175,33 +176,150 @@ def rewrite_query(
         "이전 대화: 사용자가 '리놀레산 60중량%, 올레산, 팔미톨레산을 포함하는 탈모 치료용 화장품'에 대해 질문함\n"
         "현재 질문: 리놀레산을 10중량%로 사용하면 판매해도 될까?\n"
         "재작성: 리놀레산 10중량%, 올레산, 팔미톨레산을 포함하는 탈모 치료용 화장품\n\n"
+        "[예시 5: 제형/형태 변경]\n"
+        "이전 대화: 사용자가 'A, B, C를 포함하는 수중유형 에멀젼 형태의 미백 화장품'에 대해 질문함\n"
+        "현재 질문: 유중수형으로 만들면 침해가 안될까?\n"
+        "재작성: A, B, C를 포함하는 유중수형 에멀젼 형태의 미백 화장품\n\n"
         f"[이전 대화]\n{conv_text}\n\n"
         f"[현재 질문]\n{latest_message}\n\n"
         "[재작성된 제품 설명]\n"
     )
 
-    try:
+    import time as _rw_time
+
+    # RunPod 서버리스 엔드포인트가 설정된 경우: /runsync API 직접 호출 (자동 웨이크업)
+    endpoint_id = config.RUNPOD_PATENT_ENDPOINT_ID
+    has_runpod = endpoint_id and config.RUNPOD_API_KEY
+
+    if has_runpod:
+        import requests
+
+        # Qwen chat template 형식으로 프롬프트 변환
+        raw_prompt = (
+            f"<|im_start|>user\n{prompt_text}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
+
+        url = f"https://api.runpod.ai/v2/{endpoint_id}/runsync"
+        headers = {
+            "Authorization": f"Bearer {config.RUNPOD_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "input": {
+                "prompt": raw_prompt,
+                "max_tokens": 512,
+                "temperature": 0.1,
+                "stop": ["<|im_end|>"],
+            },
+        }
+
+        try:
+            if verbose:
+                print("[Query Rewrite] RunPod 서버리스 /runsync 호출")
+
+            resp = requests.post(url, json=payload, headers=headers, timeout=config.VLLM_TIMEOUT)
+            resp.raise_for_status()
+            data = resp.json()
+            status = data.get("status")
+
+            if status == "COMPLETED":
+                output = data.get("output", {})
+                rewritten = (
+                    output.get("text", "")
+                    or _extract_runpod_text(output)
+                ).strip()
+                if verbose:
+                    print(f"[Query Rewrite] 원본: {latest_message[:80]}")
+                    print(f"[Query Rewrite] 재작성: {rewritten[:200]}")
+                return rewritten if rewritten else latest_message
+
+            if status in ("IN_QUEUE", "IN_PROGRESS"):
+                run_id = data.get("id")
+                if verbose:
+                    print(f"[Query Rewrite] Cold start 대기 중... (run_id={run_id})")
+                rewritten = _poll_rewrite_result(
+                    endpoint_id, run_id, config.RUNPOD_API_KEY, verbose=verbose
+                ).strip()
+                if verbose:
+                    print(f"[Query Rewrite] 원본: {latest_message[:80]}")
+                    print(f"[Query Rewrite] 재작성: {rewritten[:200]}")
+                return rewritten if rewritten else latest_message
+
+            if verbose:
+                print(f"[Query Rewrite] RunPod 오류: status={status}")
+
+        except Exception as e:
+            if verbose:
+                print(f"[Query Rewrite] RunPod 호출 실패: {e}")
+
+    else:
+        # 폴백: OpenAI 호환 API (로컬 vLLM 등)
+        from openai import OpenAI
+
         api_key = config.RUNPOD_API_KEY if config.RUNPOD_API_KEY else "dummy"
         client = OpenAI(
             base_url=config.VLLM_API_URL,
             api_key=api_key,
-            timeout=60,
+            timeout=30,
         )
-        resp = client.chat.completions.create(
-            model=config.VLLM_MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=256,
-            temperature=0.1,
-        )
-        rewritten = resp.choices[0].message.content.strip()
-        if verbose:
-            print(f"[Query Rewrite] 원본: {latest_message[:80]}")
-            print(f"[Query Rewrite] 재작성: {rewritten[:200]}")
-        return rewritten if rewritten else latest_message
-    except Exception as e:
-        if verbose:
-            print(f"[Query Rewrite] 실패, 원본 사용: {e}")
-        return latest_message
+
+        try:
+            resp = client.chat.completions.create(
+                model=config.VLLM_MODEL_NAME,
+                messages=[{"role": "user", "content": prompt_text}],
+                max_tokens=512,
+                temperature=0.1,
+            )
+            rewritten = resp.choices[0].message.content.strip()
+            if verbose:
+                print(f"[Query Rewrite] 원본: {latest_message[:80]}")
+                print(f"[Query Rewrite] 재작성: {rewritten[:200]}")
+            return rewritten if rewritten else latest_message
+        except Exception as e:
+            if verbose:
+                print(f"[Query Rewrite] OpenAI 호환 API 호출 실패: {e}")
+
+    if verbose:
+        print("[Query Rewrite] 실패, 원본 사용")
+    return latest_message
+
+
+def _extract_runpod_text(output: dict) -> str:
+    """RunPod output에서 텍스트 추출 (OpenAI 호환 형식 포함)."""
+    choices = output.get("choices", [])
+    if choices:
+        return choices[0].get("text", "")
+    return str(output)
+
+
+def _poll_rewrite_result(
+    endpoint_id: str, run_id: str, api_key: str, verbose: bool = False
+) -> str:
+    """RunPod 비동기 작업 결과를 polling으로 대기 (rewrite_query 전용)."""
+    import requests
+    import time
+
+    url = f"https://api.runpod.ai/v2/{endpoint_id}/status/{run_id}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    for i in range(60):  # 최대 5분 (5초 * 60)
+        time.sleep(5)
+        resp = requests.get(url, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        status = data.get("status")
+
+        if verbose and i % 6 == 0:
+            print(f"[Query Rewrite] polling... status={status} ({(i+1)*5}초 경과)")
+
+        if status == "COMPLETED":
+            output = data.get("output", {})
+            return output.get("text", "") or _extract_runpod_text(output)
+        if status == "FAILED":
+            raise RuntimeError(f"[Query Rewrite] RunPod 작업 실패: {data}")
+
+    raise RuntimeError(f"[Query Rewrite] RunPod 작업 타임아웃: run_id={run_id}")
 
 
 def search_only(

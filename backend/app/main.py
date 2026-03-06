@@ -16,30 +16,23 @@ from app.logger import logger
 init_db()
 
 
-def _preload_rag():
-    """서버 시작 시 RAG 모델을 백그라운드로 미리 로딩."""
-    try:
-        from rag.search.retriever import _get_model, _get_collection, _load_sparse_index
-        _get_model()
-        _get_collection()
-        _load_sparse_index()
-        logger.info("RAG 모델 사전 로딩 완료")
-    except Exception as e:
-        logger.warning(f"RAG 사전 로딩 실패 (첫 요청 시 재시도): {e}")
+def _preload_module(module_name):
+    """페이지 진입 시 호출 — 해당 모듈만 백그라운드 로딩."""
+    def _load():
+        try:
+            if module_name == 'rag':
+                from rag.search.retriever import _get_model, _get_collection, _load_sparse_index
+                _get_model(); _get_collection(); _load_sparse_index()
+                logger.info("RAG 모델 사전 로딩 완료")
+            elif module_name == 'design':
+                from app.routers.design import _ensure_design_graph_loaded
+                _ensure_design_graph_loaded()
+                logger.info("디자인 그래프 사전 로딩 완료")
+        except Exception as e:
+            logger.warning(f"{module_name} 사전 로딩 실패 (첫 요청 시 재시도): {e}")
+    threading.Thread(target=_load, daemon=True).start()
 
-
-def _preload_design():
-    """서버 시작 시 디자인 그래프를 백그라운드로 미리 로딩."""
-    try:
-        from app.routers.design import _ensure_design_graph_loaded
-        _ensure_design_graph_loaded()
-        logger.info("디자인 그래프 사전 로딩 완료")
-    except Exception as e:
-        logger.warning(f"디자인 사전 로딩 실패 (첫 요청 시 재시도): {e}")
-
-
-threading.Thread(target=_preload_rag, daemon=True).start()
-threading.Thread(target=_preload_design, daemon=True).start()
+_preload_started = set()  # 중복 방지
 
 app = FastAPI(
     title="BINI API",
@@ -82,6 +75,17 @@ app.include_router(project.router, prefix="/api/projects", tags=["프로젝트"]
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.post("/api/preload/{module}")
+async def preload_module(module: str):
+    """페이지 진입 시 해당 모듈을 백그라운드 로딩 (rag / design)."""
+    if module not in ('rag', 'design'):
+        return {"status": "unknown_module"}
+    if module not in _preload_started:
+        _preload_started.add(module)
+        _preload_module(module)
+    return {"status": "loading" if module in _preload_started else "already_loaded"}
 
 
 @app.get("/favicon.ico")

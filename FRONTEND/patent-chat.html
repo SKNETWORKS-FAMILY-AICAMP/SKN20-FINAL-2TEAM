@@ -370,14 +370,43 @@
         .pdf-export-btn {
             display: flex; align-items: center; justify-content: center; gap: 0.5rem;
             width: 100%; padding: 0.75rem;
-            background: linear-gradient(135deg, #1E40AF, #3B82F6);
+            background: linear-gradient(135deg, #525252, #333);
             color: white; border: none; border-radius: 0.75rem;
             font-size: 0.8rem; font-weight: 700;
             cursor: pointer; transition: all 0.2s;
             margin-top: 1rem;
         }
-        .pdf-export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,64,175,0.3); }
+        .pdf-export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .pdf-export-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+        /* 컨텍스트 배너 */
+        .context-banner {
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .context-banner button {
+            margin-left: auto;
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 9999px;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+        .context-banner button:hover {
+            background: var(--primary);
+            color: white;
+        }
 
         /* ===== 분석 프로그레스 ===== */
         .analysis-progress {
@@ -711,6 +740,13 @@
                 <!-- 입력 영역 -->
                 <div class="border-t border-neutral-200 bg-white p-6 shadow-sm">
                     <div class="max-w-4xl mx-auto">
+                        <!-- 컨텍스트 배너 -->
+                        <div class="context-banner" id="contextBanner" style="display: none;">
+                            <i class="fas fa-link"></i>
+                            분석 결과를 기억하고 있어요. 추가 질문을 해보세요!
+                            <button onclick="clearContext()">초기화</button>
+                        </div>
+
                         <!-- 입력 행 -->
                         <div class="flex items-center gap-3">
                             <textarea
@@ -1067,6 +1103,7 @@
             const activeCard = document.querySelector(`.session-card[data-chat-id="${threadId}"]`);
             if (activeCard) activeCard.dataset.analysisId = currentAnalysisId;
             setStatus('완료');
+            showContextBanner();
 
         } catch (error) {
             if (error.name === 'AbortError') return;
@@ -1156,12 +1193,15 @@
             <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
             <div class="msg-content" style="max-width:90%;">
                 <div class="patent-list-card">
-                    <div class="patent-list-header">
+                    <div class="patent-list-header" style="display:flex;justify-content:space-between;align-items:center;">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-search text-primary text-xs"></i>
                             <span class="text-sm font-bold text-black">유사 특허 TOP 10</span>
-                            <span class="text-xs text-neutral-500">${results.length}건 검색됨</span>
                         </div>
+                        <button id="analyzeAllBtn" onclick="analyzeAllRemaining()" disabled
+                            style="display:flex;align-items:center;gap:0.3rem;padding:0.3rem 0.75rem;background:#d4d4d4;color:white;border:none;border-radius:0.5rem;cursor:not-allowed;font-size:0.7rem;font-weight:600;transition:all 0.15s;">
+                            <i class="fas fa-layer-group"></i> 전체 분석
+                        </button>
                     </div>
                     ${rows}
                 </div>
@@ -1190,7 +1230,7 @@
                 <div class="analysis-progress">
                     <div class="text-xs font-bold text-neutral-700 mb-2 flex items-center gap-1.5">
                         <i class="fas fa-cog fa-spin text-primary"></i>
-                        sLLM 침해 분석 진행 중
+                        AI가 침해 분석 진행 중
                     </div>
                     ${steps}
                 </div>
@@ -1286,10 +1326,108 @@
         btn.innerHTML = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
     }
 
+    function _updateAnalyzeAllBtnState() {
+        const allBtn = document.getElementById('analyzeAllBtn');
+        if (!allBtn) return;
+        const totalCount = document.querySelectorAll('.patent-analyze-btn').length;
+        const analyzedCount = patentAnalyses.length;
+        if (analyzedCount >= totalCount && totalCount > 0) {
+            // 전부 분석 완료 → "전체 결과보기" 모드
+            allBtn.disabled = false;
+            allBtn.innerHTML = `<i class="fas fa-layer-group"></i> 전체 분석 결과 보기 (${analyzedCount}건)`;
+            allBtn.style.background = '#525252';
+            allBtn.style.cursor = 'pointer';
+            allBtn.onclick = () => openResultPanelAll();
+        } else if (analyzedCount >= 3) {
+            // TOP3 완료 → "전체 분석" 활성화
+            allBtn.disabled = false;
+            allBtn.innerHTML = '<i class="fas fa-layer-group"></i> 전체 분석';
+            allBtn.style.background = '#525252';
+            allBtn.style.cursor = 'pointer';
+            allBtn.onclick = () => analyzeAllRemaining();
+        }
+    }
+
     function enableRemainingButtons() {
         document.querySelectorAll('.patent-analyze-btn[disabled]').forEach(btn => {
             btn.disabled = false;
         });
+        // "전체 분석" 버튼 활성화
+        const allBtn = document.getElementById('analyzeAllBtn');
+        if (allBtn) {
+            allBtn.disabled = false;
+            allBtn.style.background = '#525252';
+            allBtn.style.cursor = 'pointer';
+            allBtn.onmouseover = () => allBtn.style.opacity = '0.85';
+            allBtn.onmouseout = () => allBtn.style.opacity = '1';
+        }
+    }
+
+    async function analyzeAllRemaining() {
+        const allBtn = document.getElementById('analyzeAllBtn');
+        if (!allBtn || allBtn.disabled) return;
+
+        // 이미 전부 분석된 경우 → 결과 패널만 열기
+        const totalCount = document.querySelectorAll('.patent-analyze-btn').length;
+        if (patentAnalyses.length >= totalCount) {
+            openResultPanelAll();
+            return;
+        }
+
+        allBtn.disabled = true;
+        allBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 중...';
+        allBtn.style.background = '#525252';
+        allBtn.style.cursor = 'not-allowed';
+
+        const buttons = document.querySelectorAll('.patent-analyze-btn');
+        let analyzedNew = 0;
+
+        for (let i = 0; i < buttons.length; i++) {
+            // 이미 분석된 항목은 건너뛰기
+            if (patentAnalyses.find(a => a.patent_index === i)) continue;
+
+            const btn = buttons[i];
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석중...';
+            const btnMsgs = ['분석중...', '판단중...', '정리중...'];
+            let btnMsgIdx = 0;
+            const btnMsgTimer = setInterval(() => {
+                btnMsgIdx = (btnMsgIdx + 1) % btnMsgs.length;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> ${btnMsgs[btnMsgIdx]}`;
+            }, 8000);
+
+            try {
+                let result;
+                if (searchToken) {
+                    result = await callAnalyzePatentAPI(searchToken, i);
+                } else {
+                    result = await callAnalyzeFromHistoryAPI(currentAnalysisId, i);
+                }
+                clearInterval(btnMsgTimer);
+                result.patent_index = i;
+                patentAnalyses.push(result);
+                if (currentAnalysisId) analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
+                updatePatentButton(i, result);
+                analyzedNew++;
+                allBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${patentAnalyses.length}/${totalCount} 완료`;
+            } catch (e) {
+                clearInterval(btnMsgTimer);
+                console.error(`특허 ${i+1} 분석 실패:`, e);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-microscope" style="font-size:7px;"></i> 재시도';
+            }
+        }
+
+        // 완료 → 버튼 차콜색으로 변경
+        allBtn.disabled = false;
+        allBtn.innerHTML = `<i class="fas fa-layer-group"></i> 전체 결과보기 (${patentAnalyses.length}건)`;
+        allBtn.style.background = '#525252';
+        allBtn.style.cursor = 'pointer';
+        allBtn.onclick = () => openResultPanelAll();
+
+        if (analyzedNew > 0) {
+            addOrUpdateAdditionalBubble();
+        }
     }
 
     async function callAnalyzeFromHistoryAPI(analysisId, index) {
@@ -1470,7 +1608,8 @@
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
         const allData = analysisId ? (analysesHistory.get(analysisId) || patentAnalyses) : patentAnalyses;
-        const data = allData.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) < 3);
+        const data = allData.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) < 3)
+            .sort((a, b) => (a.patent_index || 0) - (b.patent_index || 0));
         lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
         document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> TOP3 구성 대비 결과`;
@@ -1483,7 +1622,7 @@
     function openResultPanelAll() {
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
-        const data = patentAnalyses;
+        const data = [...patentAnalyses].sort((a, b) => (a.patent_index || 0) - (b.patent_index || 0));
         lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
         document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> 전체 구성 대비 결과 (${data.length}건)`;
@@ -1527,17 +1666,19 @@
         if (selectAll) selectAll.checked = (checked === total && total > 0);
     }
 
+    function downloadSinglePatentPDF(panelIndex) {
+        let analyses = lastPanelAnalyses || [];
+        if (analyses.length === 0) analyses = patentAnalyses || [];
+        const a = analyses[panelIndex];
+        if (!a) return;
+        // 임시로 해당 항목만 선택된 것처럼 exportResultPDF 로직 재사용
+        _exportPatentPDFForItems([a]);
+    }
+
     function exportResultPDF() {
         const btn = document.querySelector('.pdf-export-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF 생성 중...';
-
-        const userMsgs = document.querySelectorAll('.msg.user .msg-bubble');
-        const userQuery = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].textContent.trim() : '(질문 없음)';
-
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        const fileDate = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
 
         let analyses = lastPanelAnalyses || [];
         if (analyses.length === 0) analyses = patentAnalyses || [];
@@ -1559,24 +1700,28 @@
             return;
         }
 
-        // 새 창에서 깨끗한 HTML로 PDF 생성 (Tailwind CSS 간섭 방지)
+        _exportPatentPDFForItems(analyses);
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
+    }
+
+    function _exportPatentPDFForItems(analyses) {
+        const userMsgs = document.querySelectorAll('.msg.user .msg-bubble');
+        const userQuery = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].textContent.trim() : '(질문 없음)';
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
         const printWin = window.open('', '_blank', 'width=800,height=600');
         if (!printWin) {
             alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
             return;
         }
 
         const patentCards = analyses.map((a, i) => {
             const meta = a.metadata || {};
             const title = meta.invention_title || a.patent_id || '특허';
-            const applyNum = meta.apply_num || a.patent_id || '';
-            const regitNum = meta.regit_num || '';
-            const registerStatus = meta.register_status || '';
-            const applicant = meta.applicant || '';
-            const applicationDate = meta.application_date || '';
-            const registerDate = meta.register_date || '';
             const label = a.label || '';
             const labelMap = {
                 '침해':       { bg: '#FEE2E2', color: '#DC2626', border: '#FECACA', text: '침해 가능성 높음' },
@@ -1600,11 +1745,10 @@
                 </tr>`;
             }).join('');
 
-            // 특허 정보 행들
             const infoRows = formatPatentInfo(meta);
 
             return `
-                <div style="page-break-inside:avoid; border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
+                <div style="border:1px solid #E5E7EB; border-radius:6px; padding:16px; margin-bottom:16px; background:#fff;">
                     <table style="border:none; margin-bottom:6px;"><tr>
                         <td style="border:none; padding:0 10px 0 0; vertical-align:middle; width:28px;">
                             <div style="width:24px; height:24px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; text-align:center; line-height:24px; font-size:11px; font-weight:800; color:#EA580C;">${i + 1}</div>
@@ -1649,7 +1793,7 @@
                 </div>`;
         }).join('');
 
-        const summaryCards = analyses.map((a, i) => {
+        const summaryCardsArr = analyses.map((a, i) => {
             const l = a.label || '';
             const c = a.comparisons || [];
             const mc = c.filter(x => x.correspondence === '대응').length;
@@ -1660,7 +1804,10 @@
                 <div style="font-size:12px; font-weight:700; color:${s.color}; margin:4px 0;">${l || '-'}</div>
                 <div style="font-size:10px; color:#6B7280;">구성 요소 대응 ${mc}/${c.length}</div>
             </td>`;
-        }).join('');
+        });
+        const summaryCards = analyses.length > 6
+            ? `<tr>${summaryCardsArr.slice(0, 5).join('')}</tr><tr>${summaryCardsArr.slice(5).join('')}</tr>`
+            : `<tr>${summaryCardsArr.join('')}</tr>`;
 
         const fullHtml = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>FTO 분석 결과</title>
@@ -1670,17 +1817,17 @@
     @media print {
         body { padding:15px; }
         .no-print { display:none !important; }
-        div { page-break-inside:avoid; }
+        * { page-break-inside:auto !important; break-inside:auto !important; }
     }
 </style>
 </head><body>
     <div style="text-align:center; margin-bottom:12px;" class="no-print">
-        <button onclick="window.print()" style="padding:10px 30px; background:#FF6B35; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer;">
+        <button onclick="window.print()" style="padding:10px 30px; background:#525252; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer;">
             PDF로 저장 (인쇄 대화상자)
         </button>
         <p style="font-size:11px; color:#999; margin-top:6px;">인쇄 대화상자에서 "PDF로 저장"을 선택하세요</p>
     </div>
-    <div style="border-bottom:3px solid #FF6B35; padding-bottom:14px; margin-bottom:20px;">
+    <div style="border-bottom:3px solid #525252; padding-bottom:14px; margin-bottom:20px;">
         <table style="width:100%; border:none;"><tr>
             <td style="border:none; padding:0; vertical-align:top;">
                 <div style="font-size:22px; font-weight:800; color:#1a1a1a; margin-bottom:2px;">FTOGuard</div>
@@ -1696,7 +1843,7 @@
             <div style="font-size:12px; color:#1a1a1a; font-weight:600; line-height:1.5;">${escapeHtml(userQuery)}</div>
         </div>
     </div>
-    <table style="width:100%; border:none; margin-bottom:20px; border-spacing:6px;"><tr>${summaryCards}</tr></table>
+    <table style="width:100%; border:none; margin-bottom:20px; border-spacing:6px;">${summaryCards}</table>
     ${patentCards}
     <div style="margin-top:20px; padding:14px; background:#F9FAFB; border:1px solid #D1D5DB; border-radius:4px;">
         <div style="font-size:11px; font-weight:700; color:#374151; margin-bottom:4px;">법적 고지</div>
@@ -1707,9 +1854,6 @@
 
         printWin.document.write(fullHtml);
         printWin.document.close();
-
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF로 저장하기';
     }
 
     // 특허 정보 포맷 (PDF + 결과 패널 공용)
@@ -1797,6 +1941,13 @@
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-bold text-black truncate">${escapeHtml(title)}</div>
                         </div>
+                        <button onclick="downloadSinglePatentPDF(${i})"
+                            style="display:flex; align-items:center; gap:0.25rem; padding:0.25rem 0.6rem; background:#F3F4F6; color:#525252; border:1px solid #E5E5E5; border-radius:0.375rem; cursor:pointer; font-size:0.65rem; font-weight:600; flex-shrink:0; transition:all 0.15s;"
+                            onmouseover="this.style.background='#525252';this.style.color='white';this.style.borderColor='#525252'"
+                            onmouseout="this.style.background='#F3F4F6';this.style.color='#525252';this.style.borderColor='#E5E5E5'"
+                            title="이 특허만 PDF 저장">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
                     </div>
 
                     <!-- 특허 정보 -->
@@ -1828,7 +1979,7 @@
                         ${a.conclusion_text ? `
                         <div class="mb-3">
                             <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
-                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} color:${ls.color}; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
                         </div>` : ''}
                         ${a.analysis_text ? `
                         <div>
@@ -1845,7 +1996,7 @@
                         ${a.conclusion_text ? `
                         <div>
                             <div class="text-xs font-bold text-neutral-600 mb-1"><i class="fas fa-gavel mr-1 text-primary"></i>결론</div>
-                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
+                            <div class="text-xs leading-relaxed p-3 rounded-lg" style="${ls.bg} color:${ls.color}; white-space:pre-wrap;">${escapeHtml(a.conclusion_text)}</div>
                         </div>` : ''}
                     `}
                 </div>`;
@@ -2067,6 +2218,7 @@
         updateSendButton();
         setStatus('대기');
         closeResultPanel();
+        hideContextBanner();
 
         messagesWrapper.innerHTML = `
             <div id="welcomeMessage" class="text-center py-10">
@@ -2148,6 +2300,23 @@
         document.getElementById('sessionAutoDeleteModal').style.display = 'none';
     }
 
+    // ==================== 컨텍스트 배너 ====================
+
+    function showContextBanner() {
+        document.getElementById('contextBanner').style.display = 'flex';
+    }
+
+    function hideContextBanner() {
+        document.getElementById('contextBanner').style.display = 'none';
+    }
+
+    function clearContext() {
+        currentAnalysisId = null;
+        searchToken = null;
+        hideContextBanner();
+        if (typeof Toast !== 'undefined') Toast.info('컨텍스트가 초기화되었습니다.');
+    }
+
     // ==================== 유틸 ====================
 
     function setStatus(text) {
@@ -2176,7 +2345,12 @@
             if (resp.ok) {
                 const data = await resp.json();
                 if (data.pdf_url) {
-                    window.open(data.pdf_url, '_blank');
+                    const a = document.createElement('a');
+                    a.href = data.pdf_url;
+                    a.download = `특허_${applyNum}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                     return;
                 }
             }
@@ -2390,6 +2564,8 @@
                             patentAnalyses = analyses;
                             analysesHistory.set(aid, analyses);
                             addResultViewButton(analyses, aid);
+                            // 분석 결과가 있으면 "전체 분석" 버튼 활성화
+                            _updateAnalyzeAllBtnState();
                         }
                     }
                 } catch (e) {
@@ -2398,6 +2574,8 @@
             }
 
             setStatus('대화 중');
+            if (patentAnalyses.length > 0) showContextBanner();
+            else hideContextBanner();
         } catch (error) {
             console.error('채팅 히스토리 로드 실패:', error);
         }
@@ -2419,10 +2597,11 @@
     }
 
     // 페이지 로드 시 세션 목록 + 프로젝트 수 불러오기
-    document.addEventListener('DOMContentLoaded', () => {
-        loadChatSessions();
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadChatSessions();
         loadProjectCount();
-        // RAG + sLLM 워밍업 (백그라운드, 실패해도 무시)
+        // 세션 목록 로드 완료 후 RAG 모듈 백그라운드 프리로드
+        fetch('/api/preload/rag', {method:'POST'}).catch(() => {});
         fetch(`${API_BASE}/chat/warmup`, { method: 'POST', headers: authHeaders() }).catch(() => {});
     });
 

@@ -12,6 +12,8 @@ if settings.DATABASE_URL.startswith("sqlite"):
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args=connect_args,
+    pool_size=20,
+    max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=3600,
 )
@@ -41,3 +43,15 @@ def init_db():
         if t.name not in existing_rag_tables
     ]
     Base.metadata.create_all(bind=engine, tables=tables_to_create)
+
+    # 기존 테이블에 새 컬럼이 없으면 추가
+    from sqlalchemy import inspect, text
+    inspector = inspect(engine)
+    if "design_sessions" in inspector.get_table_names():
+        cols = {c["name"] for c in inspector.get_columns("design_sessions")}
+        if "full_fto_reports_json" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE design_sessions ADD COLUMN full_fto_reports_json JSON"))
+        if "individual_reports_json" not in cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE design_sessions ADD COLUMN individual_reports_json JSON"))
