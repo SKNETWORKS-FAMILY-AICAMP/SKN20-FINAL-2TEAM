@@ -30,6 +30,7 @@ class UserInfo(BaseModel):
     id: int
     email: str
     name: str
+    plan: str = "free"
 
     class Config:
         from_attributes = True

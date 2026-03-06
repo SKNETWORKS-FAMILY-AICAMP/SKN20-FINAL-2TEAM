@@ -663,11 +663,11 @@
                 </div>
                 <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a;">저장 한도 초과</h3>
             </div>
-            <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:0.5rem;">
-                무료 플랜은 최대 <strong>30개</strong>까지 분석 기록을 저장할 수 있습니다.
+            <p id="limitModalDesc" style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:0.5rem;">
+                현재 플랜은 최대 <strong id="limitModalCount">30개</strong>까지 분석 기록을 저장할 수 있습니다.
             </p>
             <p style="font-size:0.875rem; color:#525252; line-height:1.6; margin-bottom:1.5rem;">
-                유료 플랜으로 업그레이드하시면 <strong>무제한</strong>으로 저장하실 수 있습니다.
+                상위 플랜으로 업그레이드하시면 더 많은 기록을 저장하실 수 있습니다.
             </p>
             <div style="display:flex; gap:0.75rem;">
                 <button onclick="_onSessionLimitUpgrade()" style="flex:1; padding:0.625rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer;">업그레이드</button>
@@ -756,7 +756,7 @@
     // ==================== API 호출 ====================
 
     function authHeaders() {
-        const token = sessionStorage.getItem('authToken') || '';
+        const token = localStorage.getItem('authToken') || '';
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
@@ -814,8 +814,11 @@
         const text = messageInput.value.trim();
         if (!text || isAnalyzing) return;
 
-        // 30개 제한 체크 (새 대화일 때만)
-        if (!threadId && sessionCount >= 30) {
+        // 플랜별 저장 한도 체크 (새 대화일 때만)
+        const _planLimit = { free: 30, pro: 100, max: Infinity };
+        const _userPlan = (JSON.parse(localStorage.getItem('user') || '{}').plan) || 'free';
+        const _limit = _planLimit[_userPlan] || 30;
+        if (!threadId && sessionCount >= _limit) {
             _showSessionLimitModal();
             return;
         }
@@ -1927,6 +1930,9 @@
     // ==================== 30개 제한 모달 ====================
 
     function _showSessionLimitModal() {
+        const plan = (JSON.parse(localStorage.getItem('user') || '{}').plan) || 'free';
+        const limitMap = { free: 30, pro: 100 };
+        document.getElementById('limitModalCount').textContent = (limitMap[plan] || 30) + '개';
         const modal = document.getElementById('sessionLimitModal');
         modal.style.display = 'flex';
     }

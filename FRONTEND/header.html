@@ -81,10 +81,39 @@
 
     <!-- Right Actions -->
     <div class="flex-1 hidden md:flex justify-end items-center gap-3">
-      <button id="loginBtn"
-        class="text-sm font-medium text-neutral-600 hover:text-black transition-colors px-4 py-2">
-        로그인
-      </button>
+      <!-- 비로그인 상태 -->
+      <div id="authLoggedOut">
+        <button id="loginBtn"
+          class="text-sm font-medium text-neutral-600 hover:text-black transition-colors px-4 py-2">
+          로그인
+        </button>
+      </div>
+      <!-- 로그인 상태: 프로필 드롭다운 -->
+      <div id="authLoggedIn" class="relative group" style="display:none;">
+        <button class="flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-black transition-colors px-3 py-2 rounded-full hover:bg-neutral-100">
+          <div class="w-7 h-7 bg-primary/15 rounded-full flex items-center justify-center">
+            <i class="fas fa-user text-primary text-xs"></i>
+          </div>
+          <span id="profileName" class="max-w-[80px] truncate">사용자</span>
+          <i class="fas fa-chevron-down text-[10px] text-neutral-400"></i>
+        </button>
+        <div class="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-neutral-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div class="px-4 py-3 border-b border-neutral-100">
+            <p id="profileEmail" class="text-xs text-neutral-500 truncate">email@example.com</p>
+            <span id="profilePlanBadge" class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">FREE</span>
+          </div>
+          <div class="p-1.5">
+            <a href="mypage.html" class="flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg transition-colors">
+              <i class="fas fa-user-circle text-neutral-400 w-4 text-center"></i>
+              마이페이지
+            </a>
+            <button onclick="authManager.logout()" class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors">
+              <i class="fas fa-sign-out-alt text-neutral-400 w-4 text-center"></i>
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </div>
       <button onclick="checkAuthAndRedirect('select-analysis-type.html')"
         class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-full transition-all shadow-md hover:shadow-lg">
         분석 시작
@@ -144,10 +173,20 @@
       </div>
       
       <div class="border-t border-neutral-200 my-2"></div>
+      <!-- 모바일: 비로그인 -->
       <button id="loginBtn-mobile"
         class="text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2 text-left">
         로그인
       </button>
+      <!-- 모바일: 로그인 상태 -->
+      <div id="authLoggedInMobile" style="display:none;" class="space-y-2">
+        <a href="mypage.html" class="flex items-center gap-2 text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2">
+          <i class="fas fa-user-circle"></i> 마이페이지
+        </a>
+        <button onclick="authManager.logout()" class="flex items-center gap-2 text-base font-medium text-neutral-700 hover:text-red-500 transition-colors py-2">
+          <i class="fas fa-sign-out-alt"></i> 로그아웃
+        </button>
+      </div>
       <button onclick="checkAuthAndRedirect('select-analysis-type.html')"
         class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-full transition-all shadow-md">
         분석 시작

@@ -45,9 +45,34 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
         user=UserInfo(
             id=user.id,
             email=user.email,
-            name=user.name
+            name=user.name,
+            plan=user.plan or "free"
         )
     )
+
+
+@router.put("/password")
+async def change_password(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user=Depends(AuthService.get_current_user_dependency),
+):
+    """비밀번호 변경 (로그인 상태)"""
+    current_pw = data.get("current_password", "")
+    new_pw = data.get("new_password", "")
+
+    if not current_pw or not new_pw:
+        raise HTTPException(status_code=400, detail="현재 비밀번호와 새 비밀번호를 입력해주세요.")
+    if len(new_pw) < 6:
+        raise HTTPException(status_code=400, detail="새 비밀번호는 6자 이상이어야 합니다.")
+
+    from app.core.security import verify_password, get_password_hash
+    if not verify_password(current_pw, current_user.password):
+        raise HTTPException(status_code=400, detail="현재 비밀번호가 일치하지 않습니다.")
+
+    current_user.password = get_password_hash(new_pw)
+    db.commit()
+    return {"message": "비밀번호가 변경되었습니다."}
 
 
 @router.post("/forgot-password")

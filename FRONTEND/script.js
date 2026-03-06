@@ -8,13 +8,12 @@ const DEV_BYPASS_AUTH = false;
 // ==========================
 class AuthManager {
     constructor() {
-        // localStorage → sessionStorage 마이그레이션 (1회성 정리)
-        if (localStorage.getItem('authToken')) {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+        this.token = localStorage.getItem('authToken');
+        this.user = JSON.parse(localStorage.getItem('user') || 'null');
+        // 만료된 토큰 자동 정리
+        if (this.token && !this.isTokenValid()) {
+            this._clear();
         }
-        this.token = sessionStorage.getItem('authToken');
-        this.user = JSON.parse(sessionStorage.getItem('user') || 'null');
     }
 
     isAuthenticated() {
@@ -34,12 +33,19 @@ class AuthManager {
     login(token, user) {
         this.token = token;
         this.user = user;
-        sessionStorage.setItem('authToken', token);
-        sessionStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    _clear() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        this.token = null;
+        this.user = null;
     }
 
     logout() {
-        sessionStorage.clear();
+        this._clear();
         window.location.href = 'login.html';
     }
 
@@ -146,28 +152,51 @@ function setActiveNav() {
 // Auth UI Update
 // ==========================
 function updateAuthUI() {
-    const loginBtn = document.getElementById("loginBtn");
-    const loginBtnMobile = document.getElementById("loginBtn-mobile");
-    if (!loginBtn && !loginBtnMobile) return;
-
     if (authManager.token && !authManager.isTokenValid()) {
-        sessionStorage.removeItem("authToken");
-        sessionStorage.removeItem("user");
-        authManager.token = null;
-        authManager.user = null;
+        authManager._clear();
     }
 
     const isLoggedIn = authManager.isAuthenticated();
-    [loginBtn, loginBtnMobile].forEach(btn => {
-        if (!btn) return;
-        if (isLoggedIn) {
-            btn.textContent = "로그아웃";
-            btn.onclick = () => authManager.logout();
-        } else {
-            btn.textContent = "로그인";
-            btn.onclick = () => (window.location.href = "login.html");
+    const user = authManager.getUser();
+
+    // 데스크톱
+    const loggedOut = document.getElementById("authLoggedOut");
+    const loggedIn = document.getElementById("authLoggedIn");
+    const loginBtn = document.getElementById("loginBtn");
+
+    if (loggedOut) loggedOut.style.display = isLoggedIn ? "none" : "";
+    if (loggedIn) loggedIn.style.display = isLoggedIn ? "" : "none";
+
+    if (loginBtn && !isLoggedIn) {
+        loginBtn.textContent = "로그인";
+        loginBtn.onclick = () => (window.location.href = "login.html");
+    }
+
+    if (isLoggedIn && user) {
+        const nameEl = document.getElementById("profileName");
+        const emailEl = document.getElementById("profileEmail");
+        const badgeEl = document.getElementById("profilePlanBadge");
+        if (nameEl) nameEl.textContent = user.name || "사용자";
+        if (emailEl) emailEl.textContent = user.email || "";
+        if (badgeEl) {
+            const plan = (user.plan || "free").toUpperCase();
+            badgeEl.textContent = plan;
+            const colors = { FREE: "bg-neutral-100 text-neutral-600", PRO: "bg-blue-100 text-blue-700", MAX: "bg-amber-100 text-amber-700" };
+            badgeEl.className = `inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${colors[plan] || colors.FREE}`;
         }
-    });
+    }
+
+    // 모바일
+    const loginBtnMobile = document.getElementById("loginBtn-mobile");
+    const loggedInMobile = document.getElementById("authLoggedInMobile");
+    if (loginBtnMobile) {
+        loginBtnMobile.style.display = isLoggedIn ? "none" : "";
+        if (!isLoggedIn) {
+            loginBtnMobile.textContent = "로그인";
+            loginBtnMobile.onclick = () => (window.location.href = "login.html");
+        }
+    }
+    if (loggedInMobile) loggedInMobile.style.display = isLoggedIn ? "" : "none";
 }
 
 // ==========================
@@ -222,7 +251,8 @@ function requireAuth() {
         "history.html",
         "select-analysis-type.html",
         "patent-chat.html",
-        "design-chat.html"
+        "design-chat.html",
+        "mypage.html"
     ];
 
     const currentPage = location.pathname.split("/").pop();

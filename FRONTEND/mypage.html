@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마이페이지 - FTOGuard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="toast.css" />
+    <style>
+        :root { --primary: #FF6B35; }
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .ring-primary { --tw-ring-color: var(--primary); }
+
+        .plan-card { border: 2px solid #e5e7eb; border-radius: 1rem; padding: 1.5rem; transition: all 0.2s; }
+        .plan-card.current { border-color: var(--primary); background: #FFF7F2; }
+        .plan-badge { font-size: 0.625rem; font-weight: 700; padding: 0.125rem 0.5rem; border-radius: 9999px; }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+        .progress-bar { height: 6px; border-radius: 3px; background: #f3f4f6; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    </style>
+</head>
+<body class="bg-[#FAFAFA] min-h-screen">
+    <div id="app-header"></div>
+    <div style="height:80px;"></div>
+
+    <main class="max-w-3xl mx-auto px-4 py-8">
+
+        <!-- 프로필 섹션 -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-6 mb-6">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-primary text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h1 id="myName" class="text-xl font-bold text-black">사용자</h1>
+                    <p id="myEmail" class="text-sm text-neutral-500 mt-0.5">email@example.com</p>
+                </div>
+                <div id="myPlanBadgeWrap">
+                    <span id="myPlanBadge" class="plan-badge bg-neutral-100 text-neutral-600">FREE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 사용량 섹션 -->
+        <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">사용량</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <!-- 분석 저장 -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-alt text-blue-500 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-black">분석 기록</span>
+                    </div>
+                    <span class="text-xs text-neutral-400" id="analysisCountLabel">0 / 30</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill bg-blue-500" id="analysisProgress" style="width:0%"></div>
+                </div>
+            </div>
+            <!-- 프로젝트 폴더 -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-folder text-amber-500 text-sm"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-black">프로젝트 폴더</span>
+                    </div>
+                    <span class="text-xs text-neutral-400" id="projectCountLabel">0 / 5</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill bg-amber-500" id="projectProgress" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 플랜 섹션 -->
+        <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">플랜</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <!-- Free -->
+            <div class="plan-card" id="planFree">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-black">Free</h3>
+                    <span class="plan-badge bg-neutral-100 text-neutral-600">현재</span>
+                </div>
+                <p class="text-2xl font-extrabold text-black mb-4">무료</p>
+                <ul class="space-y-2 text-sm text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 30개</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 5개</li>
+                </ul>
+            </div>
+            <!-- Pro -->
+            <div class="plan-card" id="planPro">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-black">Pro</h3>
+                    <span class="plan-badge bg-blue-100 text-blue-700" style="display:none;">현재</span>
+                </div>
+                <p class="text-2xl font-extrabold text-black mb-1">&#8361;29,900</p>
+                <p class="text-xs text-neutral-400 mb-4">/ 월</p>
+                <ul class="space-y-2 text-sm text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 100개</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 30개</li>
+                </ul>
+                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg border-2 border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors">업그레이드</button>
+            </div>
+            <!-- Max -->
+            <div class="plan-card" id="planMax">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-bold text-black">Max</h3>
+                    <span class="plan-badge bg-amber-100 text-amber-700" style="display:none;">현재</span>
+                </div>
+                <p class="text-2xl font-extrabold text-black mb-1">&#8361;99,900</p>
+                <p class="text-xs text-neutral-400 mb-4">/ 월</p>
+                <ul class="space-y-2 text-sm text-neutral-600">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 분석 기록 무제한</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> 프로젝트 무제한</li>
+                </ul>
+                <button onclick="alert('준비 중입니다.')" class="w-full mt-4 py-2 text-sm font-semibold rounded-lg border-2 border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors">업그레이드</button>
+            </div>
+        </div>
+
+        <!-- 비밀번호 변경 섹션 -->
+        <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">비밀번호 변경</h2>
+        <div class="bg-white rounded-2xl border border-neutral-200 p-5 mb-8">
+            <form id="pwForm" class="space-y-3" onsubmit="return false;">
+                <div>
+                    <label class="block text-xs font-medium text-neutral-500 mb-1">현재 비밀번호</label>
+                    <input type="password" id="currentPw" required minlength="1"
+                        class="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-neutral-500 mb-1">새 비밀번호 (6자 이상)</label>
+                    <input type="password" id="newPw" required minlength="6"
+                        class="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-neutral-500 mb-1">새 비밀번호 확인</label>
+                    <input type="password" id="confirmPw" required minlength="6"
+                        class="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+                </div>
+                <p id="pwError" class="text-xs text-red-500 hidden"></p>
+                <button type="button" onclick="changePassword()"
+                    class="w-full py-2.5 text-sm font-semibold rounded-lg text-white transition-colors"
+                    style="background:var(--primary);">
+                    비밀번호 변경
+                </button>
+            </form>
+        </div>
+
+        <!-- 계정 섹션 -->
+        <h2 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">계정</h2>
+        <div class="bg-white rounded-2xl border border-neutral-200 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-semibold text-black">로그아웃</p>
+                    <p class="text-xs text-neutral-400 mt-0.5">모든 기기에서 로그아웃합니다</p>
+                </div>
+                <button onclick="authManager.logout()" class="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    로그아웃
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="app-footer"></div>
+
+    <script src="toast.js"></script>
+    <script src="script.js"></script>
+    <script>
+    (function() {
+        const user = authManager.getUser();
+        if (!user) return;
+
+        const plan = (user.plan || 'free').toLowerCase();
+        const PLAN_LIMITS = {
+            free:  { analysis: 30, project: 5 },
+            pro:   { analysis: 100, project: 30 },
+            max:   { analysis: Infinity, project: Infinity },
+        };
+        const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+
+        // 프로필
+        document.getElementById('myName').textContent = user.name || '사용자';
+        document.getElementById('myEmail').textContent = user.email || '';
+
+        // 플랜 배지
+        const badge = document.getElementById('myPlanBadge');
+        const planUpper = plan.toUpperCase();
+        badge.textContent = planUpper;
+        const badgeColors = { FREE: 'bg-neutral-100 text-neutral-600', PRO: 'bg-blue-100 text-blue-700', MAX: 'bg-amber-100 text-amber-700' };
+        badge.className = `plan-badge ${badgeColors[planUpper] || badgeColors.FREE}`;
+
+        // 플랜 카드 현재 표시
+        ['Free', 'Pro', 'Max'].forEach(p => {
+            const card = document.getElementById('plan' + p);
+            const isCurrent = p.toLowerCase() === plan;
+            if (isCurrent) {
+                card.classList.add('current');
+                card.querySelector('.plan-badge').style.display = '';
+                const btn = card.querySelector('button');
+                if (btn) btn.style.display = 'none';
+            } else {
+                card.querySelector('.plan-badge').style.display = 'none';
+            }
+        });
+
+        // 사용량 로드
+        fetch('/api/chat', { headers: { 'Authorization': 'Bearer ' + authManager.getToken() } })
+            .then(r => r.json())
+            .then(chats => {
+                const count = chats.length;
+                const max = limits.analysis;
+                const isUnlimited = max === Infinity;
+                document.getElementById('analysisCountLabel').textContent = isUnlimited ? `${count}` : `${count} / ${max}`;
+                document.getElementById('analysisProgress').style.width = isUnlimited ? '0%' : `${Math.min(count / max * 100, 100)}%`;
+            }).catch(() => {});
+
+        // 프로젝트 수 (아직 API 없으므로 0으로 표시)
+        const pMax = limits.project;
+        const pIsUnlimited = pMax === Infinity;
+        document.getElementById('projectCountLabel').textContent = pIsUnlimited ? '0' : `0 / ${pMax}`;
+        document.getElementById('projectProgress').style.width = '0%';
+    })();
+
+    async function changePassword() {
+        const errEl = document.getElementById('pwError');
+        errEl.classList.add('hidden');
+
+        const currentPw = document.getElementById('currentPw').value;
+        const newPw = document.getElementById('newPw').value;
+        const confirmPw = document.getElementById('confirmPw').value;
+
+        if (!currentPw || !newPw || !confirmPw) {
+            errEl.textContent = '모든 항목을 입력해주세요.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        if (newPw.length < 6) {
+            errEl.textContent = '새 비밀번호는 6자 이상이어야 합니다.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        if (newPw !== confirmPw) {
+            errEl.textContent = '새 비밀번호가 일치하지 않습니다.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/auth/password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + authManager.getToken(),
+                },
+                body: JSON.stringify({ current_password: currentPw, new_password: newPw }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                errEl.textContent = data.detail || '변경에 실패했습니다.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            alert('비밀번호가 변경되었습니다.');
+            document.getElementById('currentPw').value = '';
+            document.getElementById('newPw').value = '';
+            document.getElementById('confirmPw').value = '';
+        } catch (e) {
+            errEl.textContent = '서버 오류가 발생했습니다.';
+            errEl.classList.remove('hidden');
+        }
+    }
+    </script>
+</body>
+</html>
