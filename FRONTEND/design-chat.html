@@ -560,6 +560,32 @@
         </div>
     </div>
 
+    <!-- 전체 FTO 리포트 생성 진행 모달 -->
+    <div id="fullReportModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:1rem; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+                <div style="width:2.5rem; height:2.5rem; background:#FFF3ED; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas fa-layer-group" style="color:#FF6B35; font-size:1rem;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size:1rem; font-weight:700; color:#1a1a1a; margin:0;">전체 FTO 리포트 생성 중</h3>
+                    <p style="font-size:0.8rem; color:#737373; margin:0.2rem 0 0;">각 디자인을 순서대로 분석합니다</p>
+                </div>
+            </div>
+            <div style="margin-bottom:0.75rem;">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; color:#404040; margin-bottom:0.4rem;">
+                    <span id="fullReportProgressLabel">분석 준비 중...</span>
+                    <span id="fullReportProgressCount">0 / 0</span>
+                </div>
+                <div style="background:#F5F5F5; border-radius:999px; height:8px; overflow:hidden;">
+                    <div id="fullReportProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg,#FF6B35,#FF8C5A); border-radius:999px; transition:width 0.4s ease;"></div>
+                </div>
+            </div>
+            <p id="fullReportCurrentDesign" style="font-size:0.78rem; color:#525252; margin:0 0 1.25rem; min-height:1.2em;"></p>
+            <button onclick="cancelFullReport()" style="width:100%; padding:0.6rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='#E5E5E5'" onmouseout="this.style.background='#F5F5F5'">취소</button>
+        </div>
+    </div>
+
     <!-- 오른쪽 리포트 패널 -->
     <div id="reportPanel">
         <div style="position:sticky; top:0; background:white; z-index:10; padding:1.5rem 1.5rem 0 1.5rem; border-bottom:1px solid #F0F0F0;">
@@ -756,6 +782,7 @@
     let currentSimilarDesigns = [];
     let currentUploadImgUrl = null; // 세션 복원 시 유저 업로드 이미지 URL
     let _ftoReportData = null; // PDF 생성용 리포트 데이터 보관
+    let _fullReportAbortController = null; // 전체 FTO 리포트 취소용
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -1197,7 +1224,10 @@
                         ${imgHtml}
                     </div>
                     <div style="padding:0.4rem 0.45rem;">
-                        <div class="text-xs font-mono text-neutral-400 truncate" style="font-size:0.6rem; margin-top:0.15rem;">${escapeHtml(d.application_number)}</div>
+                        <div style="font-size:0.6rem; margin-top:0.15rem; display:flex; align-items:center; gap:0.25rem; overflow:hidden;">
+                            <span style="color:#A3A3A3; flex-shrink:0; font-weight:500;">출원번호</span>
+                            <span class="font-mono truncate" onclick="openKiprisWithNumber('${d.application_number}')" onmouseover="this.style.color='#FF6B35'" onmouseout="this.style.color='#737373'" style="color:#737373; cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px;" title="클릭 시 클립보드 복사 후 KIPRIS 검색">${escapeHtml(d.application_number)}</span>
+                        </div>
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:0.25rem;">
                             <span class="design-status-badge ${statusClass}">${escapeHtml(d.admst_stat)}</span>
                             ${simPct ? `<span style="font-size:0.6rem; color:var(--primary); font-weight:700;">${simPct}</span>` : ''}
@@ -1216,9 +1246,14 @@
                         <span class="text-sm font-bold text-black">유사 디자인 TOP ${result.similar_designs.length}</span>
                         <span class="text-xs text-neutral-500">${result.similar_designs.length}건 검색됨</span>
                     </div>
-                    <button id="pdfDownloadBtn" onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                        <i class="fas fa-file-pdf"></i> PDF
-                    </button>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <button onclick="generateFullFTOReport()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:#FF6B35; color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" title="TOP ${result.similar_designs.length}개 디자인 전체 FTO 분석 리포트 생성">
+                            <i class="fas fa-layer-group"></i> 전체 FTO 리포트
+                        </button>
+                        <button id="pdfDownloadBtn" onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
                 </div>
                 <div class="design-grid-container">${gridItems}</div>
             </div>`;
@@ -1430,7 +1465,10 @@
                         ${imgHtml}
                     </div>
                     <div style="padding:0.4rem 0.45rem;">
-                        <div class="text-xs font-mono text-neutral-400 truncate" style="font-size:0.6rem; margin-top:0.15rem;">${escapeHtml(d.application_number)}</div>
+                        <div style="font-size:0.6rem; margin-top:0.15rem; display:flex; align-items:center; gap:0.25rem; overflow:hidden;">
+                            <span style="color:#A3A3A3; flex-shrink:0; font-weight:500;">출원번호</span>
+                            <span class="font-mono truncate" onclick="openKiprisWithNumber('${d.application_number}')" onmouseover="this.style.color='#FF6B35'" onmouseout="this.style.color='#737373'" style="color:#737373; cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px;" title="클릭 시 클립보드 복사 후 KIPRIS 검색">${escapeHtml(d.application_number)}</span>
+                        </div>
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:0.25rem;">
                             <span class="design-status-badge ${statusClass}">${escapeHtml(d.admst_stat)}</span>
                             ${simPct ? `<span style="font-size:0.6rem; color:var(--primary); font-weight:700;">${simPct}</span>` : ''}
@@ -1449,9 +1487,14 @@
                         <span class="text-sm font-bold text-black">유사 디자인 TOP ${result.similar_designs.length}</span>
                         <span class="text-xs text-neutral-500">${result.similar_designs.length}건 검색됨</span>
                     </div>
-                    <button onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                        <i class="fas fa-file-pdf"></i> PDF
-                    </button>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <button onclick="generateFullFTOReport()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:#525252; color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" title="TOP ${result.similar_designs.length}개 디자인 전체 FTO 분석 리포트 생성">
+                            <i class="fas fa-layer-group"></i> 전체 FTO 리포트
+                        </button>
+                        <button onclick="downloadSimilarDesignsPDF()" style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0.75rem; background:var(--primary); color:white; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.7rem; font-weight:600; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
                 </div>
                 <div class="design-grid-container">${gridItems}</div>
             </div>`;
@@ -2070,6 +2113,238 @@
 
         doc.save(`design-fto-${new Date().toISOString().slice(0, 10)}.pdf`);
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF 저장'; }
+    }
+
+    // ==================== KIPRIS 연동 ====================
+
+    function openKiprisWithNumber(appNum) {
+        navigator.clipboard.writeText(appNum).then(() => {
+            window.open('https://www.kipris.or.kr/khome/main.do', '_blank');
+            if (typeof Toast !== 'undefined') Toast.success(`출원번호 ${appNum} 복사 완료! KIPRIS 검색창을 클릭 후 Ctrl+V 하세요.`);
+        }).catch(() => {
+            window.open('https://www.kipris.or.kr/khome/main.do', '_blank');
+            if (typeof Toast !== 'undefined') Toast.info(`KIPRIS를 열었습니다. 출원번호 ${appNum} 를 직접 입력하세요.`);
+        });
+    }
+
+    // ==================== 전체 FTO 리포트 ====================
+
+    function _showFullReportModal(total) {
+        document.getElementById('fullReportProgressCount').textContent = `0 / ${total}`;
+        document.getElementById('fullReportProgressBar').style.width = '0%';
+        document.getElementById('fullReportProgressLabel').textContent = '분석 준비 중...';
+        document.getElementById('fullReportCurrentDesign').textContent = '';
+        document.getElementById('fullReportModal').style.display = 'flex';
+    }
+
+    function _updateFullReportModal(current, total, designName) {
+        const pct = Math.round((current / total) * 100);
+        document.getElementById('fullReportProgressCount').textContent = `${current} / ${total}`;
+        document.getElementById('fullReportProgressBar').style.width = pct + '%';
+        document.getElementById('fullReportProgressLabel').textContent = `${current}번 디자인 분석 중...`;
+        document.getElementById('fullReportCurrentDesign').textContent = designName ? `현재: ${designName}` : '';
+    }
+
+    function _hideFullReportModal() {
+        document.getElementById('fullReportModal').style.display = 'none';
+    }
+
+    function cancelFullReport() {
+        if (_fullReportAbortController) {
+            _fullReportAbortController.abort();
+            _fullReportAbortController = null;
+        }
+        _hideFullReportModal();
+        if (typeof Toast !== 'undefined') Toast.info('전체 FTO 리포트 생성이 취소되었습니다.');
+    }
+
+    async function generateFullFTOReport() {
+        const activeThreadId = designThreadId || imageContextThreadId;
+        if (!activeThreadId) {
+            if (typeof Toast !== 'undefined') Toast.warning('이미지 분석 결과가 없습니다. 먼저 이미지를 업로드하세요.');
+            return;
+        }
+        if (!currentSimilarDesigns.length) {
+            if (typeof Toast !== 'undefined') Toast.warning('유사 디자인 데이터가 없습니다.');
+            return;
+        }
+
+        const total = currentSimilarDesigns.length;
+        _showFullReportModal(total);
+
+        const allReports = [];
+        let cancelled = false;
+
+        for (let i = 0; i < currentSimilarDesigns.length; i++) {
+            const d = currentSimilarDesigns[i];
+            _updateFullReportModal(i + 1, total, d.article_name);
+
+            const formData = new FormData();
+            formData.append('thread_id', activeThreadId);
+            formData.append('selected_index', d.index);
+
+            try {
+                _fullReportAbortController = new AbortController();
+                const response = await fetch(`${API_BASE}/design/select`, {
+                    method: 'POST',
+                    body: formData,
+                    signal: _fullReportAbortController.signal,
+                });
+                _fullReportAbortController = null;
+
+                if (!response.ok) {
+                    console.warn(`디자인 ${d.index} 비교 실패: HTTP ${response.status}`);
+                    allReports.push({ index: d.index, design: d, result: null, error: true });
+                    continue;
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    // 이미지 보강: 백엔드가 미포함 시 로컬 데이터 사용
+                    if (!result.user_image_base64 && !result.user_image_s3_url) {
+                        result.user_image_s3_url = currentUploadImgUrl || '';
+                    }
+                    if (!result.selected_design) {
+                        result.selected_design = {
+                            index: d.index,
+                            application_number: d.application_number,
+                            article_name: d.article_name,
+                            admst_stat: d.admst_stat,
+                            image_base64: d.image_base64 || '',
+                        };
+                    }
+                    allReports.push({ index: d.index, design: d, result });
+                } else if (result.session_expired) {
+                    _hideFullReportModal();
+                    if (typeof Toast !== 'undefined') Toast.error('세션이 만료되었습니다. 이미지를 다시 업로드해주세요.');
+                    return;
+                } else {
+                    allReports.push({ index: d.index, design: d, result: null, error: true });
+                }
+            } catch (error) {
+                _fullReportAbortController = null;
+                if (error.name === 'AbortError') {
+                    cancelled = true;
+                    break;
+                }
+                console.warn(`디자인 ${d.index} 비교 중 오류:`, error);
+                allReports.push({ index: d.index, design: d, result: null, error: true });
+            }
+        }
+
+        _hideFullReportModal();
+        if (cancelled) return;
+
+        const succeeded = allReports.filter(r => r.result && !r.error);
+        if (succeeded.length === 0) {
+            if (typeof Toast !== 'undefined') Toast.error('분석에 성공한 디자인이 없습니다.');
+            return;
+        }
+
+        if (typeof Toast !== 'undefined') Toast.success(`${succeeded.length}개 디자인 분석 완료. PDF를 생성합니다.`);
+        await downloadFullFTOReportPDF(allReports);
+    }
+
+    async function downloadFullFTOReportPDF(allReports) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const margin = 8;
+        const pageW = 210 - margin * 2;
+        const pageH = 297 - margin * 2;
+        let isFirstPage = true;
+
+        const imgBox = (src, size = 220) => src
+            ? `<div style="width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; background:#F8F8F8; border:1px solid #e5e5e5; border-radius:8px; overflow:hidden; margin:0 auto;">
+                   <img src="${src}" style="max-width:${size}px; max-height:${size}px; object-fit:contain; display:block;" />
+               </div>`
+            : `<div style="width:${size}px; height:${size}px; background:#f5f5f5; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:11px; margin:0 auto;">이미지 없음</div>`;
+
+        for (let ri = 0; ri < allReports.length; ri++) {
+            const { index, design, result, error } = allReports[ri];
+            const isFirst = ri === 0;
+            const isLast = ri === allReports.length - 1;
+
+            const userImgBase64 = result && result.user_image_base64 ? `data:image/png;base64,${result.user_image_base64}` : '';
+            const userImgSrc = userImgBase64 || (result && result.user_image_s3_url) || '';
+            const sel = result && result.selected_design;
+            const selImgSrc = sel && sel.image_base64 ? `data:image/jpeg;base64,${sel.image_base64}` : '';
+            const selLabel = sel ? `${index}번 디자인 (출원번호 ${sel.application_number})` : `${index}번 디자인`;
+            const reportText = result && result.final_report
+                ? result.final_report.replace(/#+\s*/g, '').replace(/\n*7\.\s*주의사항[\s\S]*/g, '')
+                : (error ? '※ 이 디자인은 분석 중 오류가 발생했습니다.' : '리포트 없음');
+
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position:fixed; top:-9999px; left:-9999px;
+                width:794px; background:white;
+                padding:36px 44px; box-sizing:border-box;
+                font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
+            `;
+            container.innerHTML = `
+                ${isFirst ? `
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #FF6B35;">
+                    <div style="width:36px; height:36px; background:#FF6B35; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:18px; font-weight:700; color:#1a1a1a;">전체 FTO 분석 리포트</div>
+                        <div style="font-size:11px; color:#737373; margin-top:2px;">유사 디자인 ${allReports.length}개 전체 비교 · FTOGuard · ${new Date().toLocaleDateString('ko-KR')}</div>
+                    </div>
+                </div>` : ''}
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding:8px 12px; background:#FFF5F0; border-left:4px solid #FF6B35; border-radius:0 6px 6px 0;">
+                    <span style="font-size:13px; font-weight:700; color:#FF6B35;">${index}번</span>
+                    <span style="font-size:12px; font-weight:600; color:#1a1a1a;">입력 디자인 : ${selLabel}</span>
+                    ${sel && sel.admst_stat ? `<span style="margin-left:auto; font-size:10px; font-weight:600; color:${sel.admst_stat === '등록' ? '#16a34a' : '#2563eb'}; background:${sel.admst_stat === '등록' ? '#DCFCE7' : '#DBEAFE'}; padding:2px 8px; border-radius:4px;">${sel.admst_stat}</span>` : ''}
+                </div>
+                <div style="display:flex; gap:20px; justify-content:center; margin-bottom:18px;">
+                    <div style="text-align:center; flex:1;">
+                        <div style="font-size:11px; font-weight:700; color:#FF6B35; margin-bottom:8px;">입력 디자인</div>
+                        ${imgBox(userImgSrc)}
+                    </div>
+                    <div style="text-align:center; flex:1;">
+                        <div style="font-size:11px; font-weight:700; color:#525252; margin-bottom:8px;">${index}번 디자인</div>
+                        ${imgBox(selImgSrc)}
+                    </div>
+                </div>
+                <div style="font-size:11px; color:#333; line-height:1.9; white-space:pre-wrap; border-top:1px solid #e5e5e5; padding-top:14px;">${reportText}</div>
+                ${!isLast ? `<div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e5e5; text-align:right; font-size:9px; color:#a3a3a3;">다음 페이지 계속 →</div>` : `
+                <div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e5e5; text-align:center; font-size:9px; color:#a3a3a3;">
+                    본 리포트는 FTOGuard AI가 생성한 참고 자료입니다. 최종 법적 판단은 전문가에게 문의하세요.
+                </div>`}
+            `;
+
+            document.body.appendChild(container);
+            try {
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false });
+                const ratio = canvas.width / pageW;
+                const totalH = canvas.height / ratio;
+
+                if (!isFirstPage) doc.addPage();
+                isFirstPage = false;
+
+                if (totalH <= pageH) {
+                    doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, totalH);
+                } else {
+                    let srcY = 0;
+                    let firstSlice = true;
+                    while (srcY < canvas.height) {
+                        const slicePxH = Math.min(pageH * ratio, canvas.height - srcY);
+                        const slice = document.createElement('canvas');
+                        slice.width = canvas.width;
+                        slice.height = slicePxH;
+                        slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, slicePxH, 0, 0, canvas.width, slicePxH);
+                        if (!firstSlice) doc.addPage();
+                        doc.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, slicePxH / ratio);
+                        srcY += slicePxH;
+                        firstSlice = false;
+                    }
+                }
+            } finally {
+                document.body.removeChild(container);
+            }
+        }
+
+        doc.save(`full-fto-report-${new Date().toISOString().slice(0, 10)}.pdf`);
     }
 
     // ==================== 사이드바 토글 ====================
