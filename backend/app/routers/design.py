@@ -199,16 +199,25 @@ async def _image_via_langgraph(
         .count()
     )
     if existing_count >= SESSION_LIMIT:
-        to_delete = (
-            db.query(DesignSession)
+        delete_ids = [
+            row[0] for row in
+            db.query(DesignSession.id)
             .filter(~DesignSession.thread_id.startswith("text-"))
             .order_by(DesignSession.created_at.asc())
             .limit(existing_count - SESSION_LIMIT + 1)
             .all()
-        )
-        for old in to_delete:
-            db.delete(old)
-        db.flush()
+        ]
+        if delete_ids:
+            db.query(DesignSessionMessage).filter(
+                DesignSessionMessage.session_id.in_(delete_ids)
+            ).delete(synchronize_session=False)
+            db.query(DesignSessionImage).filter(
+                DesignSessionImage.session_id.in_(delete_ids)
+            ).delete(synchronize_session=False)
+            db.query(DesignSession).filter(
+                DesignSession.id.in_(delete_ids)
+            ).delete(synchronize_session=False)
+            db.commit()
 
     session = DesignSession(
         thread_id=thread_id,
