@@ -30,13 +30,50 @@
         홈
         <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
       </a>
-      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group" 
-         href="how-it-works.html" 
+      <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors group"
+         href="how-it-works.html"
          data-nav="how-it-works.html">
         작동 원리
         <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
       </a>
-      
+
+      <!-- 사용 방법 드롭다운 -->
+      <div class="relative group">
+        <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors flex items-center gap-1 cursor-pointer"
+           href="demo.html"
+           data-nav="demo.html">
+          사용 방법
+          <i class="fas fa-chevron-down text-xs"></i>
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+        </a>
+
+        <!-- 드롭다운 메뉴 -->
+        <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-neutral-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div class="p-2">
+            <a href="demo.html"
+               class="dropdown-nav-item flex items-start gap-3 px-4 py-3 rounded-lg hover:bg-neutral-50 transition-colors">
+              <div class="dropdown-icon-wrap w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-file-alt text-primary"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-black">특허·실용신안</p>
+                <p class="text-xs text-neutral-600">특허 FTO 분석 데모 영상</p>
+              </div>
+            </a>
+            <a href="demo-design.html"
+               class="dropdown-nav-item flex items-start gap-3 px-4 py-3 rounded-lg hover:bg-neutral-50 transition-colors">
+              <div class="dropdown-icon-wrap w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-palette text-primary"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-black">디자인</p>
+                <p class="text-xs text-neutral-600">디자인 분석 데모 영상</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
       <!-- 리스크 분석 드롭다운 -->
       <div class="relative group">
         <a class="relative text-sm font-medium text-neutral-600 hover:text-black transition-colors flex items-center gap-1 cursor-pointer"
@@ -149,6 +186,27 @@
         작동 원리
       </a>
       
+      <!-- 사용 방법 (모바일) -->
+      <div>
+        <button onclick="toggleMobileDemoMenu()"
+                class="w-full text-base font-medium text-neutral-700 hover:text-primary transition-colors py-2 text-left flex items-center justify-between">
+          사용 방법
+          <i class="fas fa-chevron-down text-xs" id="mobile-demo-icon"></i>
+        </button>
+        <div id="mobile-demo-submenu" class="hidden pl-4 mt-2 space-y-2">
+          <a href="demo.html"
+             class="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary py-2">
+            <i class="fas fa-file-alt"></i>
+            특허·실용신안
+          </a>
+          <a href="demo-design.html"
+             class="flex items-center gap-2 text-sm text-neutral-600 hover:text-primary py-2">
+            <i class="fas fa-palette"></i>
+            디자인
+          </a>
+        </div>
+      </div>
+
       <!-- 리스크 분석 (모바일) -->
       <div>
         <button onclick="toggleMobileAnalysisMenu()" 
@@ -254,5 +312,16 @@
     }
   }
   
+  // 사용 방법 서브메뉴 토글
+  function toggleMobileDemoMenu() {
+    const submenu = document.getElementById('mobile-demo-submenu');
+    const icon = document.getElementById('mobile-demo-icon');
+    if (submenu) {
+      submenu.classList.toggle('hidden');
+      icon.classList.toggle('fa-chevron-down');
+      icon.classList.toggle('fa-chevron-up');
+    }
+  }
+
   // Active link highlight는 script.js의 setActiveNav()에서 처리
 </script>
