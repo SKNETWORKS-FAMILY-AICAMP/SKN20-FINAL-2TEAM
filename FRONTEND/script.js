@@ -8,8 +8,8 @@ const DEV_BYPASS_AUTH = false;
 // ==========================
 class AuthManager {
     constructor() {
-        this.token = localStorage.getItem('authToken');
-        this.user = JSON.parse(localStorage.getItem('user') || 'null');
+        this.token = sessionStorage.getItem('authToken');
+        this.user = JSON.parse(sessionStorage.getItem('user') || 'null');
         // 만료된 토큰 자동 정리
         if (this.token && !this.isTokenValid()) {
             this._clear();
@@ -33,13 +33,13 @@ class AuthManager {
     login(token, user) {
         this.token = token;
         this.user = user;
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('authToken', token);
+        sessionStorage.setItem('user', JSON.stringify(user));
     }
 
     _clear() {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('user');
         this.token = null;
         this.user = null;
     }

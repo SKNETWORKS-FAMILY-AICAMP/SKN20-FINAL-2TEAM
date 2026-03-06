@@ -756,7 +756,7 @@
     // ==================== API 호출 ====================
 
     function authHeaders() {
-        const token = localStorage.getItem('authToken') || '';
+        const token = sessionStorage.getItem('authToken') || '';
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
@@ -816,7 +816,7 @@
 
         // 플랜별 저장 한도 체크 (새 대화일 때만)
         const _planLimit = { free: 30, pro: 100, max: Infinity };
-        const _userPlan = (JSON.parse(localStorage.getItem('user') || '{}').plan) || 'free';
+        const _userPlan = (JSON.parse(sessionStorage.getItem('user') || '{}').plan) || 'free';
         const _limit = _planLimit[_userPlan] || 30;
         if (!threadId && sessionCount >= _limit) {
             _showSessionLimitModal();
@@ -1930,7 +1930,7 @@
     // ==================== 30개 제한 모달 ====================
 
     function _showSessionLimitModal() {
-        const plan = (JSON.parse(localStorage.getItem('user') || '{}').plan) || 'free';
+        const plan = (JSON.parse(sessionStorage.getItem('user') || '{}').plan) || 'free';
         const limitMap = { free: 30, pro: 100 };
         document.getElementById('limitModalCount').textContent = (limitMap[plan] || 30) + '개';
         const modal = document.getElementById('sessionLimitModal');
