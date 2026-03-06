@@ -500,6 +500,63 @@
         .design-compare-btn:hover { background: var(--primary); color: white; }
         .design-compare-btn.selected { border-color: #16A34A; color: #16A34A; background: #F0FDF4; }
         .design-compare-btn.selected:hover { background: #16A34A; color: white; }
+
+        /* ===== 전체 FTO 리포트 패널 ===== */
+        #fullFtoPanel {
+            position: fixed;
+            top: 80px; right: 0; bottom: 0;
+            width: 48%; max-width: 650px;
+            background: white;
+            border-left: 1px solid #E5E5E5;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+            z-index: 52;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        #fullFtoPanel.open { transform: translateX(0); }
+        #fullFtoPanelScroll { flex:1; overflow-y:auto; }
+        #fullFtoPanelScroll::-webkit-scrollbar { width: 6px; }
+        #fullFtoPanelScroll::-webkit-scrollbar-track { background: transparent; }
+        #fullFtoPanelScroll::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+        #mainContent.fullpanel-open { margin-right: min(48%, 650px); }
+
+        /* 전체 FTO 디자인 카드 */
+        .full-fto-design-card {
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 0.875rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: box-shadow 0.2s;
+        }
+        .full-fto-design-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .full-fto-img-box {
+            width: 100%; aspect-ratio: 1/1;
+            object-fit: contain; background: #F8F8F8;
+            border-radius: 0.5rem; border: 1px solid #E5E5E5;
+            display: block;
+        }
+        .full-fto-verdict {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 0.75rem; border-radius: 0.5rem;
+            margin-bottom: 0.75rem; font-size: 0.75rem; font-weight: 600;
+        }
+        .full-fto-verdict.low    { background: #DCFCE7; color: #16A34A; }
+        .full-fto-verdict.mid    { background: #FEF3C7; color: #D97706; }
+        .full-fto-verdict.high   { background: #FEE2E2; color: #DC2626; }
+        .full-fto-verdict.unknown{ background: #F3F4F6; color: #6B7280; }
+        .full-pdf-export-btn {
+            width: 100%; padding: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border: none; border-radius: 0.75rem;
+            font-size: 0.875rem; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+            transition: opacity 0.15s;
+        }
+        .full-pdf-export-btn:hover { opacity: 0.85; }
     </style>
 </head>
 
@@ -583,6 +640,40 @@
             </div>
             <p id="fullReportCurrentDesign" style="font-size:0.78rem; color:#525252; margin:0 0 1.25rem; min-height:1.2em;"></p>
             <button onclick="cancelFullReport()" style="width:100%; padding:0.6rem; background:#F5F5F5; color:#525252; border:none; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='#E5E5E5'" onmouseout="this.style.background='#F5F5F5'">취소</button>
+        </div>
+    </div>
+
+    <!-- 전체 FTO 리포트 패널 -->
+    <div id="fullFtoPanel">
+        <!-- 고정 헤더 -->
+        <div style="flex-shrink:0; background:white; z-index:10; padding:1.5rem 1.5rem 0.75rem; border-bottom:1px solid #F0F0F0;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <h2 style="font-size:0.9rem; font-weight:700; color:#1a1a1a; display:flex; align-items:center; gap:0.5rem; margin:0;">
+                    <i class="fas fa-layer-group" style="color:var(--primary);"></i>
+                    전체 FTO 분석 리포트
+                    <span id="fullFtoPanelCount" style="font-size:0.7rem; font-weight:500; color:#737373;"></span>
+                </h2>
+                <button onclick="closeFullFTOPanel()" class="icon-btn" title="닫기">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 스크롤 카드 영역 -->
+        <div id="fullFtoPanelScroll">
+            <div id="fullFtoPanelContent" style="padding:1rem 1.25rem 0;"></div>
+        </div>
+        <!-- 고정 푸터 -->
+        <div style="flex-shrink:0; padding:0.875rem 1.25rem 1.25rem; border-top:1px solid #F0F0F0; background:white;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem;">
+                <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.75rem; color:#737373; user-select:none;">
+                    <input type="checkbox" id="fullPdfSelectAll" checked onchange="toggleAllFullPdfChecks(this.checked)">
+                    전체 선택
+                </label>
+                <span id="fullPdfSelectedCount" style="font-size:0.75rem; color:#A3A3A3;">0 / 0건 선택</span>
+            </div>
+            <button class="full-pdf-export-btn" id="fullFtoPdfBtn" onclick="downloadFullFTOReportPDF()">
+                <i class="fas fa-file-pdf"></i> 선택 항목 PDF로 저장하기
+            </button>
         </div>
     </div>
 
@@ -783,6 +874,7 @@
     let currentUploadImgUrl = null; // 세션 복원 시 유저 업로드 이미지 URL
     let _ftoReportData = null; // PDF 생성용 리포트 데이터 보관
     let _fullReportAbortController = null; // 전체 FTO 리포트 취소용
+    let _storedAllFTOReports = [];         // 전체 FTO 패널 데이터 보관
 
     // ==================== DOM ====================
     const messagesWrapper = document.getElementById('messagesWrapper');
@@ -2241,11 +2333,169 @@
             return;
         }
 
-        if (typeof Toast !== 'undefined') Toast.success(`${succeeded.length}개 디자인 분석 완료. PDF를 생성합니다.`);
-        await downloadFullFTOReportPDF(allReports);
+        if (typeof Toast !== 'undefined') Toast.success(`${succeeded.length}개 디자인 분석 완료.`);
+        _storedAllFTOReports = allReports;
+        openFullFTOPanel(allReports);
     }
 
-    async function downloadFullFTOReportPDF(allReports) {
+    // ===== 전체 FTO 패널 열기/닫기 =====
+
+    function _extractVerdict(text) {
+        if (!text) return 'unknown';
+        if (/침해\s*가능성\s*(높음|있음)/.test(text)) return 'high';
+        if (/추가\s*정보|확인\s*불가|확인\s*필요/.test(text)) return 'mid';
+        if (/침해\s*가능성\s*(낮음|없음)|침해\s*없음/.test(text)) return 'low';
+        return 'unknown';
+    }
+
+    function _verdictLabel(v) {
+        return { high: '침해 가능성 있음', mid: '추가 정보 필요', low: '침해 가능성 낮음', unknown: '판단 불가' }[v] || '판단 불가';
+    }
+
+    function _verdictIcon(v) {
+        return { high: 'fa-times-circle', mid: 'fa-question-circle', low: 'fa-check-circle', unknown: 'fa-minus-circle' }[v] || 'fa-minus-circle';
+    }
+
+    function openFullFTOPanel(allReports) {
+        // reportPanel 닫기
+        closeReportPanel();
+
+        const content = document.getElementById('fullFtoPanelContent');
+        const total = allReports.length;
+        document.getElementById('fullFtoPanelCount').textContent = `(${total}건)`;
+        content.innerHTML = '';
+
+        allReports.forEach((item, ri) => {
+            const { index, design, result, error } = item;
+            const userImgBase64 = result && result.user_image_base64 ? `data:image/png;base64,${result.user_image_base64}` : '';
+            const userImgSrc = userImgBase64 || (result && result.user_image_s3_url) || '';
+            const sel = result && result.selected_design;
+            const selImgSrc = sel && sel.image_base64 ? `data:image/jpeg;base64,${sel.image_base64}` : '';
+            const articleName = (sel && sel.article_name) || design.article_name || `${index}번 디자인`;
+            const appNum = (sel && sel.application_number) || design.application_number || '';
+            const admstStat = (sel && sel.admst_stat) || design.admst_stat || '';
+            const reportText = result && result.final_report
+                ? result.final_report.replace(/#+\s*/g, '').replace(/\n*7\.\s*주의사항[\s\S]*/g, '').trim()
+                : (error ? '분석 중 오류가 발생했습니다.' : '리포트 없음');
+
+            const verdict = _extractVerdict(reportText);
+            const statusColor = admstStat === '등록' ? '#16A34A' : '#2563EB';
+            const statusBg    = admstStat === '등록' ? '#DCFCE7' : '#DBEAFE';
+
+            const userImgEl = userImgSrc
+                ? `<img src="${userImgSrc}" class="full-fto-img-box" alt="입력 디자인">`
+                : `<div class="full-fto-img-box" style="display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#A3A3A3;">No Image</div>`;
+            const selImgEl = selImgSrc
+                ? `<img src="${selImgSrc}" class="full-fto-img-box" alt="${escapeHtml(articleName)}">`
+                : `<div class="full-fto-img-box" style="display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#A3A3A3;">No Image</div>`;
+
+            const card = document.createElement('div');
+            card.className = 'full-fto-design-card';
+            card.dataset.reportIndex = ri;
+            card.innerHTML = `
+                <!-- 헤더 -->
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+                    <input type="checkbox" class="full-pdf-check" data-panel-index="${ri}" checked
+                        onchange="updateFullPdfSelectedCount()" onclick="event.stopPropagation()">
+                    <div class="design-rank-badge" style="flex-shrink:0;">${index}</div>
+                    <div style="flex:1; min-width:0;">
+                        <div class="text-sm font-bold text-black truncate">${escapeHtml(articleName)}</div>
+                    </div>
+                    <button onclick="downloadSingleDesignFTOPDF(${ri})"
+                        style="display:flex; align-items:center; gap:0.25rem; padding:0.25rem 0.6rem; background:#F3F4F6; color:#525252; border:1px solid #E5E5E5; border-radius:0.375rem; cursor:pointer; font-size:0.65rem; font-weight:600; flex-shrink:0; transition:all 0.15s;"
+                        onmouseover="this.style.background='#FF6B35';this.style.color='white';this.style.borderColor='#FF6B35'"
+                        onmouseout="this.style.background='#F3F4F6';this.style.color='#525252';this.style.borderColor='#E5E5E5'"
+                        title="이 디자인만 PDF 저장">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+
+                <!-- 출원번호 + 상태 -->
+                <div style="font-size:0.72rem; line-height:1.8; padding:0.5rem 0.75rem; margin-bottom:0.75rem; border-radius:0.5rem; background:#F9FAFB; border:1px solid #E5E7EB; color:#6B7280;">
+                    출원번호: <strong style="color:#404040;">${escapeHtml(appNum)}</strong>
+                    ${admstStat ? `&nbsp;<span style="color:#D4D4D4;">|</span>&nbsp; 상태: <strong style="color:${statusColor}; background:${statusBg}; padding:1px 6px; border-radius:3px;">${escapeHtml(admstStat)}</strong>` : ''}
+                </div>
+
+                <!-- 이미지 pair -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
+                    <div style="text-align:center;">
+                        <div style="font-size:0.68rem; font-weight:700; color:#FF6B35; margin-bottom:0.3rem;">입력 디자인</div>
+                        ${userImgEl}
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:0.68rem; font-weight:600; color:#525252; margin-bottom:0.3rem;">${index}번 디자인</div>
+                        ${selImgEl}
+                    </div>
+                </div>
+
+                <!-- 판정 뱃지 -->
+                <div class="full-fto-verdict ${verdict}">
+                    <i class="fas ${_verdictIcon(verdict)}"></i>
+                    ${_verdictLabel(verdict)}
+                </div>
+
+                <!-- 분석 텍스트 -->
+                <div style="font-size:0.75rem; color:#525252; line-height:1.75; white-space:pre-wrap; padding:0.75rem; background:white; border:1px solid #F0F0F0; border-radius:0.5rem;">${escapeHtml(reportText)}</div>
+            `;
+            content.appendChild(card);
+        });
+
+        updateFullPdfSelectedCount();
+        document.getElementById('fullFtoPanel').classList.add('open');
+        document.getElementById('mainContent').classList.add('fullpanel-open');
+    }
+
+    function closeFullFTOPanel() {
+        document.getElementById('fullFtoPanel').classList.remove('open');
+        document.getElementById('mainContent').classList.remove('fullpanel-open');
+    }
+
+    function updateFullPdfSelectedCount() {
+        const checks = document.querySelectorAll('.full-pdf-check');
+        const checked = document.querySelectorAll('.full-pdf-check:checked');
+        document.getElementById('fullPdfSelectedCount').textContent = `${checked.length} / ${checks.length}건 선택`;
+        const allChecked = checks.length > 0 && checked.length === checks.length;
+        const selectAll = document.getElementById('fullPdfSelectAll');
+        if (selectAll) selectAll.checked = allChecked;
+    }
+
+    function toggleAllFullPdfChecks(checked) {
+        document.querySelectorAll('.full-pdf-check').forEach(cb => { cb.checked = checked; });
+        updateFullPdfSelectedCount();
+    }
+
+    // ===== 단일 디자인 PDF =====
+
+    async function downloadSingleDesignFTOPDF(ri) {
+        const item = _storedAllFTOReports[ri];
+        if (!item) return;
+        await _renderFTOPagesToPDF([item], `fto-design-${item.index}-${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+
+    // ===== 선택 항목 전체 PDF =====
+
+    async function downloadFullFTOReportPDF() {
+        const checks = document.querySelectorAll('.full-pdf-check');
+        const selected = [];
+        checks.forEach((cb, i) => {
+            if (cb.checked && _storedAllFTOReports[i]) selected.push(_storedAllFTOReports[i]);
+        });
+        if (!selected.length) {
+            if (typeof Toast !== 'undefined') Toast.warning('선택된 항목이 없습니다.');
+            return;
+        }
+        const btn = document.getElementById('fullFtoPdfBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF 생성 중...'; }
+        try {
+            await _renderFTOPagesToPDF(selected, `full-fto-report-${new Date().toISOString().slice(0,10)}.pdf`, true);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> 선택 항목 PDF로 저장하기'; }
+        }
+    }
+
+    // ===== 공통 PDF 렌더 엔진 =====
+
+    async function _renderFTOPagesToPDF(reports, filename, isFullReport = false) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const margin = 8;
@@ -2254,15 +2504,15 @@
         let isFirstPage = true;
 
         const imgBox = (src, size = 220) => src
-            ? `<div style="width:${size}px; height:${size}px; display:flex; align-items:center; justify-content:center; background:#F8F8F8; border:1px solid #e5e5e5; border-radius:8px; overflow:hidden; margin:0 auto;">
-                   <img src="${src}" style="max-width:${size}px; max-height:${size}px; object-fit:contain; display:block;" />
+            ? `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#F8F8F8;border:1px solid #e5e5e5;border-radius:8px;overflow:hidden;margin:0 auto;">
+                   <img src="${src}" style="max-width:${size}px;max-height:${size}px;object-fit:contain;display:block;" />
                </div>`
-            : `<div style="width:${size}px; height:${size}px; background:#f5f5f5; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:11px; margin:0 auto;">이미지 없음</div>`;
+            : `<div style="width:${size}px;height:${size}px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:11px;margin:0 auto;">이미지 없음</div>`;
 
-        for (let ri = 0; ri < allReports.length; ri++) {
-            const { index, design, result, error } = allReports[ri];
+        for (let ri = 0; ri < reports.length; ri++) {
+            const { index, design, result, error } = reports[ri];
             const isFirst = ri === 0;
-            const isLast = ri === allReports.length - 1;
+            const isLast  = ri === reports.length - 1;
 
             const userImgBase64 = result && result.user_image_base64 ? `data:image/png;base64,${result.user_image_base64}` : '';
             const userImgSrc = userImgBase64 || (result && result.user_image_s3_url) || '';
@@ -2270,81 +2520,76 @@
             const selImgSrc = sel && sel.image_base64 ? `data:image/jpeg;base64,${sel.image_base64}` : '';
             const selLabel = sel ? `${index}번 디자인 (출원번호 ${sel.application_number})` : `${index}번 디자인`;
             const reportText = result && result.final_report
-                ? result.final_report.replace(/#+\s*/g, '').replace(/\n*7\.\s*주의사항[\s\S]*/g, '')
-                : (error ? '※ 이 디자인은 분석 중 오류가 발생했습니다.' : '리포트 없음');
+                ? result.final_report.replace(/#+\s*/g, '').replace(/\n*7\.\s*주의사항[\s\S]*/g, '').trim()
+                : (error ? '※ 분석 중 오류가 발생했습니다.' : '리포트 없음');
+            const admstStat = (sel && sel.admst_stat) || design.admst_stat || '';
 
             const container = document.createElement('div');
-            container.style.cssText = `
-                position:fixed; top:-9999px; left:-9999px;
-                width:794px; background:white;
-                padding:36px 44px; box-sizing:border-box;
-                font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
-            `;
+            container.style.cssText = `position:fixed;top:-9999px;left:-9999px;width:794px;background:white;padding:36px 44px;box-sizing:border-box;font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;`;
             container.innerHTML = `
-                ${isFirst ? `
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #FF6B35;">
-                    <div style="width:36px; height:36px; background:#FF6B35; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                ${isFirst && isFullReport ? `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #FF6B35;">
+                    <div style="width:36px;height:36px;background:#FF6B35;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
                     <div>
-                        <div style="font-size:18px; font-weight:700; color:#1a1a1a;">전체 FTO 분석 리포트</div>
-                        <div style="font-size:11px; color:#737373; margin-top:2px;">유사 디자인 ${allReports.length}개 전체 비교 · FTOGuard · ${new Date().toLocaleDateString('ko-KR')}</div>
+                        <div style="font-size:18px;font-weight:700;color:#1a1a1a;">전체 FTO 분석 리포트</div>
+                        <div style="font-size:11px;color:#737373;margin-top:2px;">유사 디자인 ${reports.length}개 비교 · FTOGuard · ${new Date().toLocaleDateString('ko-KR')}</div>
                     </div>
-                </div>` : ''}
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding:8px 12px; background:#FFF5F0; border-left:4px solid #FF6B35; border-radius:0 6px 6px 0;">
-                    <span style="font-size:13px; font-weight:700; color:#FF6B35;">${index}번</span>
-                    <span style="font-size:12px; font-weight:600; color:#1a1a1a;">입력 디자인 : ${selLabel}</span>
-                    ${sel && sel.admst_stat ? `<span style="margin-left:auto; font-size:10px; font-weight:600; color:${sel.admst_stat === '등록' ? '#16a34a' : '#2563eb'}; background:${sel.admst_stat === '등록' ? '#DCFCE7' : '#DBEAFE'}; padding:2px 8px; border-radius:4px;">${sel.admst_stat}</span>` : ''}
+                </div>` : isFirst && !isFullReport ? `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #FF6B35;">
+                    <div style="width:36px;height:36px;background:#FF6B35;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size:18px;font-weight:700;color:#1a1a1a;">FTO 분석 리포트</div>
+                        <div style="font-size:11px;color:#737373;margin-top:2px;">FTOGuard · ${new Date().toLocaleDateString('ko-KR')}</div>
+                    </div>
+                </div>` : `<div style="text-align:right;margin-bottom:16px;font-size:10px;color:#a3a3a3;">FTOGuard 전체 FTO 분석 리포트 (계속)</div>`}
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:#FFF5F0;border-left:4px solid #FF6B35;border-radius:0 6px 6px 0;">
+                    <span style="font-size:13px;font-weight:700;color:#FF6B35;">${index}번</span>
+                    <span style="font-size:12px;font-weight:600;color:#1a1a1a;">입력 디자인 : ${selLabel}</span>
+                    ${admstStat ? `<span style="margin-left:auto;font-size:10px;font-weight:600;color:${admstStat==='등록'?'#16a34a':'#2563eb'};background:${admstStat==='등록'?'#DCFCE7':'#DBEAFE'};padding:2px 8px;border-radius:4px;">${admstStat}</span>` : ''}
                 </div>
-                <div style="display:flex; gap:20px; justify-content:center; margin-bottom:18px;">
-                    <div style="text-align:center; flex:1;">
-                        <div style="font-size:11px; font-weight:700; color:#FF6B35; margin-bottom:8px;">입력 디자인</div>
+                <div style="display:flex;gap:20px;justify-content:center;margin-bottom:18px;">
+                    <div style="text-align:center;flex:1;">
+                        <div style="font-size:11px;font-weight:700;color:#FF6B35;margin-bottom:8px;">입력 디자인</div>
                         ${imgBox(userImgSrc)}
                     </div>
-                    <div style="text-align:center; flex:1;">
-                        <div style="font-size:11px; font-weight:700; color:#525252; margin-bottom:8px;">${index}번 디자인</div>
+                    <div style="text-align:center;flex:1;">
+                        <div style="font-size:11px;font-weight:700;color:#525252;margin-bottom:8px;">${index}번 디자인</div>
                         ${imgBox(selImgSrc)}
                     </div>
                 </div>
-                <div style="font-size:11px; color:#333; line-height:1.9; white-space:pre-wrap; border-top:1px solid #e5e5e5; padding-top:14px;">${reportText}</div>
-                ${!isLast ? `<div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e5e5; text-align:right; font-size:9px; color:#a3a3a3;">다음 페이지 계속 →</div>` : `
-                <div style="margin-top:18px; padding-top:12px; border-top:1px solid #e5e5e5; text-align:center; font-size:9px; color:#a3a3a3;">
-                    본 리포트는 FTOGuard AI가 생성한 참고 자료입니다. 최종 법적 판단은 전문가에게 문의하세요.
-                </div>`}
+                <div style="font-size:11px;color:#333;line-height:1.9;white-space:pre-wrap;border-top:1px solid #e5e5e5;padding-top:14px;">${reportText}</div>
+                ${isLast ? `<div style="margin-top:18px;padding-top:12px;border-top:1px solid #e5e5e5;text-align:center;font-size:9px;color:#a3a3a3;">본 리포트는 FTOGuard AI가 생성한 참고 자료입니다. 최종 법적 판단은 전문가에게 문의하세요.</div>` : `<div style="margin-top:18px;padding-top:12px;border-top:1px solid #e5e5e5;text-align:right;font-size:9px;color:#a3a3a3;">다음 페이지 계속 →</div>`}
             `;
-
             document.body.appendChild(container);
             try {
                 const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false });
                 const ratio = canvas.width / pageW;
                 const totalH = canvas.height / ratio;
-
                 if (!isFirstPage) doc.addPage();
                 isFirstPage = false;
-
                 if (totalH <= pageH) {
                     doc.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, totalH);
                 } else {
-                    let srcY = 0;
-                    let firstSlice = true;
+                    let srcY = 0, firstSlice = true;
                     while (srcY < canvas.height) {
                         const slicePxH = Math.min(pageH * ratio, canvas.height - srcY);
                         const slice = document.createElement('canvas');
-                        slice.width = canvas.width;
-                        slice.height = slicePxH;
+                        slice.width = canvas.width; slice.height = slicePxH;
                         slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, slicePxH, 0, 0, canvas.width, slicePxH);
                         if (!firstSlice) doc.addPage();
                         doc.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageW, slicePxH / ratio);
-                        srcY += slicePxH;
-                        firstSlice = false;
+                        srcY += slicePxH; firstSlice = false;
                     }
                 }
             } finally {
                 document.body.removeChild(container);
             }
         }
-
-        doc.save(`full-fto-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+        doc.save(filename);
     }
 
     // ==================== 사이드바 토글 ====================
