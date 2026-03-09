@@ -150,35 +150,35 @@ def dense_search(query: str, top_k: int = None, allowed_chunk_ids: list[str] = N
 # ══════════════════════════════════════════════════════
 
 _sparse_index: dict | None = None
+_sparse_lock = threading.Lock()
 
 
 def _load_sparse_index() -> dict:
     """BM25 inverted index 로드. 최초 호출 시 1회."""
     global _sparse_index
-    if _sparse_index is None:
-        idx_dir = config.SPARSE_INDEX_DIR
-        _logger.info(f"[RAG] BM25 인덱스 로딩 중... ({idx_dir})")
-        _sparse_index = {
-            "postings": pickle.loads((idx_dir / "postings.pkl").read_bytes()),
-            "idf": pickle.loads((idx_dir / "idf.pkl").read_bytes()),
-            "doc_len": pickle.loads((idx_dir / "doc_len.pkl").read_bytes()),
-            "doc_map": pickle.loads((idx_dir / "doc_map.pkl").read_bytes()),
-        }
-        with open(idx_dir / "meta.json", "r") as f:
-            _sparse_index["meta"] = json.load(f)
-        _logger.info(f"[RAG] BM25 인덱스 로드 완료 ({_sparse_index['meta'].get('total_docs', '?')}건)")
-        # chunk_id → doc_id 역방향 매핑 (사전필터링용)
-        _sparse_index["reverse_doc_map"] = {v: k for k, v in _sparse_index["doc_map"].items()}
-        # 분할 청크 prefix 맵 구축 (1회): 기본 chunk_id → [분할 doc_ids]
-        # _sub: 종속항 그룹 분할, _win: 독립항 슬라이딩 윈도우 분할
-        # 예: {"..._claim_1": [doc_id_sub0, doc_id_sub1, doc_id_win0, ...]}
-        import re
-        sub_prefix_map: dict[str, list[int]] = {}
-        for chunk_id, doc_id in _sparse_index["reverse_doc_map"].items():
-            m = re.match(r"^(.+)_(?:sub|win)\d+$", chunk_id)
-            if m:
-                sub_prefix_map.setdefault(m.group(1), []).append(doc_id)
-        _sparse_index["sub_prefix_map"] = sub_prefix_map
+    if _sparse_index is not None:
+        return _sparse_index
+    with _sparse_lock:
+        if _sparse_index is None:
+            idx_dir = config.SPARSE_INDEX_DIR
+            _logger.info(f"[RAG] BM25 인덱스 로딩 중... ({idx_dir})")
+            _sparse_index = {
+                "postings": pickle.loads((idx_dir / "postings.pkl").read_bytes()),
+                "idf": pickle.loads((idx_dir / "idf.pkl").read_bytes()),
+                "doc_len": pickle.loads((idx_dir / "doc_len.pkl").read_bytes()),
+                "doc_map": pickle.loads((idx_dir / "doc_map.pkl").read_bytes()),
+            }
+            with open(idx_dir / "meta.json", "r") as f:
+                _sparse_index["meta"] = json.load(f)
+            _logger.info(f"[RAG] BM25 인덱스 로드 완료 ({_sparse_index['meta'].get('total_docs', '?')}건)")
+            _sparse_index["reverse_doc_map"] = {v: k for k, v in _sparse_index["doc_map"].items()}
+            import re
+            sub_prefix_map: dict[str, list[int]] = {}
+            for chunk_id, doc_id in _sparse_index["reverse_doc_map"].items():
+                m = re.match(r"^(.+)_(?:sub|win)\d+$", chunk_id)
+                if m:
+                    sub_prefix_map.setdefault(m.group(1), []).append(doc_id)
+            _sparse_index["sub_prefix_map"] = sub_prefix_map
     return _sparse_index
 
 
