@@ -36,6 +36,7 @@ REPORT_PROMPT = ChatPromptTemplate.from_messages([
 {selected_design_info}
 
 ⚠️ 중요: 아래 형식을 반드시 지키세요. 항목 생략 금지. 각 섹션 제목을 그대로 사용하세요.
+각 섹션 앞에 아래와 같이 1. 대상 디자인 개요 처럼 1. 2. 3. 4. 5. 6. 숫자를 기재하십시오.
 
 1. 대상 디자인 개요
 [입력 디자인 형상 요약 2-3문장]

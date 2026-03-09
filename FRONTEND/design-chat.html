@@ -712,11 +712,11 @@
                 <span id="fullPdfSelectedCount" style="font-size:0.75rem; color:#A3A3A3;">0 / 0건 선택</span>
             </div>
             <div style="display:flex; gap:0.5rem;">
-                <button class="full-pdf-export-btn" style="flex:1;" onclick="downloadFullFTOReportPDF()">
+                <!-- <button class="full-pdf-export-btn" style="flex:1;" onclick="downloadFullFTOReportPDF()">
                     <i class="fas fa-file-pdf"></i> 분석 PDF
-                </button>
-                <button class="full-pdf-export-btn" style="flex:1; background:linear-gradient(135deg,#737373,#525252);" onclick="downloadFullFTORawPDF()">
-                    <i class="fas fa-file-alt"></i> 원문 PDF
+                </button> -->
+                <button class="full-pdf-export-btn" style="flex:1;" onclick="downloadFullFTORawPDF()">
+                    <i class="fas fa-file-pdf"></i> PDF 저장
                 </button>
             </div>
         </div>
@@ -737,11 +737,11 @@
         </div>
         <div id="reportPanelContent" style="padding:1.25rem 1.5rem 0 1.5rem;"></div>
         <div style="padding:1rem 1.5rem 1.5rem 1.5rem; display:flex; gap:0.5rem;">
-            <button onclick="downloadIndividualParsedPDF()" style="flex:1; padding:0.75rem; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; border:none; border-radius:0.75rem; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; box-shadow:0 4px 12px rgba(255,107,53,0.3); transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+            <!-- <button onclick="downloadIndividualParsedPDF()" style="flex:1; padding:0.75rem; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; border:none; border-radius:0.75rem; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; box-shadow:0 4px 12px rgba(255,107,53,0.3); transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
                 <i class="fas fa-file-pdf"></i> 분석 PDF
-            </button>
-            <button onclick="downloadIndividualRawPDF()" style="flex:1; padding:0.75rem; background:linear-gradient(135deg,#737373,#525252); color:white; border:none; border-radius:0.75rem; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; box-shadow:0 4px 12px rgba(0,0,0,0.2); transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <i class="fas fa-file-alt"></i> 원문 PDF
+            </button> -->
+            <button onclick="downloadIndividualRawPDF()" style="flex:1; padding:0.75rem; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; border:none; border-radius:0.75rem; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; box-shadow:0 4px 12px rgba(255,107,53,0.3); transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <i class="fas fa-file-pdf"></i> PDF 저장
             </button>
         </div>
     </div>
@@ -1182,6 +1182,7 @@
             currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/image`, {
                 method: 'POST',
+                headers: _authHeaders(),
                 body: formData,
                 signal: currentAbortController.signal,
             });
@@ -1261,6 +1262,7 @@
             currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/select`, {
                 method: 'POST',
+                headers: _authHeaders(),
                 body: formData,
                 signal: currentAbortController.signal,
             });
@@ -1361,6 +1363,7 @@
             currentAbortController = new AbortController();
             const response = await fetch(`${API_BASE}/design/text`, {
                 method: 'POST',
+                headers: _authHeaders(),
                 body: formData,
                 signal: currentAbortController.signal,
             });
@@ -2087,7 +2090,7 @@
 
     async function loadChatSessions() {
         try {
-            const resp = await fetch(`${API_BASE}/design/sessions`);
+            const resp = await fetch(`${API_BASE}/design/sessions`, { headers: _authHeaders() });
             if (!resp.ok) return;
             const sessions = await resp.json();
             sessionCount = sessions.length;
@@ -2167,6 +2170,7 @@
         try {
             const resp = await fetch(`${API_BASE}/design/session/${threadId}`, {
                 method: 'DELETE',
+                headers: _authHeaders(),
             });
             if (!resp.ok) return;
             cardElement.remove();
@@ -2183,7 +2187,7 @@
 
     async function openSession(threadId) {
         try {
-            const resp = await fetch(`${API_BASE}/design/session/${threadId}`);
+            const resp = await fetch(`${API_BASE}/design/session/${threadId}`, { headers: _authHeaders() });
             if (!resp.ok) return;
             const data = await resp.json();
 
@@ -2221,11 +2225,16 @@
             const finalReport = data.session.final_report;
 
             // 전체 FTO 리포트 복원
-            _storedAllFTOReports = data.session.full_fto_reports || [];
+            let rawFTO = data.session.full_fto_reports;
+            if (typeof rawFTO === 'string') { try { rawFTO = JSON.parse(rawFTO); } catch(e) { rawFTO = []; } }
+            _storedAllFTOReports = rawFTO || [];
+            console.log('[세션복원] full_fto_reports 타입:', typeof data.session.full_fto_reports, '길이:', _storedAllFTOReports.length);
 
             // 개별 분석 결과 복원 (DB + 전체 FTO에서 병합)
             _individualReports = {};
-            const rawIndividual = data.session.individual_reports || {};
+            let rawIndividual = data.session.individual_reports || {};
+            if (typeof rawIndividual === 'string') { try { rawIndividual = JSON.parse(rawIndividual); } catch(e) { rawIndividual = {}; } }
+            console.log('[세션복원] individual_reports 키:', Object.keys(rawIndividual));
             for (const [k, v] of Object.entries(rawIndividual)) {
                 _individualReports[parseInt(k)] = v;
             }
@@ -2312,10 +2321,12 @@
 
             // 개별 분석 완료 버튼 업데이트 (DOM 렌더 후)
             setTimeout(() => {
-                for (const idx of Object.keys(_individualReports)) {
+                const keys = Object.keys(_individualReports);
+                console.log('[세션복원] 버튼 업데이트 대상:', keys.length, '건, 인덱스:', keys);
+                for (const idx of keys) {
                     _updateDesignBtn(parseInt(idx));
                 }
-            }, 100);
+            }, 300);
 
             // 컨텍스트 배너 — 완료 세션이나 이미지가 있으면 텍스트 대화 가능
             if (isCompleted || uploadImg) {
@@ -2544,6 +2555,7 @@
                 _fullReportAbortController = new AbortController();
                 const response = await fetch(`${API_BASE}/design/select`, {
                     method: 'POST',
+                    headers: _authHeaders(),
                     body: formData,
                     signal: _fullReportAbortController.signal,
                 });
@@ -2635,11 +2647,15 @@
 
         // DB에 전체 FTO 결과 저장
         try {
-            await fetch(`${API_BASE}/design/session/${activeThreadId}/full-fto`, {
+            const savePayload = JSON.stringify({ reports: allReports });
+            console.log('[전체FTO] DB 저장 시도, payload 크기:', (savePayload.length / 1024).toFixed(1), 'KB, 건수:', allReports.length);
+            const saveResp = await fetch(`${API_BASE}/design/session/${activeThreadId}/full-fto`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reports: allReports }),
+                headers: { ..._authHeaders(), 'Content-Type': 'application/json' },
+                body: savePayload,
             });
+            console.log('[전체FTO] DB 저장 응답:', saveResp.status, saveResp.ok ? '성공' : '실패');
+            if (!saveResp.ok) console.warn('[전체FTO] 저장 실패 응답:', await saveResp.text());
         } catch (e) { console.warn('전체 FTO 저장 실패:', e); }
     }
 
@@ -3182,7 +3198,7 @@
         try {
             const resp = await fetch(`${API_BASE}/design/session/${threadId}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { ..._authHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ preview: newName.trim() }),
             });
             if (resp.ok) { h4.textContent = newName.trim(); Toast.success('이름이 변경되었습니다.'); }

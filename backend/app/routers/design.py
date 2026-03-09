@@ -23,6 +23,8 @@ from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
+from app.services.auth_service import AuthService
+from app.models.user import User
 from app.models.design_session import (
     DesignSession,
     DesignSessionImage,
@@ -163,6 +165,7 @@ async def analyze_design_image(
     image: UploadFile = File(...),
     user_query: str = Form("이 제품과 유사한 디자인을 분석해줘"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
 ):
     """이미지 업로드 → S3 저장 → VLM 분석 + ChromaDB 유사 디자인 검색."""
     file_bytes = await image.read()
@@ -171,7 +174,8 @@ async def analyze_design_image(
     if _ensure_design_graph_loaded() and _design_graph is not None:
         return await _image_via_langgraph(
             file_bytes, user_query, thread_id,
-            image.filename, len(file_bytes), db
+            image.filename, len(file_bytes), db,
+            user_id=current_user.id,
         )
     else:
         return {
@@ -189,21 +193,23 @@ async def _image_via_langgraph(
     original_filename: Optional[str],
     file_size: int,
     db: Session,
+    user_id: Optional[int] = None,
 ) -> dict:
     """LangGraph 디자인 챗봇으로 이미지 분석 + S3/RDS 저장."""
 
-    # 1. RDS에 세션 생성 — 30개 초과 시 오래된 세션 자동 삭제
+    # 1. RDS에 세션 생성 — 사용자별 30개 초과 시 오래된 세션 자동 삭제
     SESSION_LIMIT = 30
+    user_filter = DesignSession.user_id == user_id if user_id else True
     existing_count = (
         db.query(DesignSession)
-        .filter(~DesignSession.thread_id.startswith("text-"))
+        .filter(user_filter, ~DesignSession.thread_id.startswith("text-"))
         .count()
     )
     if existing_count >= SESSION_LIMIT:
         delete_ids = [
             row[0] for row in
             db.query(DesignSession.id)
-            .filter(~DesignSession.thread_id.startswith("text-"))
+            .filter(user_filter, ~DesignSession.thread_id.startswith("text-"))
             .order_by(DesignSession.created_at.asc())
             .limit(existing_count - SESSION_LIMIT + 1)
             .all()
@@ -222,6 +228,7 @@ async def _image_via_langgraph(
 
     session = DesignSession(
         thread_id=thread_id,
+        user_id=user_id,
         status=DesignSessionStatus.analyzing,
     )
     db.add(session)
@@ -814,6 +821,22 @@ async def get_session_history(
         except json.JSONDecodeError:
             comparison_results = []
 
+    # full_fto_reports_json 처리
+    full_fto_reports = db_session.full_fto_reports_json
+    if isinstance(full_fto_reports, str):
+        try:
+            full_fto_reports = json.loads(full_fto_reports)
+        except json.JSONDecodeError:
+            full_fto_reports = []
+
+    # individual_reports_json 처리
+    individual_reports = db_session.individual_reports_json
+    if isinstance(individual_reports, str):
+        try:
+            individual_reports = json.loads(individual_reports)
+        except json.JSONDecodeError:
+            individual_reports = {}
+
     return {
         "success": True,
         "session": {
@@ -823,8 +846,8 @@ async def get_session_history(
             "similar_designs": comparison_results,  # base64 포함된 similar_designs 포맷
             "selected_index": db_session.selected_index,
             "final_report": db_session.final_report,
-            "full_fto_reports": db_session.full_fto_reports_json,
-            "individual_reports": db_session.individual_reports_json,
+            "full_fto_reports": full_fto_reports,
+            "individual_reports": individual_reports,
             "created_at": db_session.created_at.isoformat() + "+00:00" if db_session.created_at else None,
             "updated_at": db_session.updated_at.isoformat() + "+00:00" if db_session.updated_at else None,
         },
@@ -841,8 +864,9 @@ async def get_session_history(
 async def list_design_sessions(
     limit: int = 30,
     db: Session = Depends(get_db),
+    current_user: User = Depends(AuthService.get_current_user_dependency),
 ):
-    """디자인 분석 세션 목록 조회 (사이드바용) — 경량 쿼리."""
+    """디자인 분석 세션 목록 조회 (사이드바용) — 본인 세션만."""
     from sqlalchemy.orm import load_only
     sessions = (
         db.query(DesignSession)
@@ -855,7 +879,10 @@ async def list_design_sessions(
                 DesignSessionImage.image_type, DesignSessionImage.s3_url,
             ),
         )
-        .filter(~DesignSession.thread_id.startswith("text-"))
+        .filter(
+            DesignSession.user_id == current_user.id,
+            ~DesignSession.thread_id.startswith("text-"),
+        )
         .order_by(DesignSession.created_at.desc())
         .limit(limit)
         .all()
@@ -922,8 +949,34 @@ async def save_full_fto_reports(
     ).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
-    db_session.full_fto_reports_json = data.get("reports", [])
+    reports = data.get("reports", [])
+    print(f"[full-fto] 저장 요청: thread_id={thread_id}, reports 건수={len(reports) if isinstance(reports, list) else 'N/A'}")
+    db_session.full_fto_reports_json = reports
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(db_session, "full_fto_reports_json")
     db.commit()
+    print(f"[full-fto] DB 저장 완료: thread_id={thread_id}")
+
+    # 리포트 데이터는 최근 10개 세션만 보관, 나머지는 정리
+    REPORT_KEEP_LIMIT = 10
+    sessions_with_reports = (
+        db.query(DesignSession.id)
+        .filter(
+            DesignSession.full_fto_reports_json.isnot(None),
+            ~DesignSession.thread_id.startswith("text-"),
+        )
+        .order_by(DesignSession.updated_at.desc())
+        .all()
+    )
+    if len(sessions_with_reports) > REPORT_KEEP_LIMIT:
+        old_ids = [row[0] for row in sessions_with_reports[REPORT_KEEP_LIMIT:]]
+        db.query(DesignSession).filter(DesignSession.id.in_(old_ids)).update(
+            {"full_fto_reports_json": None, "individual_reports_json": None},
+            synchronize_session=False,
+        )
+        db.commit()
+        print(f"[full-fto] 오래된 리포트 {len(old_ids)}건 정리 완료")
+
     return {"success": True}
 
 
