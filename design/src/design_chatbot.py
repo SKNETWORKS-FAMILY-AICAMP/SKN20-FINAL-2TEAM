@@ -40,7 +40,7 @@ from langgraph.checkpoint.memory import MemorySaver  # interrupt 사용시 필�
 from langgraph.prebuilt import ToolNode
 
 # 웹 검색
-from langchain_community.tools import TavilySearchResults
+from langchain_tavily import TavilySearch
 
 # 벡터DB
 import chromadb
@@ -146,13 +146,16 @@ _search_image_results: List[Dict] = []
 @tool
 def web_search(query: str) -> str:
     """웹 검색 tool. 특허 뉴스, 법률 정보, 일반 질문 등에 활용됨."""
-    search = TavilySearchResults(max_results=3) # n =3
+    search = TavilySearch(max_results=3)
     results = search.invoke(query)
 
     # 결과 정리
     output = ""
     for r in results:
-        output += f"- {r['content']}\n  출처: {r['url']}\n\n"
+        if isinstance(r, dict):
+            output += f"- {r.get('content', '')}\n  출처: {r.get('url', '')}\n\n"
+        else:
+            output += f"- {r}\n\n"
     return output
 
 
