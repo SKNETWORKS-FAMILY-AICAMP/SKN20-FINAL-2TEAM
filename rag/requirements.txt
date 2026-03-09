@@ -1,17 +1,19 @@
+# Python 3.11 버전 사용
+
 # Dense embedding & reranking
-sentence-transformers
+sentence-transformers==5.2.3
 
 # Vector DB
-chromadb
+chromadb==1.5.1
 
 # LLM API (vLLM / OpenAI compatible)
-openai
+openai==2.24.0
 
 # Environment config
-python-dotenv
+python-dotenv==1.2.1
 
-# Pre-filter CSV processing (DB 전환 시 제거 가능)
-pandas
+# Pre-filter CSV processing
+pandas==3.0.1
 
-# MySQL connection (선택 - DB 필터링 활성화 시 필요)
-# pymysql
+# MySQL connection
+PyMySQL==1.1.2

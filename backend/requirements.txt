@@ -1,33 +1,33 @@
+# Python 3.11 버전 사용
+
 # FastAPI
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+fastapi==0.133.1
+uvicorn[standard]==0.41.0
+python-multipart==0.0.22
 
 # Database
-sqlalchemy==2.0.25
-pymysql==1.1.0
-cryptography==42.0.0
-alembic==1.13.1
-chromadb>=0.5.23
+SQLAlchemy==2.0.47
+PyMySQL==1.1.2
+cryptography==46.0.5
+chromadb==1.5.1
 
 # Authentication
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
 
 # Validation
-pydantic==2.5.3
-pydantic-settings==2.1.0
-email-validator==2.1.0
+pydantic==2.12.5
+pydantic-settings==2.13.1
+email-validator==2.3.0
 
 # ML/AI (HuggingFace API 사용)
-huggingface_hub>=0.20.0
-openai>=1.0.0
-chromadb>=0.5.23
+huggingface_hub==1.5.0
+openai==2.24.0
 
 # AWS
-boto3>=1.34.0
+boto3==1.42.59
 
 # Utils
-python-dotenv==1.0.0
-httpx==0.26.0
-loguru>=0.7.0
+python-dotenv==1.2.1
+httpx==0.28.1
+loguru==0.7.3
