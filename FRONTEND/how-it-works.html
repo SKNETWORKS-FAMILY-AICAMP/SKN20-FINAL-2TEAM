@@ -217,15 +217,15 @@
                 </h1>
                 
                 <p class="text-lg text-slate-600 leading-relaxed">
-                    제품 정보를 입력하는 것만으로 AI가 특허 침해 가능성을 단계별로 분석합니다.<br>
+                    제품 정보를 입력하는 것만으로 AI가 특허/디자인 침해 가능성을 분석합니다.<br>
                     분석 유형에 따라 각각 최적화된 프로세스로 결과를 제공합니다.
                 </p>
 
                 <div class="flex flex-wrap justify-center gap-3 pt-2">
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">⚡ 빠른 분석</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">⚡ 약 10분 자동 분석</span>
                     <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">🔒 보안 처리</span>
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">📋 리포트 제공</span>
-                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">💡 회피 설계 제안</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">📋 PDF 리포트 제공</span>
+                    <span class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm text-slate-700">🔍 유사 건 TOP 10 추출</span>
                 </div>
             </div>
         </div>
@@ -250,7 +250,7 @@
 
                 <div class="mb-10">
                     <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-3">특허·실용신안 분석 프로세스</h2>
-                    <p class="text-slate-500">화장품 성분·조성물·기술 구성을 입력하면 등록 특허와 자동으로 비교합니다.</p>
+                    <p class="text-slate-500">제품의 기술 구성·핵심 키워드를 입력하면 KIPRIS 등록 특허와 자동으로 비교합니다.</p>
                 </div>
 
                 <div class="process-timeline">
@@ -287,22 +287,14 @@
                     <div class="process-step animate-in animate-delay-200">
                         <div class="step-number">2</div>
                         <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">유사 특허 자동 검색</h3>
+                            <h3 class="text-xl font-bold text-slate-900">유사 특허 TOP 10 자동 검색</h3>
                             <p class="text-slate-600">
-                                AI가 국내외 화장품 특허 데이터베이스에서 입력된 제품과 유사한 특허를 자동으로 찾아냅니다.
+                                AI가 한국 특허청(KIPRIS) DB에서 입력된 제품과 유사한 특허를 자동으로 찾아 TOP 10을 추출합니다.
                             </p>
-                            <div class="grid md:grid-cols-3 gap-4">
+                            <div class="grid md:grid-cols-1 gap-4">
                                 <div class="stat-card">
                                     <div class="stat-number">KIPRIS</div>
-                                    <div class="stat-label">국내 특허 DB</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">USPTO</div>
-                                    <div class="stat-label">미국 특허 DB</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-number">EPO</div>
-                                    <div class="stat-label">유럽 특허 DB</div>
+                                    <div class="stat-label">한국 특허청 특허·실용신안 DB</div>
                                 </div>
                             </div>
                         </div>
@@ -359,17 +351,17 @@
                         <div class="space-y-4">
                             <h3 class="text-xl font-bold text-slate-900">침해 가능성 판단</h3>
                             <p class="text-slate-600">
-                                특허법 원칙에 따라 실질적인 침해 여부를 판단합니다.<br>
-                                단순히 성분이 겹쳐도 모든 구성요소를 충족해야 침해로 판단되기 때문에, 정확한 분석이 가능합니다.
+                                특허법 원칙에 따라 실질적인 침해 가능성을 판단합니다.<br>
+                                단순히 일부가 겹쳐도 모든 구성요소를 충족해야 침해로 판단되기 때문에, 정밀한 분석이 가능합니다.
                             </p>
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div class="feature-card">
-                                    <h4 class="font-semibold text-slate-900 mb-2">🔍 모든 구성요소 충족 원칙</h4>
-                                    <p class="text-sm text-slate-600">특허의 모든 핵심 성분·구성을 내 제품이 포함할 때만 침해로 판단합니다. 하나라도 빠지면 침해가 아닙니다.</p>
+                                    <h4 class="font-semibold text-slate-900 mb-2">🔍 구성요소 완비의 법칙 (All Elements Rule)</h4>
+                                    <p class="text-sm text-slate-600">특허의 모든 핵심 구성요소를 내 제품이 포함할 때만 침해로 판단합니다. 하나라도 빠지면 침해가 아닙니다.</p>
                                 </div>
                                 <div class="feature-card">
-                                    <h4 class="font-semibold text-slate-900 mb-2">⚖️ 유사 범위 검토</h4>
-                                    <p class="text-sm text-slate-600">수치가 약간 다르거나 성분을 살짝 변형해도 실질적으로 같은 효과라면 침해 검토 대상이 될 수 있습니다.</p>
+                                    <h4 class="font-semibold text-slate-900 mb-2">⚖️ 균등론 검토</h4>
+                                    <p class="text-sm text-slate-600">구성요소를 살짝 변형해도 실질적으로 같은 기능·효과라면 침해 검토 대상이 될 수 있습니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -379,9 +371,9 @@
                     <div class="process-step animate-in">
                         <div class="step-number">5</div>
                         <div class="space-y-4">
-                            <h3 class="text-xl font-bold text-slate-900">결과 및 회피 방안 제공</h3>
+                            <h3 class="text-xl font-bold text-slate-900">FTO 리포트 생성 및 PDF 저장</h3>
                             <p class="text-slate-600">
-                                분석 결과를 4가지 등급으로 알려주고, 침해 위험이 있을 경우 제품을 안전하게 출시할 수 있는 방향을 제안합니다.
+                                분석 결과를 정리한 FTO 리포트를 자동 생성하고, PDF로 다운로드하여 사내 검토 또는 변리사 상담 자료로 활용합니다.
                             </p>
                             <div class="space-y-3">
                                 <div class="result-card safe">
@@ -402,7 +394,7 @@
                                     <span class="text-red-600 text-lg">🚨</span>
                                     <div>
                                         <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
-                                        <p class="text-red-700 text-xs mt-0.5">성분·구성을 변경하거나 특허권자와 협의가 필요합니다. AI가 회피 방안을 제안합니다.</p>
+                                        <p class="text-red-700 text-xs mt-0.5">구성요소 변경 또는 특허권자와의 협의가 필요합니다. 변리사 상담을 권장합니다.</p>
                                     </div>
                                 </div>
                                 <div class="result-card info">
@@ -495,24 +487,19 @@
                             <div class="space-y-3">
                                 <h3 class="text-xl font-bold text-slate-900">VLM 이미지 분석 → 유사 디자인 10개 반환</h3>
                                 <p class="text-slate-600">
-                                    VLM(Vision Language Model)이 업로드된 사진의 형태·색채·장식 요소를 분석하고,
+                                    VLM(Vision Language Model)이 업로드된 사진의 형태·구조·장식 요소를 분석하고,
                                     등록 디자인 DB에서 가장 유사한 10개를 추출하여 썸네일로 제시합니다.
                                 </p>
-                                <div class="grid md:grid-cols-3 gap-4">
+                                <div class="grid md:grid-cols-2 gap-4">
                                     <div class="feature-card text-center">
                                         <div class="text-2xl mb-2">🔲</div>
-                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">전체 형태</h4>
-                                        <p class="text-xs text-slate-500">원통형, 사각형, 타원형 등 실루엣 분석</p>
-                                    </div>
-                                    <div class="feature-card text-center">
-                                        <div class="text-2xl mb-2">🎨</div>
-                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">색채·재질</h4>
-                                        <p class="text-xs text-slate-500">표면 색상, 투명도, 재질감 분석</p>
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">실루엣·전체 형태</h4>
+                                        <p class="text-xs text-slate-500">원통형, 사각형, 타원형 등 전체 실루엣과 물체 형태·단면 분석</p>
                                     </div>
                                     <div class="feature-card text-center">
                                         <div class="text-2xl mb-2">✨</div>
-                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">장식 요소</h4>
-                                        <p class="text-xs text-slate-500">패턴, 라인, 캡 형태 등 세부 요소</p>
+                                        <h4 class="font-semibold text-slate-900 text-sm mb-1">구조·장식 요소</h4>
+                                        <p class="text-xs text-slate-500">상부·하부 구조, 굴곡·에지, 표면 패턴, 캡 형태 등 세부 요소</p>
                                     </div>
                                 </div>
                             </div>
@@ -542,29 +529,35 @@
                             <div class="space-y-3">
                                 <h3 class="text-xl font-bold text-slate-900">상세 비교 분석 → FTO 리포트 생성</h3>
                                 <p class="text-slate-600">
-                                    업로드한 사진과 선택한 등록 디자인을 항목별로 정밀 비교하여 침해 가능성을 판단하고,
-                                    차별화 포인트와 회피 방향이 포함된 FTO 리포트를 생성합니다.
+                                    업로드한 사진과 선택한 등록 디자인을 항목별로 정밀 비교하여,
+                                    유사점과 차이점을 정리하고 유사도 점수 기반의 FTO 판단 및 검토 의견을 제공합니다.
                                 </p>
+                                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 mb-2">📋 유사점 분석</h4>
+                                        <ul class="text-xs text-slate-600 space-y-1 list-none">
+                                            <li>· [실루엣/전체 형태] 동일 여부</li>
+                                            <li>· [물체 형태·단면] 구조 동일 여부</li>
+                                            <li>· [굴곡·에지] 라운딩 처리 동일 여부</li>
+                                            <li>· [표면 패턴] 무패턴 동일 여부</li>
+                                        </ul>
+                                    </div>
+                                    <div class="feature-card">
+                                        <h4 class="font-semibold text-slate-900 mb-2">🔍 차이점 분석</h4>
+                                        <ul class="text-xs text-slate-600 space-y-1 list-none">
+                                            <li>· [실루엣/전체 형태] 형상 차이</li>
+                                            <li>· [물체 형태·단면] 단면 형태 차이</li>
+                                            <li>· [상부·캡 구조] 장식 유무 차이</li>
+                                            <li>· [하부 형태] 마감 처리 차이</li>
+                                        </ul>
+                                    </div>
+                                </div>
                                 <div class="space-y-3">
-                                    <div class="result-card safe">
-                                        <span class="text-green-600 text-lg">✅</span>
-                                        <div>
-                                            <p class="font-semibold text-green-800 text-sm">침해 가능성이 낮습니다</p>
-                                            <p class="text-green-700 text-xs mt-0.5">기존 등록 디자인과 충분히 구별됩니다. 현재 디자인으로 진행 가능합니다.</p>
-                                        </div>
-                                    </div>
                                     <div class="result-card warn">
-                                        <span class="text-yellow-600 text-lg">⚠️</span>
+                                        <span class="text-yellow-600 text-lg">💡</span>
                                         <div>
-                                            <p class="font-semibold text-yellow-800 text-sm">전문가 추가 검토 권고</p>
-                                            <p class="text-yellow-700 text-xs mt-0.5">일부 외관이 유사합니다. 디자인 전문가나 변리사 확인을 권장합니다.</p>
-                                        </div>
-                                    </div>
-                                    <div class="result-card danger">
-                                        <span class="text-red-600 text-lg">🚨</span>
-                                        <div>
-                                            <p class="font-semibold text-red-800 text-sm">침해 가능성이 높습니다</p>
-                                            <p class="text-red-700 text-xs mt-0.5">등록 디자인과 외관이 매우 유사합니다. AI가 구체적인 차별화 포인트를 제안합니다.</p>
+                                            <p class="font-semibold text-yellow-800 text-sm">검토 의견 — 최종 판단 조언</p>
+                                            <p class="text-yellow-700 text-xs mt-0.5">유사점·차이점을 종합하여 FTO 저촉 가능성을 설명합니다.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -678,8 +671,8 @@
                     <div class="security-icon bg-blue-100">
                         <i class="fas fa-trash-alt text-xl text-blue-600"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">분석 후 즉시 삭제</h3>
-                    <p class="text-sm text-slate-600">세션이 종료되면 입력된 제품 정보는 즉시 삭제됩니다. 데이터가 서버에 남지 않습니다.</p>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">본인만 접근 가능</h3>
+                    <p class="text-sm text-slate-600">분석 기록은 로그인한 본인 계정에서만 열람할 수 있습니다. 다른 사용자나 외부에 공유되지 않습니다.</p>
                 </div>
 
                 <div class="feature-card">
