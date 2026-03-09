@@ -1041,14 +1041,17 @@
 
             clearInterval(searchMsgTimer);
             stopSearchCounter();
+            const prevThreadId = threadId;
             threadId = searchResp.session_id;
             searchToken = searchResp.search_token;
             searchResults = searchResp.search_results || [];
 
-            // 검색 완료 즉시 사이드바에 세션 카드 추가
-            sessionCount++;
-            updateTotalCount();
-            addSessionCard(text, null);
+            // 검색 완료 즉시 사이드바에 세션 카드 추가 (새 세션일 때만)
+            if (!prevThreadId) {
+                sessionCount++;
+                updateTotalCount();
+                addSessionCard(text, null);
+            }
 
             if (searchResults.length === 0) {
                 removeLoadingMessage();
@@ -2518,24 +2521,7 @@
             messagesWrapper.innerHTML = '';
             closeResultPanel();
 
-            // 메시지 렌더링 + 분석 결과 복원
-            const analysisIds = [];
-            if (chat.messages && chat.messages.length > 0) {
-                chat.messages.forEach(msg => {
-                    if (msg.role === 'user') {
-                        addUserMessage(msg.content, msg.created_at);
-                    } else if (msg.role === 'assistant') {
-                        addBotMessage(msg.content, msg.created_at);
-                    }
-                    // analysis는 user 메시지에 연결되어 있음
-                    if (msg.analysis_id) {
-                        analysisIds.push(msg.analysis_id);
-                    }
-                });
-            }
-
-            // 분석 결과가 있으면 복원 (TOP10 리스트 + 결과보기 버튼)
-            // 히스토리 모드 초기화
+            // 메시지 렌더링 + 분석 결과 복원 (순서대로 섞어서)
             searchToken = null;
             currentAnalysisId = null;
             patentAnalyses = [];
@@ -2543,33 +2529,44 @@
             additionalBubbleDiv = null;
             searchResults = [];
 
-            for (const aid of analysisIds) {
-                try {
-                    const aResp = await fetch(`${API_BASE}/chat/analysis/${aid}`, {
-                        headers: authHeaders(),
-                    });
-                    if (aResp.ok) {
-                        const aData = await aResp.json();
-                        const sResults = aData.search_results || [];
-                        const analyses = aData.patent_analyses || [];
+            if (chat.messages && chat.messages.length > 0) {
+                for (const msg of chat.messages) {
+                    if (msg.role === 'user') {
+                        addUserMessage(msg.content, msg.created_at);
+                        // 분석 결과가 연결된 user 메시지면 바로 아래에 렌더
+                        if (msg.analysis_id) {
+                            try {
+                                const aResp = await fetch(`${API_BASE}/chat/analysis/${msg.analysis_id}`, {
+                                    headers: authHeaders(),
+                                });
+                                if (aResp.ok) {
+                                    const aData = await aResp.json();
+                                    const sResults = aData.search_results || [];
+                                    const analyses = aData.patent_analyses || [];
 
-                        // TOP10 리스트 복원 (분석 결과도 함께 전달하여 버튼에 반영)
-                        if (sResults.length > 0) {
-                            addPatentListMessage(sResults, analyses);
-                            searchResults = sResults;
-                            currentAnalysisId = aid;
+                                    if (sResults.length > 0) {
+                                        addPatentListMessage(sResults, analyses);
+                                        searchResults = sResults;
+                                        currentAnalysisId = msg.analysis_id;
+                                    }
+
+                                    if (analyses.length > 0) {
+                                        patentAnalyses = analyses;
+                                        analysesHistory.set(msg.analysis_id, analyses);
+                                        addResultViewButton(analyses, msg.analysis_id);
+                                        _updateAnalyzeAllBtnState();
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('분석 결과 로드 실패:', e);
+                            }
                         }
-
-                        if (analyses.length > 0) {
-                            patentAnalyses = analyses;
-                            analysesHistory.set(aid, analyses);
-                            addResultViewButton(analyses, aid);
-                            // 분석 결과가 있으면 "전체 분석" 버튼 활성화
-                            _updateAnalyzeAllBtnState();
+                    } else if (msg.role === 'assistant') {
+                        // "FTO 분석이 완료되었습니다." 등 분석 완료 메시지는 스킵
+                        if (!msg.content.includes('분석이 완료되었습니다')) {
+                            addBotMessage(msg.content, msg.created_at);
                         }
                     }
-                } catch (e) {
-                    console.error('분석 결과 로드 실패:', e);
                 }
             }
 
