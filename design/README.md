@@ -144,9 +144,10 @@ DB에 저장된 임베딩은 스케치 변환 이미지 기준이므로, 쿼리 
 ```
 원본 이미지
   └─▶ GaussianBlur (5×5, σ=1.0)
-        └─▶ Canny Edge Detection (threshold: 30 / 120)
+        └─▶ Canny Edge Detection (threshold: 80 / 200)   ← 강한 엣지만 검출, 배경 노이즈 감소
               └─▶ Dilate (2×2 kernel, 1회)
-                    └─▶ 흰 배경 + 검은 윤곽선
+                    └─▶ findContours → 면적 500px² 미만 제거  ← 잔여 노이즈 제거
+                          └─▶ 흰 배경 + 검은 윤곽선
 ```
 
 **검색 — Dense + BM25 2단계**

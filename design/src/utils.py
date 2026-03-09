@@ -177,15 +177,22 @@ def convert_to_sketch_query(image: Image.Image) -> Image.Image:
     저장된 DB 임베딩 = 스케치 변환 이미지 기반
     쿼리 임베딩      = 원본 이미지 기반  ← 불일치 → 이 함수로 해결
 
-    파라미터: GaussianBlur(5,5,1.0) / Canny(30,120) / dilate(2x2, 1회)
+    파라미터: GaussianBlur(5,5,1.0) / Canny(80,200) / dilate(2x2, 1회) / 면적 필터(min_area=500)
     결과: 흰 배경 + 검은 윤곽선 PIL Image
     """
-    img_array  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
-    blurred    = cv2.GaussianBlur(img_array, (5, 5), 1.0)
-    edges      = cv2.Canny(blurred, 30, 120)
-    edges      = cv2.dilate(edges, np.ones((2, 2), np.uint8), iterations=1)
-    sketch     = 255 - edges              # 흰 배경, 검은 선
-    sketch_rgb = cv2.cvtColor(sketch, cv2.COLOR_GRAY2RGB)
+    img_array = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
+    blurred   = cv2.GaussianBlur(img_array, (5, 5), 1.0)
+    edges     = cv2.Canny(blurred, 80, 200)
+    edges     = cv2.dilate(edges, np.ones((2, 2), np.uint8), iterations=1)
+
+    # 작은 노이즈 제거: 면적 500px² 미만 윤곽선 제외
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    canvas = np.ones_like(edges) * 255  # 흰 배경
+    for cnt in contours:
+        if cv2.contourArea(cnt) >= 500:
+            cv2.drawContours(canvas, [cnt], -1, 0, 1)
+
+    sketch_rgb = cv2.cvtColor(canvas, cv2.COLOR_GRAY2RGB)
     return Image.fromarray(sketch_rgb)
 
 
