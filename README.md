@@ -23,7 +23,7 @@
 - Small LLM (침해 판단 모델)
 
 **데이터베이스:**
-- PostgreSQL (메타데이터 관리)
+- MySQL 8.4 (AWS RDS, 메타데이터 관리)
 - ChromaDB / Pinecone (Vector Database)
 
 **프레임워크:**
@@ -41,5 +41,5 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![LangChain](https://img.shields.io/badge/LangChain-Latest-green.svg)](https://www.langchain.com/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-orange.svg)](https://openai.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.4-4479A1.svg)](https://www.mysql.com/)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Latest-purple.svg)](https://www.trychroma.com/)
