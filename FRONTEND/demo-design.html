@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>FTOGuard | 디자인 분석 데모</title>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --primary: #FF6B35;
+        }
+
+        .text-primary { color: var(--primary); }
+        .bg-primary { background-color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        .hover\:bg-primary\/90:hover { background-color: rgba(255, 107, 53, 0.9); }
+        .bg-primary\/10 { background-color: rgba(255, 107, 53, 0.1); }
+        .bg-primary\/20 { background-color: rgba(255, 107, 53, 0.2); }
+        .bg-primary\/30 { background-color: rgba(255, 107, 53, 0.3); }
+        .border-primary\/30 { border-color: rgba(255, 107, 53, 0.3); }
+        .break-keep { word-break: keep-all; }
+
+        /* 비디오 래퍼 - 영상 비율 자동 맞춤 */
+        .video-wrapper {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            line-height: 0;
+        }
+        .video-wrapper video {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: none;
+        }
+        .video-wrapper iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
+        }
+
+        /* 타임라인 단계 */
+        .chapter-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .chapter-item:hover {
+            background-color: rgba(255, 107, 53, 0.06);
+        }
+        .chapter-item.active {
+            background-color: rgba(255, 107, 53, 0.1);
+            border-left-color: var(--primary) !important;
+        }
+        .chapter-item.active .chapter-time {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .chapter-item.active .chapter-title {
+            color: #000;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+<!-- Header -->
+<div id="app-header"></div>
+
+<!-- Hero -->
+<section class="pt-24 pb-10 bg-gradient-to-b from-neutral-50 to-white border-b border-neutral-100">
+    <div class="max-w-[1200px] mx-auto px-6 text-center space-y-4">
+        <div class="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white px-4 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
+            <i class="fas fa-play-circle"></i>
+            Product Demo
+        </div>
+        <h1 class="text-2xl md:text-4xl font-bold text-black break-keep leading-tight">
+            FTOGuard, 이미지 하나면 됩니다.<br/>
+            <span class="text-primary">디자인 리스크 분석</span> 데모 영상
+        </h1>
+        <p class="text-sm md:text-base text-neutral-600 max-w-xl mx-auto leading-relaxed">
+            리스크 분석 탭에서 <strong class="text-black">디자인</strong>을 선택하고,
+            제품 이미지를 업로드하는 것만으로 AI가 유사 디자인 Top 10 침해 분석을 완료합니다.
+        </p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-12 md:py-16">
+    <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-start">
+
+            <!-- 영상 플레이어 -->
+            <div class="space-y-4">
+                <div class="video-wrapper shadow-2xl">
+                    <video id="demo-video" controls style="display:block;width:100%;height:auto;">
+                        <source src="https://ftoguard-design-images.s3.ap-northeast-2.amazonaws.com/demo_video/demo_design.mp4" type="video/mp4">
+                        브라우저가 동영상을 지원하지 않습니다.
+                    </video>
+                </div>
+
+                <!-- 영상 정보 -->
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-4 text-sm text-neutral-500">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-clock text-xs"></i>
+                            약 2분 30초
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <i class="fas fa-tag text-xs"></i>
+                            디자인 분석
+                        </span>
+                    </div>
+                    <a href="select-analysis-type.html"
+                       onclick="checkAuthAndRedirect('design-chat.html'); return false;"
+                       class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-all">
+                        <i class="fas fa-play text-xs"></i>
+                        직접 해보기
+                    </a>
+                </div>
+            </div>
+
+            <!-- 챕터 / 데모 흐름 -->
+            <div class="space-y-3">
+                <h2 class="text-sm font-bold text-neutral-500 uppercase tracking-wider px-1">데모 흐름</h2>
+
+                <div class="space-y-1">
+
+                    <div class="chapter-item active border-l-4 border-primary/30 rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 0)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-primary w-10 shrink-0 pt-0.5">0:00</span>
+                            <div>
+                                <p class="chapter-title text-sm font-semibold text-black">서비스 소개</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">FTOGuard 랜딩 페이지 개요</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chapter-item border-l-4 border-transparent rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 18)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-neutral-400 w-10 shrink-0 pt-0.5">0:18</span>
+                            <div>
+                                <p class="chapter-title text-sm font-medium text-neutral-700">리스크 분석 탭 클릭</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">메뉴에서 '디자인' 탭 선택</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chapter-item border-l-4 border-transparent rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 38)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-neutral-400 w-10 shrink-0 pt-0.5">0:38</span>
+                            <div>
+                                <p class="chapter-title text-sm font-medium text-neutral-700">이미지 업로드</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">제품 이미지 첨부 후 질문하기</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chapter-item border-l-4 border-transparent rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 70)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-neutral-400 w-10 shrink-0 pt-0.5">1:10</span>
+                            <div>
+                                <p class="chapter-title text-sm font-medium text-neutral-700">AI 분석 진행</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">형상 분석 + 유사 디자인 Top 10 추출</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chapter-item border-l-4 border-transparent rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 100)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-neutral-400 w-10 shrink-0 pt-0.5">1:40</span>
+                            <div>
+                                <p class="chapter-title text-sm font-medium text-neutral-700">FTO 리포트 확인</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">전체 리포트 또는 개별 리포트 선택</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chapter-item border-l-4 border-transparent rounded-r-xl px-4 py-3.5 bg-white"
+                         onclick="seekTo(this, 135)">
+                        <div class="flex items-start gap-3">
+                            <span class="chapter-time text-xs font-semibold text-neutral-400 w-10 shrink-0 pt-0.5">2:15</span>
+                            <div>
+                                <p class="chapter-title text-sm font-medium text-neutral-700">PDF 저장 & KIPRIS 연동</p>
+                                <p class="text-xs text-neutral-500 mt-0.5">출원번호 복사 후 원문 바로가기</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 다른 데모 링크 -->
+                <div class="mt-4 pt-4 border-t border-neutral-100">
+                    <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-1">다른 기능 보기</p>
+                    <a href="demo.html"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-200 hover:border-primary/40 hover:bg-orange-50/30 transition-all group">
+                        <div class="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                            <i class="fas fa-file-alt text-primary text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-black group-hover:text-primary transition-colors">특허·실용신안 분석 데모</p>
+                            <p class="text-xs text-neutral-500">청구항 단위 침해 분석</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-neutral-300 text-xs ml-auto group-hover:text-primary transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 데모에서 보여주는 기능 요약 -->
+<section class="py-12 md:py-16 bg-neutral-50 border-t border-neutral-100">
+    <div class="max-w-[1200px] mx-auto px-6">
+        <div class="text-center mb-10">
+            <p class="text-sm font-semibold text-primary uppercase tracking-wider mb-2">데모 하이라이트</p>
+            <h2 class="text-xl md:text-2xl font-bold text-black">이 데모에서 확인하는 3가지</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div class="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+                <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <i class="fas fa-image text-primary text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-black mb-1">이미지 기반 형상 분석</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        제품 이미지를 업로드하면 AI가 형상·외관을 자동 분석합니다.
+                        화장품 용기, 전자기기 등 카테고리 분류와 특징 요소를 함께 제공합니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+                <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <i class="fas fa-th text-primary text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-black mb-1">유사 디자인 Top 10 검색</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        한국 특허청 디자인 DB에서 유사 디자인을 추출하고,
+                        이미지 형태의 검색 결과와 출원 정보를 시각적으로 제공합니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+                <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <i class="fas fa-file-pdf text-primary text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-black mb-1">FTO 리포트 & PDF 저장</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        전체 또는 선택한 디자인만 골라 개별 FTO 리포트를 생성하고,
+                        PDF로 즉시 다운로드할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 데모 시나리오 상세 -->
+<section class="py-12 md:py-16 bg-white">
+    <div class="max-w-[800px] mx-auto px-6">
+        <div class="text-center mb-10">
+            <p class="text-sm font-semibold text-primary uppercase tracking-wider mb-2">데모 시나리오</p>
+            <h2 class="text-xl md:text-2xl font-bold text-black break-keep">
+                디자인 분석 — 단계별 흐름
+            </h2>
+        </div>
+
+        <div class="space-y-0">
+
+            <!-- Step 1 -->
+            <div class="flex gap-6">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                    <div class="w-0.5 h-full bg-neutral-200 mt-3 mb-3"></div>
+                </div>
+                <div class="pb-8 pt-1 space-y-2">
+                    <h3 class="font-semibold text-black">리스크 분석 탭 → 디자인 선택</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        상단 네비게이션에서 <span class="inline-flex items-center gap-1 bg-neutral-100 rounded px-1.5 py-0.5 text-xs font-medium text-neutral-700">리스크 분석</span>을 클릭하면
+                        <strong>특허·실용신안</strong>과 <strong>디자인</strong> 두 탭이 나타납니다.
+                        이번 데모에서는 디자인을 선택하여 AI 챗봇 화면으로 이동합니다.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex gap-6">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                    <div class="w-0.5 h-full bg-neutral-200 mt-3 mb-3"></div>
+                </div>
+                <div class="pb-8 pt-1 space-y-2">
+                    <h3 class="font-semibold text-black">이미지 업로드 & 질문하기</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        이미지 업로드 버튼으로 제품 사진을 첨부합니다.
+                        입력 문장이 막히면 <strong>질문하기</strong> 버튼을 누르면 예시 문장이 자동 입력됩니다.
+                    </p>
+                    <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200 text-sm">
+                        <p class="text-neutral-500 text-xs font-medium mb-2">자동 입력 예시</p>
+                        <div class="space-y-2">
+                            <div class="flex gap-2">
+                                <span class="text-xs bg-neutral-200 text-neutral-600 font-semibold px-2 py-0.5 rounded shrink-0">나</span>
+                                <p class="text-neutral-800 text-xs">이 제품과 유사한 디자인을 분석해줘.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex gap-6">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">3</div>
+                    <div class="w-0.5 h-full bg-neutral-200 mt-3 mb-3"></div>
+                </div>
+                <div class="pb-8 pt-1 space-y-2">
+                    <h3 class="font-semibold text-black">AI 자동 분석 — 형상 분석 + 유사 디자인 Top 10</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        AI가 첨부 이미지를 기반으로 형상을 분석하고 디자인 카테고리를 판단합니다.
+                        이후 유사 디자인 Top 10을 이미지 형태로 추출하여 출원 정보와 함께 제공합니다.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-200 text-orange-700 rounded-full px-3 py-1">
+                            <i class="fas fa-image text-[10px]"></i> 형상 분석
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-200 text-orange-700 rounded-full px-3 py-1">
+                            <i class="fas fa-search text-[10px]"></i> 유사도 검색
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-200 text-orange-700 rounded-full px-3 py-1">
+                            <i class="fas fa-th text-[10px]"></i> Top 10 추출
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex gap-6">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">4</div>
+                    <div class="w-0.5 h-8 bg-neutral-200 mt-3"></div>
+                </div>
+                <div class="pb-4 pt-1 space-y-2">
+                    <h3 class="font-semibold text-black">FTO 리포트 확인 & PDF 저장 & KIPRIS 원문 조회</h3>
+                    <p class="text-sm text-neutral-600 leading-relaxed">
+                        <strong>전체 FTO 리포트</strong> 버튼으로 Top 10 전체 분석 리포트를 생성하거나,
+                        원하는 디자인만 선택해 개별 PDF로 저장할 수 있습니다.
+                        출원번호를 클릭하면 번호가 복사되고 KIPRIS로 자동 이동되어 도면 및 서지 정보를 바로 확인할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-14 bg-gradient-to-br from-primary/10 via-white to-white border-t border-neutral-100">
+    <div class="max-w-[600px] mx-auto px-6 text-center space-y-5">
+        <h2 class="text-xl md:text-2xl font-bold text-black break-keep">
+            영상으로 충분히 확인하셨나요?<br/>
+            <span class="text-primary">지금 직접 분석해 보세요.</span>
+        </h2>
+        <p class="text-sm text-neutral-600">
+            무료로 시작할 수 있습니다. 로그인 후 바로 디자인 FTO 분석을 실행해보세요.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="#"
+               onclick="checkAuthAndRedirect('design-chat.html'); return false;"
+               class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-8 py-3 rounded-full shadow-md transition-all w-full sm:w-auto">
+                <i class="fas fa-rocket text-xs"></i>
+                디자인 FTO 분석 시작하기
+            </a>
+            <a href="index.html"
+               class="inline-flex items-center justify-center gap-2 border border-neutral-300 bg-white text-black hover:bg-neutral-50 text-sm font-medium px-8 py-3 rounded-full transition-all w-full sm:w-auto">
+                서비스 소개 보기
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<div id="app-footer"></div>
+
+<style>
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+</style>
+
+<script src="script.js"></script>
+
+<script>
+    // 챕터 클릭 시 활성 상태 변경 (+ 실제 video 있으면 seek)
+    function seekTo(el, seconds) {
+        // 모든 chapter-item 비활성화
+        document.querySelectorAll('.chapter-item').forEach(function(item) {
+            item.classList.remove('active');
+            item.style.borderLeftColor = 'transparent';
+            item.querySelector('.chapter-time').style.color = '#9CA3AF';
+            item.querySelector('.chapter-time').style.fontWeight = '600';
+            item.querySelector('.chapter-title').style.color = '#404040';
+            item.querySelector('.chapter-title').style.fontWeight = '500';
+        });
+
+        // 클릭한 항목 활성화
+        el.classList.add('active');
+        el.style.borderLeftColor = 'var(--primary)';
+        var time = el.querySelector('.chapter-time');
+        var title = el.querySelector('.chapter-title');
+        if (time) { time.style.color = 'var(--primary)'; time.style.fontWeight = '700'; }
+        if (title) { title.style.color = '#000'; title.style.fontWeight = '600'; }
+
+        // 실제 video 요소가 있으면 seek
+        var video = document.getElementById('demo-video');
+        if (video) {
+            video.currentTime = seconds;
+            video.play();
+        }
+    }
+</script>
+
+</body>
+</html>
