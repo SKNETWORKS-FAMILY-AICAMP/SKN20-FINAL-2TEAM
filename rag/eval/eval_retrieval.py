@@ -4,7 +4,9 @@
 ragas_dataset.xlsx의 Q&A셋으로 다양한 RRF 가중치 조합을 평가합니다.
 평가 지표:
     - Context Recall (Hit Rate): 정답 특허가 검색 결과 TOP10에 포함되는 비율
-    - Context Precision (MRR): 정답 특허가 검색 결과에서 얼마나 상위에 위치하는지
+    - Context Precision: TOP10 중 정답 특허가 차지하는 비율
+    - MRR (Mean Reciprocal Rank): 정답 특허가 검색 결과에서 얼마나 상위에 위치하는지
+    - MAP (Mean Average Precision): 정답이 여러 개일 때 종합 순위 평가
 
 사용법:
     conda activate fto
@@ -105,6 +107,8 @@ def _calc_average_precision(ranked_ids: list[str], expected: set[str]) -> float:
 def evaluate(dataset: list[dict], rrf_weights: tuple[float, float]) -> dict:
     total = len(dataset)
     hits = 0
+    hits_at_3 = 0
+    precision_sum = 0.0
     mrr_sum = 0.0
     ap_sum = 0.0
     details = []
@@ -117,15 +121,21 @@ def evaluate(dataset: list[dict], rrf_weights: tuple[float, float]) -> dict:
             results = search(query, rrf_weights=rrf_weights, top_k=TOP_K)
             ranked_ids = [_get_patent_id(r) for r in results]
             hit = bool(expected & set(ranked_ids))
+            hit_3 = bool(expected & set(ranked_ids[:3]))
+            matched_in_top = len(expected & set(ranked_ids))
+            precision = matched_in_top / len(ranked_ids) if ranked_ids else 0.0
             rr = _calc_reciprocal_rank(ranked_ids, expected)
             ap = _calc_average_precision(ranked_ids, expected)
         except Exception as e:
             logger.info(f"  [{i}/{total}] ERROR: {e}")
-            hit, rr, ap = False, 0.0, 0.0
+            hit, hit_3, precision, rr, ap = False, False, 0.0, 0.0, 0.0
             ranked_ids = []
 
         if hit:
             hits += 1
+        if hit_3:
+            hits_at_3 += 1
+        precision_sum += precision
         mrr_sum += rr
         ap_sum += ap
 
@@ -140,25 +150,33 @@ def evaluate(dataset: list[dict], rrf_weights: tuple[float, float]) -> dict:
             "expected": expected,
             "retrieved_top3": ranked_ids[:3],
             "hit": hit,
+            "hit_at_3": hit_3,
             "first_rank": first_rank,
+            "precision": precision,
             "rr": rr,
             "ap": ap,
         })
 
         status = "O" if hit else "X"
-        logger.info(f"  [{i}/{total}] {status} (rank={first_rank}) | {query[:50]}")
+        top3_mark = "O" if hit_3 else "X"
+        logger.info(f"  [{i}/{total}] TOP10={status} TOP3={top3_mark} (rank={first_rank}) | {query[:50]}")
         logger.info(f"           expected: {expected}")
         logger.info(f"           got top3: {ranked_ids[:3]}")
 
     context_recall = hits / total if total > 0 else 0
+    hit_rate_at_3 = hits_at_3 / total if total > 0 else 0
+    context_precision = precision_sum / total if total > 0 else 0
     mrr = mrr_sum / total if total > 0 else 0
     map_score = ap_sum / total if total > 0 else 0
 
     return {
         "context_recall": context_recall,
+        "hit_rate_at_3": hit_rate_at_3,
+        "context_precision": context_precision,
         "mrr": mrr,
         "map": map_score,
         "hits": hits,
+        "hits_at_3": hits_at_3,
         "total": total,
         "details": details,
     }
@@ -182,7 +200,7 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("")
     lines.append("## 평가 지표")
     lines.append("")
-    lines.append("### Context Recall (Hit Rate)")
+    lines.append("### Context Recall (Hit Rate@10)")
     lines.append("")
     lines.append("정답 특허가 검색 결과 TOP10 안에 **포함되는지 여부**를 측정합니다.")
     lines.append("")
@@ -191,7 +209,24 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("- 예시: 35개 질의 중 33개의 정답이 TOP10에 포함 → **94.3%**")
     lines.append("- 의미: \"검색 시스템이 정답을 놓치지 않는가?\"를 평가")
     lines.append("")
-    lines.append("### Context Precision — MRR (Mean Reciprocal Rank)")
+    lines.append("### Hit Rate@3")
+    lines.append("")
+    lines.append("정답 특허가 검색 결과 **TOP3 안에 포함되는지** 측정합니다.")
+    lines.append("")
+    lines.append("- 수식: `(정답이 TOP3에 포함된 질의 수) / (전체 질의 수)`")
+    lines.append("- 범위: 0% ~ 100%")
+    lines.append("- 의미: sLLM에 전달되는 상위 결과에 정답이 포함되는가?")
+    lines.append("")
+    lines.append("### Context Precision")
+    lines.append("")
+    lines.append("검색 결과 TOP10 중 **정답 특허가 차지하는 비율**을 측정합니다.")
+    lines.append("")
+    lines.append("- 수식: `(TOP10 중 정답 특허 수) / (TOP10 크기)`")
+    lines.append("- 범위: 0 ~ 1.0")
+    lines.append("- 예시: TOP10 중 정답 1개 포함 → 1/10 = **0.100**")
+    lines.append("- 의미: \"검색 결과가 얼마나 정확한가?\" (노이즈 없이 정답 위주로 반환하는가)")
+    lines.append("")
+    lines.append("### MRR (Mean Reciprocal Rank)")
     lines.append("")
     lines.append("정답 특허가 검색 결과에서 **얼마나 상위에 위치하는지**를 측정합니다.")
     lines.append("")
@@ -202,7 +237,7 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("  - 질의 B: 정답이 3등 → 1/3 = **0.333**")
     lines.append("  - 질의 C: 정답 없음 → **0.000**")
     lines.append("  - MRR = (1.000 + 0.333 + 0.000) / 3 = **0.444**")
-    lines.append("- 의미: \"정답이 검색 결과 상위에 오는가?\"를 평가 (Recall이 같아도 순위가 높으면 MRR이 높음)")
+    lines.append("- 의미: \"정답이 검색 결과 상위에 오는가?\"를 평가")
     lines.append("")
     lines.append("### MAP (Mean Average Precision)")
     lines.append("")
@@ -220,7 +255,9 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("")
     lines.append("| 지표 | 질문 | 범위 | 높을수록 |")
     lines.append("|------|------|------|----------|")
-    lines.append("| **Context Recall** | 정답을 찾았는가? | 0~100% | 좋음 |")
+    lines.append("| **Context Recall** | 정답을 찾았는가? (TOP10) | 0~100% | 좋음 |")
+    lines.append("| **Hit Rate@3** | 정답이 TOP3에 있는가? | 0~100% | 좋음 |")
+    lines.append("| **Context Precision** | TOP10이 정답 위주인가? | 0~1.0 | 좋음 |")
     lines.append("| **MRR** | 정답이 몇 등인가? | 0~1.0 | 좋음 |")
     lines.append("| **MAP** | 정답 여러 개가 모두 상위인가? | 0~1.0 | 좋음 |")
 
@@ -232,8 +269,8 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("")
     lines.append("Dense(의미 검색)와 Sparse(BM25 키워드 검색)의 비율을 변경하며 검색 성능을 비교하였습니다.")
     lines.append("")
-    lines.append("| 설정 | Dense | Sparse | Context Recall | MRR | MAP |")
-    lines.append("|------|:-----:|:------:|:--------------:|:---:|:---:|")
+    lines.append("| 설정 | Dense | Sparse | Context Recall | Hit Rate@3 | Context Precision | MRR | MAP |")
+    lines.append("|------|:-----:|:------:|:--------------:|:----------:|:-----------------:|:---:|:---:|")
 
     best_recall_name = max(summary, key=lambda k: summary[k]["context_recall"])
     best_mrr_name = max(summary, key=lambda k: summary[k]["mrr"])
@@ -246,6 +283,8 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
         lines.append(
             f"| {mark}{name}{mark_end} | {cfg[0]} | {cfg[1]} "
             f"| {mark}{result['context_recall']:.1%} ({result['hits']}/{result['total']}){mark_end} "
+            f"| {mark}{result['hit_rate_at_3']:.1%} ({result['hits_at_3']}/{result['total']}){mark_end} "
+            f"| {mark}{result['context_precision']:.3f}{mark_end} "
             f"| {mark}{result['mrr']:.3f}{mark_end} "
             f"| {mark}{result['map']:.3f}{mark_end} |"
         )
@@ -259,6 +298,8 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append("")
     lines.append(f"- **최적 가중치**: {best_recall_name}")
     lines.append(f"  - Context Recall: **{best_result['context_recall']:.1%}**")
+    lines.append(f"  - Hit Rate@3: **{best_result['hit_rate_at_3']:.1%}**")
+    lines.append(f"  - Context Precision: **{best_result['context_precision']:.3f}**")
     lines.append(f"  - MRR: **{best_result['mrr']:.3f}**")
     lines.append(f"  - MAP: **{best_result['map']:.3f}**")
     lines.append("")
@@ -268,10 +309,12 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     if current_name in summary and current_name != best_recall_name:
         current = summary[current_name]
         diff_recall = best_result["context_recall"] - current["context_recall"]
+        diff_precision = best_result["context_precision"] - current["context_precision"]
         diff_mrr = best_result["mrr"] - current["mrr"]
         lines.append(f"- 기존 설정({current_name}) 대비:")
         lines.append(f"  - Context Recall: {current['context_recall']:.1%} → **{best_result['context_recall']:.1%}** (+{diff_recall:.1%}p)")
-        lines.append(f"  - MRR: {current['mrr']:.3f} → **{best_result['mrr']:.3f}** (+{diff_mrr:.3f})")
+        lines.append(f"  - Context Precision: {current['context_precision']:.3f} → **{best_result['context_precision']:.3f}** ({diff_precision:+.3f})")
+        lines.append(f"  - MRR: {current['mrr']:.3f} → **{best_result['mrr']:.3f}** ({diff_mrr:+.3f})")
         lines.append("")
 
     lines.append("- Dense(의미 유사도)와 Sparse(BM25 키워드)를 균등하게 결합할 때 가장 높은 검색 성능을 보임")
@@ -289,10 +332,10 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
     lines.append(f"[제목] 하이브리드 검색(Dense + BM25) 가중치 최적화")
     lines.append(f"")
     lines.append(f"- 78,520건 특허 DB 대상, {len(dataset)}개 Q&A셋으로 평가")
-    lines.append(f"- 평가 지표: Context Recall(정답 포함률), Context Precision/MRR(정답 순위)")
+    lines.append(f"- 평가 지표: Context Recall, Context Precision, MRR, MAP")
     lines.append(f"- 4가지 Dense:Sparse 비율 비교 실험 수행")
     lines.append(f"- 최적 설정: Dense:Sparse = 1:1")
-    lines.append(f"  → Context Recall {best_result['context_recall']:.1%}, MRR {best_result['mrr']:.3f}")
+    lines.append(f"  → Context Recall {best_result['context_recall']:.1%}, Precision {best_result['context_precision']:.3f}, MRR {best_result['mrr']:.3f}")
     lines.append(f"- Dense(의미 검색)와 BM25(키워드 검색)의 균형이 중요")
     lines.append("```")
     lines.append("")
@@ -319,18 +362,19 @@ def _build_markdown_report(summary: dict, dataset: list[dict]) -> str:
         lines.append("")
         lines.append(f"### {name}")
         lines.append("")
-        lines.append(f"| Context Recall | MRR | MAP |")
-        lines.append(f"|:-:|:-:|:-:|")
-        lines.append(f"| **{result['context_recall']:.1%}** ({result['hits']}/{result['total']}) | **{result['mrr']:.3f}** | **{result['map']:.3f}** |")
+        lines.append(f"| Context Recall | Hit Rate@3 | Context Precision | MRR | MAP |")
+        lines.append(f"|:-:|:-:|:-:|:-:|:-:|")
+        lines.append(f"| **{result['context_recall']:.1%}** ({result['hits']}/{result['total']}) | **{result['hit_rate_at_3']:.1%}** ({result['hits_at_3']}/{result['total']}) | **{result['context_precision']:.3f}** | **{result['mrr']:.3f}** | **{result['map']:.3f}** |")
         lines.append("")
-        lines.append("| # | Hit | Rank | Query | Expected | Retrieved TOP3 |")
-        lines.append("|--:|:---:|:----:|-------|----------|----------------|")
+        lines.append("| # | TOP10 | TOP3 | Rank | Query | Expected | Retrieved TOP3 |")
+        lines.append("|--:|:-----:|:----:|:----:|-------|----------|----------------|")
         for idx, d in enumerate(result["details"], 1):
             hit_mark = "O" if d["hit"] else "X"
+            top3_mark = "O" if d.get("hit_at_3") else "X"
             expected = ", ".join(sorted(d["expected"]))
             top3 = ", ".join(d["retrieved_top3"]) if d["retrieved_top3"] else "-"
             query = d["query"].replace("|", "/")
-            lines.append(f"| {idx} | {hit_mark} | {d['first_rank']} | {query} | {expected} | {top3} |")
+            lines.append(f"| {idx} | {hit_mark} | {top3_mark} | {d['first_rank']} | {query} | {expected} | {top3} |")
 
     lines.append("")
     return "\n".join(lines)
@@ -355,6 +399,8 @@ def main():
         result = evaluate(dataset, rrf_weights=weights)
         summary[name] = result
         logger.info(f"\n  → Context Recall: {result['context_recall']:.1%} ({result['hits']}/{result['total']})")
+        logger.info(f"  → Hit Rate@3: {result['hit_rate_at_3']:.1%} ({result['hits_at_3']}/{result['total']})")
+        logger.info(f"  → Context Precision: {result['context_precision']:.3f}")
         logger.info(f"  → MRR: {result['mrr']:.3f}")
         logger.info(f"  → MAP: {result['map']:.3f}")
 
@@ -362,11 +408,13 @@ def main():
     logger.info(f"\n{'=' * 60}")
     logger.info("최종 비교")
     logger.info(f"{'=' * 60}")
-    logger.info(f"{'설정':<30} {'Recall':>8} {'MRR':>8} {'MAP':>8}")
-    logger.info("-" * 56)
+    logger.info(f"{'설정':<30} {'Recall':>8} {'HR@3':>8} {'Precision':>10} {'MRR':>8} {'MAP':>8}")
+    logger.info("-" * 76)
     for name, result in summary.items():
         logger.info(
             f"{name:<30} {result['context_recall']:>7.1%} "
+            f"{result['hit_rate_at_3']:>7.1%} "
+            f"{result['context_precision']:>10.3f} "
             f"{result['mrr']:>8.3f} {result['map']:>8.3f}"
         )
 
@@ -384,9 +432,12 @@ def main():
             "dense_weight": cfg[0],
             "sparse_weight": cfg[1],
             "context_recall": result["context_recall"],
+            "hit_rate_at_3": result["hit_rate_at_3"],
+            "context_precision": result["context_precision"],
             "mrr": result["mrr"],
             "map": result["map"],
             "hits": result["hits"],
+            "hits_at_3": result["hits_at_3"],
             "total": result["total"],
         })
     pd.DataFrame(rows).to_csv(csv_path, index=False, encoding="utf-8-sig")

@@ -42,7 +42,7 @@ BM25_B = 0.75
 DENSE_TOP_K = 50
 BM25_TOP_K = 50
 RRF_K = 60
-RRF_WEIGHTS = (0.2, 0.8)       # (dense, sparse) — rrf_sweep 결과 최적값
+RRF_WEIGHTS = (0.5, 0.5)       # (dense, sparse) — eval_retrieval 실험 결과 1:1 최적 (Recall 94.3%, HR@3 88.6%) 기존 1:4
 FINAL_TOP_K = 10
 
 # ── 키워드 추출 상수 (filter.py, tokenizer.py 공용) ──────
