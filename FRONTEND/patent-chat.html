@@ -900,6 +900,7 @@
     let patentAnalyses = [];
     let currentAnalysisId = null;
     const analysesHistory = new Map(); // analysisId → patentAnalyses 보존
+    const _listContextMap = new Map(); // listId → { analysisId, searchToken, searchResults, patentAnalyses, resultBubbleDiv, additionalBubbleDiv }
     let resultBubbleDiv = null; // TOP3 결과보기 말풍선 DOM 참조
     let additionalBubbleDiv = null; // 추가 분석(4~10) 말풍선 DOM 참조
 
@@ -1064,7 +1065,12 @@
             await new Promise(r => setTimeout(r, 800));
             removeLoadingMessage();
 
-            addPatentListMessage(searchResults);
+            const _activeListId = addPatentListMessage(searchResults);
+            _listContextMap.set(_activeListId, {
+                analysisId: null, searchToken: searchToken,
+                searchResults: [...searchResults], patentAnalyses: [],
+                resultBubbleDiv: null, additionalBubbleDiv: null
+            });
 
             // ── Phase 2: TOP 3 분석 ──
             setStatus('분석 중');
@@ -1080,11 +1086,11 @@
                 result.patent_index = i;
                 patentAnalyses.push(result);
                 setProgressStep(progressEl, i, 'done');
-                updatePatentButton(i, result);
+                updatePatentButton(i, result, _activeListId);
             }
 
             // 4~10번 분석 버튼 활성화
-            enableRemainingButtons();
+            enableRemainingButtons(_activeListId);
 
             // TOP 3 분석 완료 → progress 스피너 제거
             const progressDiv = document.getElementById('analysisProgress');
@@ -1100,7 +1106,15 @@
             // 분석 결과를 ID별로 보존 (덮어쓰기 방지)
             analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
 
-            addResultViewButton(patentAnalyses, currentAnalysisId);
+            // per-list 컨텍스트 업데이트
+            const _ctx = _listContextMap.get(_activeListId);
+            if (_ctx) {
+                _ctx.analysisId = currentAnalysisId;
+                _ctx.searchToken = null;
+                _ctx.patentAnalyses = [...patentAnalyses];
+            }
+
+            addResultViewButton(patentAnalyses, currentAnalysisId, _activeListId);
 
             // 사이드바 카드에 analysisId 업데이트
             const activeCard = document.querySelector(`.session-card[data-chat-id="${threadId}"]`);
@@ -1121,9 +1135,13 @@
 
     // ==================== TOP 10 특허 리스트 ====================
 
+    let _patentListCounter = 0;
+
     function addPatentListMessage(results, historyAnalyses = null) {
+        const listId = _patentListCounter++;
         const div = document.createElement('div');
         div.className = 'msg assistant';
+        div.dataset.listId = listId;
         const rows = results.slice(0, 10).map((r, i) => {
             const meta = r.metadata || {};
             const hasRegit = meta.regit_num && meta.regit_num.trim();
@@ -1185,6 +1203,7 @@
                     </div>
                     <button class="${btnClass}"
                             data-patent-index="${i}"
+                            data-list-id="${listId}"
                             onclick="analyzeSinglePatent(this, ${i})"
                             ${btnDisabled}>
                         ${btnLabel}
@@ -1201,7 +1220,7 @@
                             <i class="fas fa-search text-primary text-xs"></i>
                             <span class="text-sm font-bold text-black">유사 특허 TOP 10</span>
                         </div>
-                        <button id="analyzeAllBtn" onclick="analyzeAllRemaining()" disabled
+                        <button class="analyze-all-btn" data-list-id="${listId}" onclick="analyzeAllRemaining(${listId})" disabled
                             style="display:flex;align-items:center;gap:0.3rem;padding:0.3rem 0.75rem;background:#d4d4d4;color:white;border:none;border-radius:0.5rem;cursor:not-allowed;font-size:0.7rem;font-weight:600;transition:all 0.15s;">
                             <i class="fas fa-layer-group"></i> 전체 분석
                         </button>
@@ -1211,6 +1230,7 @@
             </div>`;
         messagesWrapper.appendChild(div);
         scrollToBottom();
+        return listId;
     }
 
     // ==================== 분석 프로그레스 ====================
@@ -1310,8 +1330,11 @@
 
     // ==================== 개별 특허 분석 ====================
 
-    function updatePatentButton(index, analysis) {
-        const btn = document.querySelector(`.patent-analyze-btn[data-patent-index="${index}"]`);
+    function updatePatentButton(index, analysis, listId) {
+        const selector = listId !== undefined
+            ? `.patent-analyze-btn[data-patent-index="${index}"][data-list-id="${listId}"]`
+            : `.patent-analyze-btn[data-patent-index="${index}"]`;
+        const btn = document.querySelector(selector);
         if (!btn) return;
         const comps = analysis.comparisons || [];
         const matchCount = comps.filter(c => c.correspondence === '대응').length;
@@ -1329,34 +1352,40 @@
         btn.innerHTML = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
     }
 
-    function _updateAnalyzeAllBtnState() {
-        const allBtn = document.getElementById('analyzeAllBtn');
+    function _updateAnalyzeAllBtnState(listId) {
+        const allBtn = listId !== undefined
+            ? document.querySelector(`.analyze-all-btn[data-list-id="${listId}"]`)
+            : document.querySelector('.analyze-all-btn');
         if (!allBtn) return;
-        const totalCount = document.querySelectorAll('.patent-analyze-btn').length;
-        const analyzedCount = patentAnalyses.length;
+        const lid = listId !== undefined ? listId : parseInt(allBtn.dataset.listId);
+        const ctx = _listContextMap.get(lid);
+        const totalCount = ctx ? ctx.searchResults.length : (searchResults ? searchResults.length : 0);
+        const analyzedCount = ctx ? ctx.patentAnalyses.length : patentAnalyses.length;
         if (analyzedCount >= totalCount && totalCount > 0) {
-            // 전부 분석 완료 → "전체 결과보기" 모드
             allBtn.disabled = false;
             allBtn.innerHTML = `<i class="fas fa-layer-group"></i> 전체 분석 결과 보기 (${analyzedCount}건)`;
             allBtn.style.background = '#525252';
             allBtn.style.cursor = 'pointer';
-            allBtn.onclick = () => openResultPanelAll();
+            allBtn.onclick = () => openResultPanelAll(lid);
         } else if (analyzedCount >= 3) {
-            // TOP3 완료 → "전체 분석" 활성화
             allBtn.disabled = false;
             allBtn.innerHTML = '<i class="fas fa-layer-group"></i> 전체 분석';
             allBtn.style.background = '#525252';
             allBtn.style.cursor = 'pointer';
-            allBtn.onclick = () => analyzeAllRemaining();
+            allBtn.onclick = () => analyzeAllRemaining(lid);
         }
     }
 
-    function enableRemainingButtons() {
-        document.querySelectorAll('.patent-analyze-btn[disabled]').forEach(btn => {
+    function enableRemainingButtons(listId) {
+        const scope = listId !== undefined
+            ? `.patent-analyze-btn[data-list-id="${listId}"][disabled]`
+            : '.patent-analyze-btn[disabled]';
+        document.querySelectorAll(scope).forEach(btn => {
             btn.disabled = false;
         });
-        // "전체 분석" 버튼 활성화
-        const allBtn = document.getElementById('analyzeAllBtn');
+        const allBtn = listId !== undefined
+            ? document.querySelector(`.analyze-all-btn[data-list-id="${listId}"]`)
+            : document.querySelector('.analyze-all-btn');
         if (allBtn) {
             allBtn.disabled = false;
             allBtn.style.background = '#525252';
@@ -1366,14 +1395,19 @@
         }
     }
 
-    async function analyzeAllRemaining() {
-        const allBtn = document.getElementById('analyzeAllBtn');
+    async function analyzeAllRemaining(listId) {
+        const allBtn = document.querySelector(`.analyze-all-btn[data-list-id="${listId}"]`);
         if (!allBtn || allBtn.disabled) return;
 
+        const ctx = _listContextMap.get(listId);
+        if (!ctx) return;
+
+        const totalCount = ctx.searchResults.length;
+        if (totalCount === 0) return;
+
         // 이미 전부 분석된 경우 → 결과 패널만 열기
-        const totalCount = document.querySelectorAll('.patent-analyze-btn').length;
-        if (patentAnalyses.length >= totalCount) {
-            openResultPanelAll();
+        if (ctx.patentAnalyses.length >= totalCount) {
+            openResultPanelAll(listId);
             return;
         }
 
@@ -1382,14 +1416,14 @@
         allBtn.style.background = '#525252';
         allBtn.style.cursor = 'not-allowed';
 
-        const buttons = document.querySelectorAll('.patent-analyze-btn');
+        const buttons = document.querySelectorAll(`.patent-analyze-btn[data-list-id="${listId}"]`);
         let analyzedNew = 0;
 
-        for (let i = 0; i < buttons.length; i++) {
-            // 이미 분석된 항목은 건너뛰기
-            if (patentAnalyses.find(a => a.patent_index === i)) continue;
+        for (let i = 0; i < totalCount; i++) {
+            if (ctx.patentAnalyses.find(a => a.patent_index === i)) continue;
 
             const btn = buttons[i];
+            if (!btn) continue;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:7px;"></i> 분석중...';
             const btnMsgs = ['분석중...', '판단중...', '정리중...'];
@@ -1401,18 +1435,18 @@
 
             try {
                 let result;
-                if (searchToken) {
-                    result = await callAnalyzePatentAPI(searchToken, i);
+                if (ctx.searchToken) {
+                    result = await callAnalyzePatentAPI(ctx.searchToken, i);
                 } else {
-                    result = await callAnalyzeFromHistoryAPI(currentAnalysisId, i);
+                    result = await callAnalyzeFromHistoryAPI(ctx.analysisId, i);
                 }
                 clearInterval(btnMsgTimer);
                 result.patent_index = i;
-                patentAnalyses.push(result);
-                if (currentAnalysisId) analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
-                updatePatentButton(i, result);
+                ctx.patentAnalyses.push(result);
+                if (ctx.analysisId) analysesHistory.set(ctx.analysisId, [...ctx.patentAnalyses]);
+                updatePatentButton(i, result, listId);
                 analyzedNew++;
-                allBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${patentAnalyses.length}/${totalCount} 완료`;
+                allBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${ctx.patentAnalyses.length}/${totalCount} 완료`;
             } catch (e) {
                 clearInterval(btnMsgTimer);
                 console.error(`특허 ${i+1} 분석 실패:`, e);
@@ -1421,15 +1455,18 @@
             }
         }
 
-        // 완료 → 버튼 차콜색으로 변경
+        // 완료
         allBtn.disabled = false;
-        allBtn.innerHTML = `<i class="fas fa-layer-group"></i> 전체 결과보기 (${patentAnalyses.length}건)`;
+        allBtn.innerHTML = `<i class="fas fa-layer-group"></i> 전체 결과보기 (${ctx.patentAnalyses.length}건)`;
         allBtn.style.background = '#525252';
         allBtn.style.cursor = 'pointer';
-        allBtn.onclick = () => openResultPanelAll();
+        allBtn.onclick = () => openResultPanelAll(listId);
+
+        // 글로벌도 동기화 (결과 패널 등에서 사용)
+        patentAnalyses = ctx.patentAnalyses;
 
         if (analyzedNew > 0) {
-            addOrUpdateAdditionalBubble();
+            addOrUpdateAdditionalBubble(listId);
         }
     }
 
@@ -1450,15 +1487,24 @@
     }
 
     async function analyzeSinglePatent(btn, index) {
+        // listId를 버튼의 data-list-id에서 가져옴
+        const listId = btn.dataset.listId !== undefined ? parseInt(btn.dataset.listId) : undefined;
+        const ctx = listId !== undefined ? _listContextMap.get(listId) : null;
+
+        // per-list 또는 글로벌 컨텍스트에서 데이터 조회
+        const _analyses = ctx ? ctx.patentAnalyses : patentAnalyses;
+        const _token = ctx ? ctx.searchToken : searchToken;
+        const _analysisId = ctx ? ctx.analysisId : currentAnalysisId;
+
         // 이미 분석 완료된 항목이면 결과 패널 열기
-        const existing = patentAnalyses.find(a => a.patent_index === index);
+        const existing = _analyses.find(a => a.patent_index === index);
         if (existing) {
             openResultPanelSingle(existing);
             return;
         }
 
-        // searchToken 없고 currentAnalysisId도 없으면 분석 불가
-        if ((!searchToken && !currentAnalysisId) || isAnalyzing) return;
+        // searchToken 없고 analysisId도 없으면 분석 불가
+        if ((!_token && !_analysisId) || isAnalyzing) return;
 
         // 버튼 로딩 상태 (3단계 문구 순환)
         btn.disabled = true;
@@ -1472,23 +1518,21 @@
 
         try {
             let result;
-            if (searchToken) {
-                // 현재 세션: 캐시 기반 분석
-                result = await callAnalyzePatentAPI(searchToken, index);
+            if (_token) {
+                result = await callAnalyzePatentAPI(_token, index);
             } else {
-                // 히스토리 모드: DB 기반 분석
-                result = await callAnalyzeFromHistoryAPI(currentAnalysisId, index);
+                result = await callAnalyzeFromHistoryAPI(_analysisId, index);
             }
             clearInterval(btnMsgTimer);
             result.patent_index = index;
-            patentAnalyses.push(result);
+            _analyses.push(result);
 
-            // 현재 analysisId에 업데이트
-            if (currentAnalysisId) {
-                analysesHistory.set(currentAnalysisId, [...patentAnalyses]);
+            // analysesHistory 업데이트
+            if (_analysisId) {
+                analysesHistory.set(_analysisId, [..._analyses]);
             }
 
-            // 버튼에 판정+대응비율 표시 (직접 참조로 확실하게 업데이트)
+            // 버튼에 판정+대응비율 표시
             const comps = result.comparisons || [];
             const matchCount = comps.filter(c => c.correspondence === '대응').length;
             const total = comps.length;
@@ -1502,12 +1546,10 @@
             btn.className = `patent-analyze-btn ${riskClass}`;
             btn.innerHTML = label === '공개' ? '공개 | 권리 미확정' : `${labelText} | 대응 ${matchCount}/${total}`;
 
-            // 결과 패널에 해당 특허 표시
             openResultPanelSingle(result);
 
-            // 추가 분석(4~10) → 두 번째 말풍선 생성/업데이트
             if (index >= 3) {
-                addOrUpdateAdditionalBubble();
+                addOrUpdateAdditionalBubble(listId);
             }
         } catch (e) {
             clearInterval(btnMsgTimer);
@@ -1519,7 +1561,7 @@
 
     // ==================== 결과보기 버튼 ====================
 
-    function addResultViewButton(analyses, analysisId) {
+    function addResultViewButton(analyses, analysisId, listId) {
         const div = document.createElement('div');
         div.className = 'msg assistant';
 
@@ -1553,32 +1595,35 @@
         // 추가 분석(4~10)이 있으면 두 번째 말풍선도 복원
         const extras = analyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) >= 3);
         if (extras.length > 0) {
-            addOrUpdateAdditionalBubble();
+            addOrUpdateAdditionalBubble(listId);
         }
     }
 
     // 추가 분석(4~10) 두 번째 말풍선 (차콜 스타일, 결과는 1~N 전체)
-    function addOrUpdateAdditionalBubble() {
-        const extraCount = patentAnalyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) >= 3).length;
-        const labels = patentAnalyses.map(a => a.label || '');
+    function addOrUpdateAdditionalBubble(listId) {
+        const ctx = listId !== undefined ? _listContextMap.get(listId) : null;
+        const _analyses = ctx ? ctx.patentAnalyses : patentAnalyses;
+        const extraCount = _analyses.filter(a => (a.patent_index !== undefined ? a.patent_index : 0) >= 3).length;
+        const labels = _analyses.map(a => a.label || '');
         let riskText = '침해 가능성 낮음';
         if (labels.some(l => l === '침해')) riskText = '침해 가능 특허 존재';
         else if (labels.some(l => l === '침해_전문가' || l === '애매')) riskText = '전문가 검토 권장';
 
         const titleText = `TOP3 + 추가 ${extraCount}건 분석 완료`;
-        const btnText = `전체 결과보기 (${patentAnalyses.length}건)`;
+        const btnText = `전체 결과보기 (${_analyses.length}건)`;
+        const _bubbleDiv = ctx ? ctx.additionalBubbleDiv : additionalBubbleDiv;
 
-        if (additionalBubbleDiv) {
-            // 기존 말풍선 업데이트
-            const titleEl = additionalBubbleDiv.querySelector('.additional-bubble-title');
-            const subtitleEl = additionalBubbleDiv.querySelector('.additional-bubble-subtitle');
-            const btnEl = additionalBubbleDiv.querySelector('.additional-bubble-btn');
+        if (_bubbleDiv) {
+            const titleEl = _bubbleDiv.querySelector('.additional-bubble-title');
+            const subtitleEl = _bubbleDiv.querySelector('.additional-bubble-subtitle');
+            const btnEl = _bubbleDiv.querySelector('.additional-bubble-btn');
             if (titleEl) titleEl.textContent = titleText;
             if (subtitleEl) subtitleEl.textContent = riskText;
             if (btnEl) btnEl.innerHTML = `<i class="fas fa-table"></i> ${btnText}`;
         } else {
             const div = document.createElement('div');
             div.className = 'msg assistant';
+            const _lid = listId !== undefined ? listId : '';
             div.innerHTML = `
                 <div class="msg-avatar"><i class="fas fa-shield-alt text-xs"></i></div>
                 <div class="msg-content">
@@ -1590,14 +1635,15 @@
                             <p class="text-sm font-bold text-black mb-0.5 additional-bubble-title">${titleText}</p>
                             <p class="text-xs text-neutral-500 additional-bubble-subtitle">${riskText}</p>
                         </div>
-                        <button onclick="openResultPanelAll()" class="result-view-btn additional-bubble-btn" style="background:linear-gradient(135deg,#525252,#333); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+                        <button onclick="openResultPanelAll(${_lid})" class="result-view-btn additional-bubble-btn" style="background:linear-gradient(135deg,#525252,#333); box-shadow:0 4px 12px rgba(0,0,0,0.2);">
                             <i class="fas fa-table"></i>
                             ${btnText}
                         </button>
                     </div>
                 </div>`;
             messagesWrapper.appendChild(div);
-            additionalBubbleDiv = div;
+            if (ctx) { ctx.additionalBubbleDiv = div; }
+            else { additionalBubbleDiv = div; }
             scrollToBottom();
         }
     }
@@ -1622,10 +1668,12 @@
     }
 
     // 전체 결과보기
-    function openResultPanelAll() {
+    function openResultPanelAll(listId) {
         const panel = document.getElementById('resultPanel');
         const content = document.getElementById('resultPanelContent');
-        const data = [...patentAnalyses].sort((a, b) => (a.patent_index || 0) - (b.patent_index || 0));
+        const ctx = listId !== undefined ? _listContextMap.get(listId) : null;
+        const _analyses = ctx ? ctx.patentAnalyses : patentAnalyses;
+        const data = [..._analyses].sort((a, b) => (a.patent_index || 0) - (b.patent_index || 0));
         lastPanelAnalyses = data;
         content.innerHTML = renderResultPanelContent(data);
         document.getElementById('resultPanelTitle').innerHTML = `<i class="fas fa-chart-bar text-primary"></i> 전체 구성 대비 결과 (${data.length}건)`;
@@ -2545,16 +2593,26 @@
                                     const analyses = aData.patent_analyses || [];
 
                                     if (sResults.length > 0) {
-                                        addPatentListMessage(sResults, analyses);
+                                        const _restoredListId = addPatentListMessage(sResults, analyses);
                                         searchResults = sResults;
                                         currentAnalysisId = msg.analysis_id;
-                                    }
 
-                                    if (analyses.length > 0) {
-                                        patentAnalyses = analyses;
-                                        analysesHistory.set(msg.analysis_id, analyses);
-                                        addResultViewButton(analyses, msg.analysis_id);
-                                        _updateAnalyzeAllBtnState();
+                                        // per-list 컨텍스트 저장
+                                        _listContextMap.set(_restoredListId, {
+                                            analysisId: msg.analysis_id,
+                                            searchToken: null,
+                                            searchResults: [...sResults],
+                                            patentAnalyses: analyses.length > 0 ? [...analyses] : [],
+                                            resultBubbleDiv: null,
+                                            additionalBubbleDiv: null
+                                        });
+
+                                        if (analyses.length > 0) {
+                                            patentAnalyses = analyses;
+                                            analysesHistory.set(msg.analysis_id, analyses);
+                                            addResultViewButton(analyses, msg.analysis_id, _restoredListId);
+                                            _updateAnalyzeAllBtnState(_restoredListId);
+                                        }
                                     }
                                 }
                             } catch (e) {
