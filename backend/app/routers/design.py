@@ -15,9 +15,30 @@ import traceback
 import threading
 import json
 import asyncio
+import io
 import requests
+from PIL import Image as PILImage
 from loguru import logger
 from typing import Optional
+
+# VLM 토큰 절약: 카메라 촬영 고해상도 이미지를 리사이즈
+_VLM_MAX_PIXELS = 512  # 긴 변 최대 px
+
+def _resize_for_vlm(file_bytes: bytes) -> bytes:
+    """이미지 긴 변이 _VLM_MAX_PIXELS 초과 시 리사이즈 (JPEG 반환)."""
+    img = PILImage.open(io.BytesIO(file_bytes))
+    if img.mode in ("RGBA", "P", "LA"):
+        img = img.convert("RGB")
+    w, h = img.size
+    if max(w, h) <= _VLM_MAX_PIXELS:
+        return file_bytes
+    ratio = _VLM_MAX_PIXELS / max(w, h)
+    new_w, new_h = int(w * ratio), int(h * ratio)
+    img = img.resize((new_w, new_h), PILImage.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    print(f"[design] 이미지 리사이즈: {w}x{h} → {new_w}x{new_h} ({len(file_bytes)//1024}KB → {buf.tell()//1024}KB)")
+    return buf.getvalue()
 
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException, Depends
 from sqlalchemy.orm import Session, joinedload
@@ -259,9 +280,10 @@ async def _image_via_langgraph(
         except Exception as e:
             print(f"[design] S3 업로드 실패 (계속 진행): {e}")
 
-    # 3. 임시 파일 저장 (LangGraph용)
+    # 3. 임시 파일 저장 (LangGraph용 — VLM 토큰 절약 위해 리사이즈)
+    resized_bytes = _resize_for_vlm(file_bytes)
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-        tmp.write(file_bytes)
+        tmp.write(resized_bytes)
         tmp_path = tmp.name
 
     try:
