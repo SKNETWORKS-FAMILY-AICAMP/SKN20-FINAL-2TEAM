@@ -30,6 +30,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-ftoguard-design-images}
+      - KIPRIS_API_KEY=${KIPRIS_API_KEY}
     volumes:
       - ./data/bm25_index:/app/rag/index/bm25_index
     depends_on:

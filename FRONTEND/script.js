@@ -233,6 +233,19 @@ function toggleMobileAnalysisMenu() {
     }
 }
 
+// 모바일 사용 방법 서브메뉴 토글 (header.html에서 onclick으로 호출)
+function toggleMobileDemoMenu() {
+    const submenu = document.getElementById("mobile-demo-submenu");
+    const icon = document.getElementById("mobile-demo-icon");
+    if (submenu) {
+        submenu.classList.toggle("hidden");
+        if (icon) {
+            icon.classList.toggle("fa-chevron-down");
+            icon.classList.toggle("fa-chevron-up");
+        }
+    }
+}
+
 function closeMobileMenu() {
     const mobileMenu = document.getElementById("mobile-menu");
     if (mobileMenu) mobileMenu.classList.add("hidden");

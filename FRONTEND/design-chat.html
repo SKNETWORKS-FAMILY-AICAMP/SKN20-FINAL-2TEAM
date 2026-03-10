@@ -2477,10 +2477,26 @@
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF 저장'; }
     }
 
+    // HTTP에서도 동작하는 클립보드 복사 (navigator.clipboard는 HTTPS 전용)
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return Promise.resolve();
+    }
+
     // ==================== KIPRIS 연동 ====================
 
     function openKiprisWithNumber(appNum) {
-        navigator.clipboard.writeText(appNum).then(() => {
+        copyText(appNum).then(() => {
             alert(`출원번호가 복사되었습니다.\nKIPRIS에서 "디자인" 탭을 선택한 후 붙여넣기 해주세요.`);
             window.open('https://www.kipris.or.kr/khome/search/searchResult.do?tab=patent', '_blank');
         }).catch(() => {

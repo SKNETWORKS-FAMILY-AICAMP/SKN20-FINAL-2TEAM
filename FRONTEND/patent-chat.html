@@ -1194,7 +1194,7 @@
                                class="text-xs hover:opacity-70"
                                style="color: #6B7280;"
                                title="KIPRIS 열기 (출원번호 복사됨)"
-                               onclick="event.stopPropagation(); navigator.clipboard.writeText('${applyNum}');">
+                               onclick="event.stopPropagation(); copyText('${applyNum}');">
                                <i class="fas fa-external-link-alt" style="font-size:9px;"></i>
                             </a>
                             <span class="patent-status-badge ${statusClass}">${statusText}</span>
@@ -2388,6 +2388,22 @@
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    // HTTP에서도 동작하는 클립보드 복사 (navigator.clipboard는 HTTPS 전용)
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return Promise.resolve();
+    }
+
     async function openPatentPdf(applyNum) {
         // KIPRIS Plus API로 PDF URL 조회 → 없으면 KIPRIS 검색으로 폴백
         const url = `${API_BASE}/search/patent-pdf?apply_num=${encodeURIComponent(applyNum)}`;
@@ -2407,7 +2423,7 @@
             }
         } catch (e) { /* 네트워크 에러 */ }
         // PDF 없음 → 출원번호 복사 + KIPRIS 검색 열기
-        navigator.clipboard.writeText(applyNum);
+        copyText(applyNum);
         alert('PDF가 없는 특허입니다.\n출원번호가 복사되었습니다. KIPRIS에서 붙여넣기 해주세요.');
         window.open('https://www.kipris.or.kr/khome/search/searchResult.do?tab=patent', '_blank');
     }
