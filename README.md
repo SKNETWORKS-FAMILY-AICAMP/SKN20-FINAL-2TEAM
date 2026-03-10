@@ -460,6 +460,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 
 <div align="center">
 
-**© 2026 FTOGuard Team (긍마) | SKN 클라우드 AI 엔지니어 양성과정 20기**
+**© 2026 FTOGuard Team (긍마) | SKN AI 20기**
 
 </div>
