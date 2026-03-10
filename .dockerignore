@@ -1,0 +1,78 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.vscode
+.claude
+*.code-workspace
+
+# 문서
+*.md
+dj.md
+dj_ec2.md
+dj_runpod.md
+PPT_patent.md
+README.md
+CLAUDE.md
+
+# 환경변수 (Docker에서 별도 주입)
+.env
+.env.*
+
+# Python 캐시
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 데이터 (volume으로 마운트)
+data/
+
+# rag 불필요 파일
+rag/index/chroma_db_js/
+rag/index/parent_store/
+rag/index/claim_keywords.sqlite
+rag/index/claim_keywords_full.csv
+rag/index/js_child_parent2.zip
+rag/index/checking/
+rag/eval/
+rag/test/
+
+# design 불필요 파일
+design/chroma_db/
+design/chroma_db_images.tar.gz
+design/src/temp_uploads/
+design/sketch_preview.ipynb
+design/README.md
+design/CLAUDE.md
+
+# FRONTEND 불필요 파일
+FRONTEND/demo_video/
+FRONTEND/delete/
+FRONTEND/Dockerfile
+FRONTEND/nginx.conf
+FRONTEND/README.md
+FRONTEND/*.md
+
+# backend 불필요 파일
+backend/Dockerfile
+backend/bini_test.db
+backend/_debug_*.py
+backend/logs/
+backend/uploads/
+backend/README.md
+
+# 기타 불필요
+backup/
+capture/
+sql/
+runpod/
+SLLM_model/
+merge_upload.py
+nul
+requirements_all.txt
+requirements_all2.txt
+docker-compose*.yml

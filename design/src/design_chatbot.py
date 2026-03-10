@@ -91,9 +91,23 @@ else:
 
 output_parser = StrOutputParser()
 
-CHROMA_DB = design_config.CHROMA_DB_PATH
-chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
-image_collection = chroma_client.get_collection(name="design")
+# Docker: HttpClient (CHROMA_IMAGE_HOST 설정 시), 로컬: PersistentClient
+_chroma_host = os.environ.get("CHROMA_IMAGE_HOST")
+_chroma_port = int(os.environ.get("CHROMA_IMAGE_PORT", "8000"))
+if _chroma_host:
+    chroma_client = chromadb.HttpClient(host=_chroma_host, port=_chroma_port)
+    print(f"[design] ChromaDB HttpClient: {_chroma_host}:{_chroma_port}")
+else:
+    CHROMA_DB = design_config.CHROMA_DB_PATH
+    chroma_client = chromadb.PersistentClient(path=CHROMA_DB)
+    print(f"[design] ChromaDB PersistentClient: {CHROMA_DB}")
+
+# 컬렉션 목록 확인 후 'design' 컬렉션 로드
+_collections = [col.name for col in chroma_client.list_collections()]
+print(f"[design] 사용 가능한 컬렉션: {_collections}")
+_design_col_name = "design" if "design" in _collections else (_collections[0] if _collections else "design")
+image_collection = chroma_client.get_collection(name=_design_col_name)
+print(f"[design] 컬렉션 '{_design_col_name}' 로드: {image_collection.count()}개")
 
 # BM25 인덱스 빌드 (전체 코퍼스 1회 로드)
 _all          = image_collection.get(include=["metadatas"])

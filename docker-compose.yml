@@ -1,28 +1,56 @@
-version: '3.8'
-
 services:
-  # FastAPI 백엔드
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: fto-backend
+    ports:
+      - "8080:8080"
     environment:
-      DATABASE_URL: mysql+pymysql://admin:rmdak2020@fto-db.c34w48m8sov6.ap-northeast-2.rds.amazonaws.com:3306/fto
-      SECRET_KEY: your-secret-key-change-in-production
-      HF_TOKEN: ${HF_TOKEN:-YOUR_HF_TOKEN_HERE}
-    ports:
-      - "8000:8000"
-    restart: unless-stopped
-
-  # 프론트엔드 (Nginx)
-  frontend:
-    build:
-      context: ./FRONTEND
-      dockerfile: Dockerfile
-    container_name: fto-frontend
-    ports:
-      - "3000:80"
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:3306/${MYSQL_DATABASE}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - CHROMA_HOST=chromadb-patent
+      - CHROMA_PORT=8000
+      - CHROMA_IMAGE_HOST=chromadb-design
+      - CHROMA_IMAGE_PORT=8000
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY}
+      - RUNPOD_PATENT_ENDPOINT_ID=${RUNPOD_PATENT_ENDPOINT_ID}
+      - RUNPOD_DESIGN_BASE_URL=${RUNPOD_DESIGN_BASE_URL}
+      - DESIGN_VLLM_MODEL=${DESIGN_VLLM_MODEL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - HF_TOKEN=${HF_TOKEN}
+      - SECRET_KEY=${SECRET_KEY:-demo-secret-key-2026}
+      - DEV_BYPASS_AUTH=true
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-ftoguard-design-images}
+    volumes:
+      - ./data/bm25_index:/app/rag/index/bm25_index
     depends_on:
-      - backend
-    restart: unless-stopped
+      - chromadb-patent
+      - chromadb-design
+    restart: always
+
+  chromadb-patent:
+    image: chromadb/chroma:latest
+    container_name: chromadb-patent
+    volumes:
+      - ./data/chroma-patent:/data
+    environment:
+      - ANONYMIZED_TELEMETRY=false
+    restart: always
+
+  chromadb-design:
+    image: chromadb/chroma:latest
+    container_name: chromadb-design
+    volumes:
+      - ./data/chroma-design:/data
+    environment:
+      - ANONYMIZED_TELEMETRY=false
+    restart: always
