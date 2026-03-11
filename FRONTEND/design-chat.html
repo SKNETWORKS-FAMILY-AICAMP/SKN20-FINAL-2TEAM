@@ -1546,11 +1546,6 @@
                         리포트 보기
                     </button>
                 </div>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
-                        새 분석 시작
-                    </button>
-                </div>
             </div>
         `;
         messagesWrapper.appendChild(div);
@@ -1561,6 +1556,8 @@
 
     function openReportPanel() {
         if (!_ftoReportData) return;
+        // fullFtoPanel 닫기
+        closeFullFTOPanel();
         const { reportText, userImgSrc, selImgSrc, selLabel } = _ftoReportData;
         const sel = _ftoReportData._selectedDesign || {};
         const appNum = sel.application_number || '';
@@ -1835,11 +1832,6 @@
                     <button onclick="openReportPanel()" class="result-view-btn">
                         <i class="fas fa-file-alt"></i>
                         리포트 보기
-                    </button>
-                </div>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="startNewDesignChat()" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all">
-                        새 분석 시작
                     </button>
                 </div>
             </div>
